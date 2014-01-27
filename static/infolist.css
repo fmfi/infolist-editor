@@ -1,6 +1,25 @@
 .main-content {
+  
+}
+
+.content-normal {
   width: 50em;
   margin: 0 auto;
+}
+
+.content-full {
+  width: 60em;
+  margin: 0 auto;
+}
+
+.content-full .left {
+  width: 40em;
+  float: left;
+}
+
+.content-full .right {
+  width: 20em;
+  float: right;
 }
 
 .infolist {
@@ -20,4 +39,15 @@
 
 .infolist .body {
   padding: 1em;
+}
+
+.content-full .meta {
+  background: white;
+  border: 1px solid #ddd;
+}
+
+.meta {
+  margin-left: 1em;
+  padding: 1em;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
