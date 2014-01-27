@@ -15,6 +15,15 @@
     <script type="text/javascript" src="{{ url_for('static', filename='infolist.js') }}"></script>
   </head>
   <body>
+    <header class="navbar navbar-top" role="banner">
+      <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+        <ul class="nav navbar-nav navbar-right">
+          {% if g.user %}
+          <li><a href="#">Odhlásiť</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </header>
     <div class="main-content">
     {% block content %}
     {% endblock %}
