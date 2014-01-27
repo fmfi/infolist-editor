@@ -1,0 +1,31 @@
+.deformSeqAdd:visited {
+   color: blue;
+}
+
+.deformReplaces {
+    float: left;
+}
+
+.deformSet-item {
+    padding: 1px;
+}
+
+form .required {
+    font-weight: bold;
+}
+
+form .required:after {
+    color: #e32;
+    content: '*';
+    display:inline;
+}
+
+/* ugh, terrible selector coming up */
+
+.hasDatepicker[readonly] {
+    cursor: pointer !important;
+}
+
+form .deform-readonly-text {
+    font-style: italic;
+}

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>{% block title %}Komplexná akreditácia{% endblock %}</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap.min.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='typeahead.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='form.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='infolist.css') }}" />
+    <script type="text/javascript" src="{{ url_for('static', filename='jquery-1.10.2.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='jquery.form-3.09.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='jquery.sortable.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='jquery.maskedinput-1.3.1.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='deform.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='infolist.js') }}"></script>
+  </head>
+  <body>
+    <div class="main-content">
+    {% block content %}
+    {% endblock %}
+    </div>
+    <!-- Piwik -->
+    <script type="text/javascript">
+      var _paq = _paq || [];
+      _paq.push(["trackPageView"]);
+      _paq.push(["enableLinkTracking"]);
+
+      (function() {
+        var u=(("https:" == document.location.protocol) ? "https" : "http") + "://sluzby.fmph.uniba.sk/analytics/";
+        _paq.push(["setTrackerUrl", u+"piwik.php"]);
+        _paq.push(["setSiteId", "1"]);
+        var d=document, g=d.createElement("script"), s=d.getElementsByTagName("script")[0]; g.type="text/javascript";
+        g.defer=true; g.async=true; g.src=u+"piwik.js"; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    <!-- End Piwik Code -->
+  </body>
+</html>

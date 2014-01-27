@@ -1,0 +1,31 @@
+class Configuration(object):
+  def __init__(self, app):
+    # tajny sifrovaci kluc
+    self.secret = 'change this!'
+
+    self.conn_str = 'host=localhost dbname= user= password='
+
+    ADMINS = ['email@example.com']
+    if not app.debug:
+      import logging
+      from logging.handlers import SMTPHandler
+      from logging import Formatter
+      
+      mail_handler = SMTPHandler('smtp.example.com',
+                                'citacie@example.com',
+                                ADMINS, 'Citacie - error')
+      mail_handler.setLevel(logging.ERROR)
+      mail_handler.setFormatter(Formatter('''
+Message type:       %(levelname)s
+Location:           %(pathname)s:%(lineno)d
+Module:             %(module)s
+Function:           %(funcName)s
+Time:               %(asctime)s
+
+Message:
+
+%(message)s
+'''))
+      app.logger.addHandler(mail_handler)
+
+active_config = Configuration

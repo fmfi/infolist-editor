@@ -1,0 +1,27 @@
+{% extends 'layout.html' %}
+{% from 'macros.html' import render_field %}
+{% block title %}Informačný list{% endblock %}
+{% block content %}
+    <div class="infolist">
+      <div class="header">
+        <h2>1-INF-165 Programovanie (2)</h2>
+        <div id="detail">naimportované z AISu (<a href="https://sluzby.fmph.uniba.sk/infolist/SK/1-INF-165.html">pôvodná verzia</a>)</div>
+      </div>
+      <div class="body">
+        <form id="{{ form.formid }}" method="{{ form.method }}" enctype="multipart/form-data" accept-charset="utf-8">
+        {{ render_field(form.kod) }}
+        {{ render_field(form.nazov_predmetu) }}
+        {{ render_field(form.cinnosti) }}
+        {{ render_field(form.pocet_kreditov) }}
+        {{ render_field(form.podmienujuce_predmety) }}
+        {{ render_field(form.podm_absolvovania) }}
+        {{ render_field(form.vysledky_vzdelavania) }}
+        {{ render_field(form.strucna_osnova) }}
+        {{ render_field(form.odporucana_literatura) }}
+        {{ render_field(form.jazyk) }}
+        {{ render_field(form.vyucujuci) }}
+        {{ render_field(form.finalna_verzia) }}
+        </form>
+      </div>
+    </div>
+{% endblock %}

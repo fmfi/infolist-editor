@@ -1,5 +1,3 @@
-*.log
-*.pot
-*.pyc
-local_settings.ini
 /*env
+*.pyc
+/local_settings.py

@@ -1,8 +1,0 @@
-[global]
-debug = True
-allowed_hosts = 
-
-[db]
-name = infolist
-user = infolist
-password = THESECRET

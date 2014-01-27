@@ -1,0 +1,42 @@
+{% macro render_errors(field) %}
+  {% if field.error and not field.widget.hidden and not field.typ.__class__.__name__=='Mapping' %}
+    {% for error in field.error.messages() %}
+      <p class="help-block">{{ error }}</p>
+    {% endfor %}
+  {% endif %}
+{% endmacro %}
+
+{% macro render_value_and_errors(field) %}
+  {{ field.render(**kwargs)|safe }}
+  {{ render_errors(field) }}
+{% endmacro %}
+
+{% macro render_description(field) %}
+  {% if field.description and not field.widget.hidden %}
+    <p class="help-block">
+      {{ field.description }}
+    </p>
+  {% endif %}
+{% endmacro %}
+
+{% macro render_field(field) %}
+  <div class="form-group {{ field.error and 'has-error' or '' }} {{ field.widget.item_css_class or '' }}">
+    {% if not (field.widget.hidden or field.widget.category == 'structural') %}
+      <label for="{{ field.oid }}" class="control-label {{ 'required' if field.required }}">{{ field.title }}</label>
+    {% endif %}
+    {{ render_value_and_errors(field) }}
+    {% if not (field.widget.hidden or field.widget.category == 'structural') %}
+    {{ render_description(field) }}
+    {% endif %}
+  </div>
+{% endmacro %}
+
+{% macro widget_in_panel(field) %}
+  <div class="panel panel-default">
+    <div class="panel-heading">{{ field.title }}</div>
+    <div class="panel-body">
+      {{ render_value_and_errors(field) }}
+      {{ render_description(field) }}
+    </div>
+  </div>
+{% endmacro %}

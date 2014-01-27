@@ -10,12 +10,5 @@ Editor informačných listov
 
     virtualenv venv
     source venv/bin/activate
-    pip install django mysql-python
-    cp mysite/mysite/local_settings.ini.example mysite/mysite/local_settings.ini
-    vim mysite/mysite/local_settings.ini
+    pip install Flask deform=2.0a2
 
-### Spustenie
-
-    cd mysite
-    python manage.py syncdb
-    python manage.py runserver 
