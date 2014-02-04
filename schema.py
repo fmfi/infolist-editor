@@ -52,10 +52,6 @@ def OdporucanaLiteratura(**kwargs):
 def Infolist():
   schema = MappingSchema()
   schema.add(SchemaNode(String(),
-    name='kod',
-    title=u'Kód predmetu'
-  ))
-  schema.add(SchemaNode(String(),
     name='nazov_predmetu',
     title=u'Názov predmetu'
   ))
