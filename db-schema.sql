@@ -46,8 +46,6 @@ VALUES
 
 CREATE TABLE infolist_verzia (
   id serial not null primary key,
-  kod_predmetu varchar(200),
-  skratka varchar(200),
   nazov_predmetu varchar(300) not null,
   podm_absol_percenta_skuska integer,
   podm_absol_percenta_na_a integer,
@@ -80,9 +78,16 @@ CREATE TABLE infolist_verzia_preklad (
 
 CREATE TABLE infolist_verzia_vyucujuci (
   infolist_verzia integer not null references infolist_verzia(id),
-  osoba_id integer not null references osoba(id),
+  poradie integer not null,
+  osoba integer not null references osoba(id),
+  PRIMARY KEY (infolist_verzia, osoba)
+);
+
+CREATE TABLE infolist_verzia_vyucujuci_cinnosti (
+  infolist_verzia integer not null references infolist_verzia(id),
+  osoba integer not null references osoba(id),
   druh_cinnosti char(1) not null references druh_cinnosti(kod),
-  PRIMARY KEY (infolist_verzia, osoba_id, druh_cinnosti)
+  PRIMARY KEY (infolist_verzia, osoba, druh_cinnosti)
 );
 
 CREATE TABLE infolist_verzia_cinnosti (
@@ -100,6 +105,19 @@ CREATE TABLE infolist (
   forknute_z integer references infolist(id),
   zamknute boolean not null default false,
   finalna_verzia boolean not null default false
+);
+
+CREATE TABLE predmet (
+  id serial not null primary key,
+  kod_predmetu varchar(200) unique,
+  skratka varchar(200),
+  zmenit_kod boolean default false
+);
+
+CREATE TABLE predmet_infolist (
+  predmet_id integer not null references predmet(id),
+  infolist_id integer not null references infolist(id),
+  primary key (predmet_id, infolist_id)
 );
 
 COMMIT;
