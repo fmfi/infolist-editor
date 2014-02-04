@@ -8,7 +8,8 @@ CREATE TABLE osoba (
   meno varchar(250),
   priezvisko varchar(250),
   cele_meno varchar(250),
-  rodne_priezvisko varchar(250)
+  rodne_priezvisko varchar(250),
+  vyucujuci boolean
 );
 
 CREATE TABLE druh_cinnosti
