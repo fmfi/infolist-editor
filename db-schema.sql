@@ -58,22 +58,24 @@ CREATE TABLE infolist_verzia (
   hodnotenia_c_pocet integer,
   hodnotenia_d_pocet integer,
   hodnotenia_e_pocet integer,
-  hodnotenia_fx_pocet integer
+  hodnotenia_fx_pocet integer,
+  podmienujuce_predmety text,
+  vylucujuce_predmety text,
+  modifikovane timestamp not null default 'now'
 );
 
 -- COMMENT ON TABLE infolist_verzia.percenta_skuska IS 'podiel zaverecneho hodnotenia na znamke (priebezne je 100 - tato hodnota)';
 
 CREATE TABLE infolist_verzia_preklad (
   infolist_verzia integer not null references infolist_verzia(id),
-  jazyk varchar(2) not null,
+  jazyk_prekladu varchar(2) not null,
   podm_absol_priebezne text,
   podm_absol_skuska text,
   podm_absol_nahrada text,
   vysledky_vzdelavania text,
   strucna_osnova text,
   potrebny_jazyk varchar(200),
-  modifikovane timestamp not null default 'now',
-  primary key (infolist_verzia, jazyk)
+  primary key (infolist_verzia, jazyk_prekladu)
 );
 
 CREATE TABLE infolist_verzia_vyucujuci (
@@ -115,9 +117,15 @@ CREATE TABLE predmet (
 );
 
 CREATE TABLE predmet_infolist (
-  predmet_id integer not null references predmet(id),
-  infolist_id integer not null references infolist(id),
-  primary key (predmet_id, infolist_id)
+  predmet integer not null references predmet(id),
+  infolist integer not null references infolist(id),
+  primary key (predmet, infolist)
+);
+
+CREATE TABLE infolist_verzia_suvisiace_predmety (
+  infolist_verzia integer not null references infolist_verzia(id),
+  predmet integer not null references predmet(id),
+  primary key (infolist_verzia, predmet)
 );
 
 COMMIT;
