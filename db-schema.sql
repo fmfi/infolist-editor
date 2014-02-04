@@ -12,27 +12,6 @@ CREATE TABLE osoba (
   vyucujuci boolean
 );
 
-CREATE TABLE druh_cinnosti
-(
-  kod char(1) NOT NULL primary key,
-  popis varchar(100) NOT NULL
-);
-
-INSERT INTO druh_cinnosti (kod, popis)
-VALUES
-  ('P', 'prednáška'),
-  ('C', 'cvičenie'),
-  ('S', 'seminár'),
-  ('L', 'laboratórne práce'),
-  ('X', 'projektová práca'),
-  ('E', 'exkurzia'),
-  ('Z', 'stáž'),
-  ('O', 'odborná stáž'),
-  ('N', 'iný typ vzdelávacej činnosti'),
-  ('A', 'prax'),
-  ('K', 'kurz')
-;
-
 CREATE TABLE metoda_vyucby (
   kod char(1) not null primary key,
   popis varchar(50) not null
@@ -115,7 +94,7 @@ CREATE TABLE infolist_verzia_vyucujuci_typ (
 
 CREATE TABLE infolist_verzia_cinnosti (
   infolist_verzia integer not null references infolist_verzia(id),
-  druh_cinnosti char(1) not null references druh_cinnosti(kod),
+  druh_cinnosti varchar(50) not null,
   metoda_vyucby char(1) not null references metoda_vyucby(kod),
   pocet_hodin_tyzdenne integer not null,
   primary key (infolist_verzia, druh_cinnosti)
