@@ -87,11 +87,13 @@ def Infolist():
   ))
   schema.add(SchemaNode(String(),
     name='vysledky_vzdelavania',
-    title=u'Výsledky vzdelávania'
+    title=u'Výsledky vzdelávania',
+    widget=deform.widget.TextAreaWidget(rows=5)
   ))
   schema.add(SchemaNode(String(),
     name='strucna_osnova',
-    title=u'Stručná osnova predmetu'
+    title=u'Stručná osnova predmetu',
+    widget=deform.widget.TextAreaWidget(rows=5)
   ))
   schema.add(OdporucanaLiteratura(
     name='odporucana_literatura',
