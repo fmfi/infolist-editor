@@ -45,6 +45,25 @@ VALUES
   ('K', 'kombinovaná')
 ;
 
+CREATE TABLE typ_vyucujuceho (
+  kod char(1) not null primary key,
+  popis varchar(50) not null
+);
+
+INSERT INTO typ_vyucujuceho (kod, popis)
+VALUES
+  ('H', 'hodnotiaci'),
+  ('P', 'prednášajúci'),
+  ('C', 'cvičiaci'),
+  ('L', 'laborant'),
+  ('S', 'skúšajúci'),
+  ('G', 'garant predmetu'),
+  ('A', 'administrátor'),
+  ('V', 'vedúci seminára')
+;
+
+COMMENT ON TABLE typ_vyucujuceho IS 'Prebrate z AISoveho ciselniku SCSTTypVyucujuceho';
+
 CREATE TABLE infolist_verzia (
   id serial not null primary key,
   nazov_predmetu varchar(300) not null,
@@ -86,11 +105,11 @@ CREATE TABLE infolist_verzia_vyucujuci (
   PRIMARY KEY (infolist_verzia, osoba)
 );
 
-CREATE TABLE infolist_verzia_vyucujuci_cinnosti (
+CREATE TABLE infolist_verzia_vyucujuci_typ (
   infolist_verzia integer not null references infolist_verzia(id),
   osoba integer not null references osoba(id),
-  druh_cinnosti char(1) not null references druh_cinnosti(kod),
-  PRIMARY KEY (infolist_verzia, osoba, druh_cinnosti)
+  typ_vyucujuceho char(1) not null references typ_vyucujuceho(kod),
+  PRIMARY KEY (infolist_verzia, osoba, typ_vyucujuceho)
 );
 
 CREATE TABLE infolist_verzia_cinnosti (
