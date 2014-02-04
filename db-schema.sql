@@ -102,7 +102,8 @@ CREATE TABLE infolist_verzia_vyucujuci (
   infolist_verzia integer not null references infolist_verzia(id),
   poradie integer not null,
   osoba integer not null references osoba(id),
-  PRIMARY KEY (infolist_verzia, osoba)
+  PRIMARY KEY (infolist_verzia, osoba),
+  UNIQUE (infolist_verzia, poradie)
 );
 
 CREATE TABLE infolist_verzia_vyucujuci_typ (
