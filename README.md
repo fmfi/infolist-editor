@@ -8,7 +8,8 @@ Editor informačných listov
 
 ### Ako rozbehať projekt?
 
+    sudo apt-get install python-dev libpq-dev
     virtualenv venv
     source venv/bin/activate
-    pip install Flask deform=2.0a2
+    pip install Flask deform=2.0a2 psycopg2
 
