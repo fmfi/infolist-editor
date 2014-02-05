@@ -12,6 +12,7 @@ def dict_rec_update(d1, d2):
 class DataStore(object):
   def __init__(self, conn):
     self.conn = conn
+    self._typy_vyucujuceho = None
   
   def cursor(self):
     return self.conn.cursor()
@@ -176,3 +177,10 @@ class DataStore(object):
       cur.execute('SELECT id, cele_meno, meno, priezvisko FROM osoba WHERE id = %s',
         (id,))
       return cur.fetchone()
+  
+  def load_typy_vyucujuceho(self):
+    if self._typy_vyucujuceho == None:
+      with self.cursor() as cur:
+        cur.execute('SELECT kod, popis FROM typ_vyucujuceho')
+        self._typy_vyucujuceho = cur.fetchall()
+    return self._typy_vyucujuceho

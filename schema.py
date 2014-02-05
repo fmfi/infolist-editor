@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-from colander import MappingSchema, SchemaNode, String, Integer, Bool, Sequence, Length, Email
+from colander import MappingSchema, SchemaNode, String, Integer, Bool, Sequence, Length, Email, Set
 import colander
 import deform
 from chameleon.utils import Markup
 import widgets
-from flask import url_for
+from flask import url_for, g
 
 class VzdelavaciaCinnost(MappingSchema):
   druh_cinnosti = SchemaNode(String())
@@ -22,6 +22,10 @@ def Vyucujuci(**kwargs):
       item_url=url_for('osoba_get', _external=True),
       template="osoba"
     )
+  ))
+  schema.add(SchemaNode(Set(),
+    name='typy',
+    widget=deform.widget.CheckboxChoiceWidget(values=g.db.load_typy_vyucujuceho())
   ))
   return schema
 
