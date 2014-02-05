@@ -6,12 +6,20 @@ from chameleon.utils import Markup
 import widgets
 from flask import url_for, g
 
-class VzdelavaciaCinnost(MappingSchema):
-  druh_cinnosti = SchemaNode(String())
-  pocet_hodin_tyzdenne = SchemaNode(Integer())
-  metoda_vyucby = SchemaNode(String(),
+def VzdelavaciaCinnost(**kwargs):
+  schema = MappingSchema(**kwargs)
+  schema.add(SchemaNode(String(),
+    name='druh_cinnosti',
+    widget=deform.widget.AutocompleteInputWidget(values=g.db.load_druhy_cinnosti())
+  ))
+  schema.add(SchemaNode(Integer(),
+    name='pocet_hodin_tyzdenne',
+  ))
+  schema.add(SchemaNode(String(),
+    name='metoda_vyucby',
     widget=deform.widget.Select2Widget(values=(('P', 'prezenčná'), ('D', 'dištančná'), ('K', 'kombinovaná')))
-  )
+  ))
+  return schema
 
 def Vyucujuci(**kwargs):
   schema = MappingSchema(**kwargs)

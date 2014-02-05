@@ -13,6 +13,7 @@ class DataStore(object):
   def __init__(self, conn):
     self.conn = conn
     self._typy_vyucujuceho = None
+    self._druhy_cinnosti = None
   
   def cursor(self):
     return self.conn.cursor()
@@ -184,3 +185,10 @@ class DataStore(object):
         cur.execute('SELECT kod, popis FROM typ_vyucujuceho')
         self._typy_vyucujuceho = cur.fetchall()
     return self._typy_vyucujuceho
+  
+  def load_druhy_cinnosti(self):
+    if self._druhy_cinnosti == None:
+      with self.cursor() as cur:
+        cur.execute('SELECT DISTINCT druh_cinnosti FROM infolist_verzia_cinnosti')
+        self._druhy_cinnosti = [x[0] for x in cur.fetchall()]
+    return self._druhy_cinnosti
