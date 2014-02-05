@@ -8,7 +8,8 @@ class RemoteSelect2Widget(Widget):
   def serialize(self, field, cstruct, **kw):
     if cstruct in (null, None):
       cstruct = self.null_value
-    kw['url'] = self.url
+    kw['search_url'] = self.search_url
+    kw['item_url'] = self.item_url
     tmpl_values = self.get_template_values(field, cstruct, kw)
     return field.renderer(self.template, **tmpl_values)
   

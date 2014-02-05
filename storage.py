@@ -170,3 +170,9 @@ class DataStore(object):
     with self.cursor() as cur:
       cur.execute(select, params)
       return cur.fetchall()
+  
+  def load_osoba(self, id):
+    with self.cursor() as cur:
+      cur.execute('SELECT id, cele_meno, meno, priezvisko FROM osoba WHERE id = %s',
+        (id,))
+      return cur.fetchone()

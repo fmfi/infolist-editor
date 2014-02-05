@@ -4,7 +4,7 @@
 from flask import Flask, Blueprint
 app = Flask(__name__)
 
-from flask import render_template, url_for, redirect, jsonify
+from flask import render_template, url_for, redirect, jsonify, abort
 from flask import request, Request, g
 from flask import Response
 from werkzeug.exceptions import BadRequest
@@ -111,6 +111,22 @@ def osoba_search():
       'priezvisko': priezvisko
     })
   return jsonify(osoby=osoby)
+
+@app.route('/osoba/json')
+def osoba_get():
+  try:
+    id = int(request.args['id'])
+  except ValueError:
+    raise BadRequest()
+  osoba = g.db.load_osoba(id)
+  if osoba is None:
+    abort(404)
+  return jsonify(
+      id=osoba.id,
+      cele_meno=osoba.cele_meno,
+      meno=osoba.meno,
+      priezvisko=osoba.priezvisko
+    )
 
 if __name__ == '__main__':
   import sys

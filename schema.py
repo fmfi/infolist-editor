@@ -17,7 +17,11 @@ def Vyucujuci(**kwargs):
   schema = MappingSchema(**kwargs)
   schema.add(SchemaNode(Integer(),
     name='osoba',
-    widget=widgets.RemoteSelect2Widget(url=url_for('osoba_search', _external=True), template="osoba")
+    widget=widgets.RemoteSelect2Widget(
+      search_url=url_for('osoba_search', _external=True),
+      item_url=url_for('osoba_get', _external=True),
+      template="osoba"
+    )
   ))
   return schema
 
