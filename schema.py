@@ -3,6 +3,8 @@ from colander import MappingSchema, SchemaNode, String, Integer, Bool, Sequence,
 import colander
 import deform
 from chameleon.utils import Markup
+import widgets
+from flask import url_for
 
 class VzdelavaciaCinnost(MappingSchema):
   druh_cinnosti = SchemaNode(String())
@@ -11,10 +13,13 @@ class VzdelavaciaCinnost(MappingSchema):
     widget=deform.widget.Select2Widget(values=(('P', 'prezenčná'), ('D', 'dištančná'), ('K', 'kombinovaná')))
   )
 
-class Vyucujuci(MappingSchema):
-  id = SchemaNode(Integer())
-  prednasky = SchemaNode(Bool())
-  cvicenia = SchemaNode(Bool())
+def Vyucujuci(**kwargs):
+  schema = MappingSchema(**kwargs)
+  schema.add(SchemaNode(Integer(),
+    name='osoba',
+    widget=widgets.RemoteSelect2Widget(url=url_for('osoba_search', _external=True), template="osoba")
+  ))
+  return schema
 
 def PodmienkyAbsolvovania(**kwargs):
   schema = MappingSchema(**kwargs)

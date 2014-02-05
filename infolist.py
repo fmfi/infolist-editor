@@ -4,7 +4,7 @@
 from flask import Flask, Blueprint
 app = Flask(__name__)
 
-from flask import render_template, url_for, redirect
+from flask import render_template, url_for, redirect, jsonify
 from flask import request, Request, g
 from flask import Response
 from werkzeug.exceptions import BadRequest
@@ -98,6 +98,19 @@ def show_infolist(id):
   #return repr(infolist)
   form = Form(schema.Infolist(), buttons=('submit',), appstruct=infolist)
   return render_template('infolist.html', form=form)
+
+@app.route('/osoba/search')
+def osoba_search():
+  query = request.args['q']
+  osoby = []
+  for id, cele_meno, meno, priezvisko in g.db.search_osoba(query):
+    osoby.append({
+      'id': id,
+      'cele_meno': cele_meno,
+      'meno': meno,
+      'priezvisko': priezvisko
+    })
+  return jsonify(osoby=osoby)
 
 if __name__ == '__main__':
   import sys

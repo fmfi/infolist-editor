@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from werkzeug.exceptions import BadRequest
 
 def dict_rec_update(d1, d2):
   for key in d2:
@@ -150,3 +151,22 @@ class DataStore(object):
       'potrebny_jazyk': data.potrebny_jazyk,
       'jazyk_prekladu': lang,
     }
+  
+  def search_osoba(self, query):
+    if len(query) < 2:
+      raise BadRequest()
+    
+    conds = []
+    params = []
+    for part in query.split():
+      conds.append("""(unaccent(meno) ILIKE unaccent(%s)
+        OR unaccent(priezvisko) ILIKE unaccent(%s))""")
+      params.append(part + '%') # TODO escape
+      params.append(part + '%')
+    
+    select = '''SELECT id, cele_meno, meno, priezvisko FROM osoba
+      WHERE {}'''.format(' AND '.join(conds))
+    
+    with self.cursor() as cur:
+      cur.execute(select, params)
+      return cur.fetchall()

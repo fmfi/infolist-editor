@@ -1,0 +1,41 @@
+<div tal:define="
+     name name|field.name;
+     style field.widget.style;
+     oid oid|field.oid;
+     css_class css_class|field.widget.css_class;"
+     tal:omit-tag="">
+
+  <input type="hidden" tal:attributes="
+          name name;
+          id oid;
+          class string: form-control ${css_class or ''};
+          data-placeholder field.widget.placeholder|None;">
+
+  <script type="text/javascript">
+    deform.addCallback(
+      '${field.oid}',
+      function(oid) {
+        $('#' + oid).select2({
+          containerCssClass: 'form-control',
+          placeholder: "Vyhľadajte osobu",
+          minimumInputLength: 2,
+          ajax: {
+            url: "${url}",
+            data: function (term, page) {
+              return {
+                q: term
+              }
+            },
+            results: function (data, page) {
+              var osoby = $.map(data.osoby, function(val) {
+                return {id: val.id, text: val.cele_meno}
+              });
+              return {results: osoby}
+            }
+          }
+        });
+      }
+    );
+  </script>
+</div>
+

@@ -5,6 +5,8 @@ Editor informačných listov
 
 * Python 2.7+
 * virtualenv
+* postgresql, postgresql-contrib
+* `CREATE EXTENSION unaccent`
 
 ### Ako rozbehať projekt?
 
