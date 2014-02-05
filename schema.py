@@ -5,10 +5,10 @@ import deform
 from chameleon.utils import Markup
 
 class VzdelavaciaCinnost(MappingSchema):
-  druh = SchemaNode(String())
-  rozsah_tyzdenne = SchemaNode(Integer())
-  metoda = SchemaNode(String(),
-    widget=deform.widget.SelectWidget(values=(('prezencna', 'prezenčná'), ('distancna', 'dištančná'), ('kombinovana', 'kombinovaná')))
+  druh_cinnosti = SchemaNode(String())
+  pocet_hodin_tyzdenne = SchemaNode(Integer())
+  metoda_vyucby = SchemaNode(String(),
+    widget=deform.widget.SelectWidget(values=(('P', 'prezenčná'), ('D', 'dištančná'), ('K', 'kombinovaná')))
   )
 
 class Vyucujuci(MappingSchema):
