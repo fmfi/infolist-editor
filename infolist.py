@@ -92,7 +92,12 @@ def logout():
 
 @app.route('/infolist/<int:id>')
 def show_infolist(id):
-  return repr(g.db.load_infolist(id))
+  infolist = g.db.load_infolist(id)
+  infolist['podmienujuce_predmety'] = []
+  infolist['vylucujuce_predmety'] = []
+  #return repr(infolist)
+  form = Form(schema.Infolist(), buttons=('submit',), appstruct=infolist)
+  return render_template('infolist.html', form=form)
 
 if __name__ == '__main__':
   import sys
