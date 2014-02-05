@@ -165,7 +165,7 @@ class DataStore(object):
       params.append(part + '%')
     
     select = '''SELECT id, cele_meno, meno, priezvisko FROM osoba
-      WHERE {}'''.format(' AND '.join(conds))
+      WHERE vyucujuci AND {}'''.format(' AND '.join(conds))
     
     with self.cursor() as cur:
       cur.execute(select, params)
