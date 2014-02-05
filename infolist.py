@@ -62,6 +62,13 @@ def before_request():
   
   g.user = load_user(username)
 
+@app.teardown_request
+def teardown_request(*args, **kwargs):
+  try:
+    g.db.conn.close()
+  except:
+    app.logger.exception()
+
 @app.route('/', methods=['POST', 'GET'])
 def index():
   if not g.user:
