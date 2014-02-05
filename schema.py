@@ -8,7 +8,7 @@ class VzdelavaciaCinnost(MappingSchema):
   druh_cinnosti = SchemaNode(String())
   pocet_hodin_tyzdenne = SchemaNode(Integer())
   metoda_vyucby = SchemaNode(String(),
-    widget=deform.widget.SelectWidget(values=(('P', 'prezenčná'), ('D', 'dištančná'), ('K', 'kombinovaná')))
+    widget=deform.widget.Select2Widget(values=(('P', 'prezenčná'), ('D', 'dištančná'), ('K', 'kombinovaná')))
   )
 
 class Vyucujuci(MappingSchema):
