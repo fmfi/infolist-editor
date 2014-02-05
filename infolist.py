@@ -23,7 +23,10 @@ import time
 import jinja2
 from markupsafe import Markup, soft_unicode
 import psycopg2
-
+# postgres unicode
+psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
+psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
+from psycopg2.extras import NamedTupleCursor
 
 class MyRequest(Request):
   parameter_storage_class = OrderedMultiDict
@@ -51,7 +54,7 @@ def load_user(username):
 
 @app.before_request
 def before_request():
-  g.db = psycopg2.connect(config.conn_str)
+  g.db = storage.DataStore(psycopg2.connect(config.conn_str, cursor_factory=NamedTupleCursor))
   
   username = request.remote_user
   if app.debug and 'REMOTE_USER' in os.environ:
