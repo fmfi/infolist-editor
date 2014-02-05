@@ -34,6 +34,7 @@ class MyRequest(Request):
 app.request_class = MyRequest
 
 import schema
+import storage
 
 if 'INFOLIST_DEBUG' in os.environ:
   app.debug = True
@@ -88,6 +89,10 @@ def logout():
     response.set_cookie(request.environ['COSIGN_SERVICE'], value='',
                         expires=1, path='/', secure=True)
   return response
+
+@app.route('/infolist/<int:id>')
+def show_infolist(id):
+  return repr(g.db.load_infolist(id))
 
 if __name__ == '__main__':
   import sys
