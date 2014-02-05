@@ -95,6 +95,8 @@ def show_infolist(id):
   infolist = g.db.load_infolist(id)
   infolist['podmienujuce_predmety'] = []
   infolist['vylucujuce_predmety'] = []
+  if infolist['potrebny_jazyk'] == None:
+    infolist['potrebny_jazyk'] = u'slovenský, anglický'
   #return repr(infolist)
   form = Form(schema.Infolist(), buttons=('submit',), appstruct=infolist)
   return render_template('infolist.html', form=form)

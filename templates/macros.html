@@ -24,7 +24,7 @@
     {% if not (field.widget.hidden or field.widget.category == 'structural') %}
       <label for="{{ field.oid }}" class="control-label {{ 'required' if field.required }}">{{ field.title }}</label>
     {% endif %}
-    {{ render_value_and_errors(field) }}
+    {{ render_value_and_errors(field, **kwargs) }}
     {% if not (field.widget.hidden or field.widget.category == 'structural') %}
     {{ render_description(field) }}
     {% endif %}

@@ -116,8 +116,9 @@ def Infolist():
     title=u'Odporúčaná literatúra'
   ))
   schema.add(SchemaNode(String(),
-    name='jazyk',
-    title=u'Jazyk, ktorého znalosť je potrebná na absolvovanie predmetu'
+    name='potrebny_jazyk',
+    title=u'Jazyk, ktorého znalosť je potrebná na absolvovanie predmetu',
+    readonly=True
   ))
   schema.add(SchemaNode(Sequence(),
     Vyucujuci(name='vyucujuci'),
