@@ -39,14 +39,13 @@ def Vyucujuci(**kwargs):
 
 def PodmienkyAbsolvovania(**kwargs):
   schema = MappingSchema(**kwargs)
-  typ_hodn = ['priebezne', 'skuska']
-  for x in typ_hodn:
-    schema.add(SchemaNode(Integer(),
-      name='pomer_{}'.format(x)
-    ))
-  for x in typ_hodn:
+  schema.add(SchemaNode(Integer(),
+    name='percenta_skuska'
+  ))
+  for x in ['priebezne', 'skuska']:
     schema.add(SchemaNode(String(),
-      name=x
+      name=x,
+      widget=deform.widget.TextAreaWidget(rows=5)
     ))
   for x in ['A', 'B', 'C', 'D', 'E']:
     schema.add(SchemaNode(Integer(),
