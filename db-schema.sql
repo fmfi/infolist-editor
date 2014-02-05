@@ -45,7 +45,6 @@ COMMENT ON TABLE typ_vyucujuceho IS 'Prebrate z AISoveho ciselniku SCSTTypVyucuj
 
 CREATE TABLE infolist_verzia (
   id serial not null primary key,
-  nazov_predmetu varchar(300) not null,
   podm_absol_percenta_skuska integer,
   podm_absol_percenta_na_a integer,
   podm_absol_percenta_na_b integer,
@@ -60,7 +59,9 @@ CREATE TABLE infolist_verzia (
   hodnotenia_fx_pocet integer,
   podmienujuce_predmety text,
   vylucujuce_predmety text,
-  modifikovane timestamp not null default 'now'
+  modifikovane timestamp not null default 'now',
+  pocet_kreditov integer not null,
+  predosla_verzia integer references infolist_verzia(id)
 );
 
 -- COMMENT ON TABLE infolist_verzia.percenta_skuska IS 'podiel zaverecneho hodnotenia na znamke (priebezne je 100 - tato hodnota)';
@@ -68,6 +69,7 @@ CREATE TABLE infolist_verzia (
 CREATE TABLE infolist_verzia_preklad (
   infolist_verzia integer not null references infolist_verzia(id),
   jazyk_prekladu varchar(2) not null,
+  nazov_predmetu varchar(300) not null,
   podm_absol_priebezne text,
   podm_absol_skuska text,
   podm_absol_nahrada text,
