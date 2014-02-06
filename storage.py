@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import BadRequest, NotFound
 
 def dict_rec_update(d1, d2):
   for key in d2:
@@ -27,7 +27,7 @@ class DataStore(object):
         (id,))
       data = cur.fetchone()
       if data == None:
-        raise KeyError('infolist({})'.format(id))
+        raise NotFound('infolist({})'.format(id))
       posledna_verzia, import_z_aisu, forknute_z, zamknute, finalna_verzia = data
       i = {
         'posledna_verzia': posledna_verzia,
@@ -59,7 +59,7 @@ class DataStore(object):
       FROM infolist_verzia WHERE id = %s''', (id,))
     row = cur.fetchone()
     if row == None:
-      raise KeyError('infolist_verzia({})'.format(id))
+      raise NotFound('infolist_verzia({})'.format(id))
     
     (pocet_kreditov, percenta_skuska,
     pct_a, pct_b, pct_c, pct_d, pct_e,
@@ -139,7 +139,7 @@ class DataStore(object):
       (id, lang))
     data = cur.fetchone()
     if data == None:
-      raise KeyError('infolist_verzia_preklad({}, {})'.format(id, lang))
+      raise NotFound('infolist_verzia_preklad({}, {})'.format(id, lang))
     
     return {
       'nazov_predmetu': data.nazov_predmetu,
@@ -156,7 +156,7 @@ class DataStore(object):
   
   def search_osoba(self, query):
     if len(query) < 2:
-      raise BadRequest()
+      raise NotFound()
     
     conds = []
     params = []
