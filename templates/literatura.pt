@@ -28,10 +28,7 @@
               }
             },
             results: function (data, page) {
-              var literatura = $.map(data.literatura, function(val) {
-                return {id: val.id, text: val.dokument}
-              });
-              return {results: literatura}
+              return {results: data.literatura}
             }
           },
           initSelection: function(element, callback) {
@@ -41,6 +38,13 @@
                 data: {id: id}
               }).done(function(data) { callback({id: data.id, text: data.dokument}); });
             }
+          },
+          formatResult: function(object, container, query, escapeMarkup) {
+            return "<strong>" + escapeMarkup(object.dokument) + "</strong><br/>" + 
+              escapeMarkup(object.vyd_udaje);
+          },
+          formatSelection: function(object, container, escapeMarkup) {
+            return escapeMarkup(object.dokument);
           }
         });
       }
