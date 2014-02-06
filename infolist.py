@@ -130,6 +130,33 @@ def osoba_get():
       priezvisko=osoba.priezvisko
     )
 
+@app.route('/literatura/search')
+def literatura_search():
+  query = request.args['q']
+  literatura = []
+  for id, dokument, vyd_udaje in g.db.search_literatura(query):
+    literatura.append({
+      'id': int(id),
+      'dokument': dokument,
+      'vyd_udaje': vyd_udaje,
+    })
+  return jsonify(literatura=literatura)
+
+@app.route('/literatura/json')
+def literatura_get():
+  try:
+    id = int(request.args['id'])
+  except ValueError:
+    raise BadRequest()
+  literatura = g.db.load_literatura(id)
+  if literatura is None:
+    abort(404)
+  return jsonify(
+      id=int(literatura.bib_id),
+      dokument=literatura.dokument,
+      vyd_udaje=literatura.vyd_udaje
+    )
+
 if __name__ == '__main__':
   import sys
 

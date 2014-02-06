@@ -192,3 +192,28 @@ class DataStore(object):
         cur.execute('SELECT DISTINCT druh_cinnosti FROM infolist_verzia_cinnosti')
         self._druhy_cinnosti = [x[0] for x in cur.fetchall()]
     return self._druhy_cinnosti
+  
+  def search_literatura(self, query):
+    if len(query) < 2:
+      raise NotFound()
+    
+    conds = []
+    params = []
+    for part in query.split():
+      conds.append("""(unaccent(dokument) ILIKE unaccent(%s)
+        OR unaccent(vyd_udaje) ILIKE unaccent(%s))""")
+      params.append(part + '%') # TODO escape
+      params.append(part + '%')
+    
+    select = '''SELECT bib_id, dokument, vyd_udaje FROM literatura
+      WHERE dostupne AND {}'''.format(' AND '.join(conds))
+    
+    with self.cursor() as cur:
+      cur.execute(select, params)
+      return cur.fetchall()
+
+  def load_literatura(self, id):
+    with self.cursor() as cur:
+      cur.execute('SELECT bib_id, dokument, vyd_udaje FROM literatura WHERE id = %s',
+        (id,))
+      return cur.fetchone()

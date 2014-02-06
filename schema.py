@@ -56,8 +56,13 @@ def PodmienkyAbsolvovania(**kwargs):
 def OdporucanaLiteratura(**kwargs):
   schema = MappingSchema(**kwargs)
   schema.add(SchemaNode(Sequence(),
-    SchemaNode(String(),
-      name='id'
+    SchemaNode(Integer(),
+      name='literatura',
+      widget=widgets.RemoteSelect2Widget(
+        search_url=url_for('literatura_search', _external=True),
+        item_url=url_for('literatura_get', _external=True),
+        template="literatura"
+      )
     ),
     name='zoznam'
   ))
