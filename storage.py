@@ -14,6 +14,7 @@ class DataStore(object):
     self.conn = conn
     self._typy_vyucujuceho = None
     self._druhy_cinnosti = None
+    self._fakulty = None
   
   def cursor(self):
     return self.conn.cursor()
@@ -55,7 +56,7 @@ class DataStore(object):
       hodnotenia_a_pocet, hodnotenia_b_pocet, hodnotenia_c_pocet,
       hodnotenia_d_pocet, hodnotenia_e_pocet, hodnotenia_fx_pocet,
       podmienujuce_predmety, vylucujuce_predmety,
-      modifikovane, predosla_verzia
+      modifikovane, predosla_verzia, fakulta
       FROM infolist_verzia WHERE id = %s''', (id,))
     row = cur.fetchone()
     if row == None:
@@ -65,7 +66,7 @@ class DataStore(object):
     pct_a, pct_b, pct_c, pct_d, pct_e,
     hodn_a, hodn_b, hodn_c, hodn_d, hodn_e, hodn_fx,
     podmienujuce_predmety, vylucujuce_predmety,
-    modifikovane, predosla_verzia) = row
+    modifikovane, predosla_verzia, fakulta) = row
     
     iv = {
       'id': id,
@@ -92,6 +93,7 @@ class DataStore(object):
       'vylucujuce_predmety': vylucujuce_predmety,
       'modifikovane': modifikovane,
       'predosla_verzia': predosla_verzia,
+      'fakulta': fakulta,
     }
     return iv
   
@@ -192,6 +194,14 @@ class DataStore(object):
         cur.execute('SELECT DISTINCT druh_cinnosti FROM infolist_verzia_cinnosti')
         self._druhy_cinnosti = [x[0] for x in cur.fetchall()]
     return self._druhy_cinnosti
+  
+  def load_fakulty(self):
+    if self._fakulty == None:
+      with self.cursor() as cur:
+        cur.execute('''SELECT kod, nazov FROM organizacna_jednotka
+          WHERE nadriadena_kod = 'UK' AND typ = 'Fakul' ORDER BY nazov''')
+        self._fakulty = cur.fetchall()
+    return self._fakulty
   
   def search_literatura(self, query):
     if len(query) < 2:

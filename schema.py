@@ -77,6 +77,11 @@ def OdporucanaLiteratura(**kwargs):
 def Infolist():
   schema = MappingSchema()
   schema.add(SchemaNode(String(),
+    name='fakulta',
+    title=u'Fakulta',
+    widget=deform.widget.Select2Widget(values=g.db.load_fakulty()),
+  ))
+  schema.add(SchemaNode(String(),
     name='nazov_predmetu',
     title=u'Názov predmetu'
   ))

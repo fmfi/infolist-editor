@@ -11,6 +11,7 @@
     </div>
     <div class="body">
       <form id="{{ form.formid }}" method="{{ form.method }}" enctype="multipart/form-data" accept-charset="utf-8">
+      {{ render_field(form.fakulta) }}
       {{ render_field(form.nazov_predmetu) }}
       {{ render_field(form.cinnosti) }}
       {{ render_field(form.pocet_kreditov) }}
