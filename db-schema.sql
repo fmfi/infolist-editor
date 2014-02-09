@@ -26,19 +26,21 @@ VALUES
 
 CREATE TABLE typ_vyucujuceho (
   kod char(1) not null primary key,
-  popis varchar(50) not null
+  popis varchar(50) not null,
+  povolit_vyber boolean not null,
+  poradie int not null
 );
 
-INSERT INTO typ_vyucujuceho (kod, popis)
+INSERT INTO typ_vyucujuceho (kod, popis, povolit_vyber, poradie)
 VALUES
-  ('H', 'hodnotiaci'),
-  ('P', 'prednášajúci'),
-  ('C', 'cvičiaci'),
-  ('L', 'laborant'),
-  ('S', 'skúšajúci'),
-  ('G', 'garant predmetu'),
-  ('A', 'administrátor'),
-  ('V', 'vedúci seminára')
+  ('P', 'prednášajúci', true, 1),
+  ('C', 'cvičiaci', true, 2),
+  ('H', 'hodnotiaci', false, 3),
+  ('L', 'laborant', false, 4),
+  ('S', 'skúšajúci', false, 5),
+  ('G', 'garant predmetu', false, 6),
+  ('A', 'administrátor', false, 7),
+  ('V', 'vedúci seminára', false, 8)
 ;
 
 COMMENT ON TABLE typ_vyucujuceho IS 'Prebrate z AISoveho ciselniku SCSTTypVyucujuceho';

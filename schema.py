@@ -33,7 +33,7 @@ def Vyucujuci(**kwargs):
   ))
   schema.add(SchemaNode(Set(),
     name='typy',
-    widget=deform.widget.CheckboxChoiceWidget(values=g.db.load_typy_vyucujuceho())
+    widget=deform.widget.CheckboxChoiceWidget(values=g.db.load_typy_vyucujuceho(iba_povolene=True))
   ))
   return schema
 

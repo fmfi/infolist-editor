@@ -179,12 +179,12 @@ class DataStore(object):
         (id,))
       return cur.fetchone()
   
-  def load_typy_vyucujuceho(self):
+  def load_typy_vyucujuceho(self, iba_povolene=False):
     if self._typy_vyucujuceho == None:
       with self.cursor() as cur:
-        cur.execute('SELECT kod, popis FROM typ_vyucujuceho')
+        cur.execute('SELECT kod, popis, povolit_vyber FROM typ_vyucujuceho ORDER BY poradie')
         self._typy_vyucujuceho = cur.fetchall()
-    return self._typy_vyucujuceho
+    return [(kod, popis) for kod, popis, povolene in self._typy_vyucujuceho if not iba_povolene or povolene]
   
   def load_druhy_cinnosti(self):
     if self._druhy_cinnosti == None:
