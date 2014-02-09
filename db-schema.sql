@@ -527,6 +527,33 @@ CREATE TABLE osoba (
   vyucujuci boolean
 );
 
+CREATE TABLE druh_cinnosti (
+  kod char(1) not null primary key,
+  ais_sposob_vyucby varchar(10),
+  popis varchar(50) not null,
+  poradie integer not null,
+  povolit_vyber boolean,
+  UNIQUE (ais_sposob_vyucby)
+);
+
+INSERT INTO druh_cinnosti (poradie, kod, ais_sposob_vyucby, popis, povolit_vyber)
+VALUES
+  ( 1, 'P', 'P',  'prednáška', true),
+  ( 2, 'C', 'C',  'cvičenie', true),
+  ( 3, 'S', 'S',  'seminár', true),
+  ( 4, 'L', 'L',  'laboratórne práce', true),
+  ( 5, 'K', 'K',  'kurz', true),
+  ( 6, 'X', 'X',  'prax', true),
+  ( 7, 'D', 'D',  'samostatná práca', false),
+  ( 8, 'T', 'T',  'práca v teréne', false),
+  ( 9, 'U', 'Su', 'sústredenie', false),
+  (99, 'I', 'I',  'iná', false)
+;
+
+COMMENT ON TABLE druh_cinnosti IS 'Druhy cinnosti, ktore sa mozu robit na predmetoch';
+COMMENT ON COLUMN druh_cinnosti.ais_sposob_vyucby IS 'AISovy sposob vyucby, na ktory sa tento druh cinnosti najblizsie mapuje';
+COMMENT ON COLUMN druh_cinnosti.povolit_vyber IS 'Ci sa ma povolit vyber tejto polozky pri editacii';
+
 CREATE TABLE metoda_vyucby (
   kod char(1) not null primary key,
   popis varchar(50) not null
@@ -582,7 +609,7 @@ CREATE TABLE infolist_verzia (
   fakulta varchar(100) not null references organizacna_jednotka(kod)
 );
 
--- COMMENT ON TABLE infolist_verzia.percenta_skuska IS 'podiel zaverecneho hodnotenia na znamke (priebezne je 100 - tato hodnota)';
+COMMENT ON COLUMN infolist_verzia.podm_absol_percenta_skuska IS 'podiel zaverecneho hodnotenia na znamke (priebezne je 100 - tato hodnota)';
 
 CREATE TABLE infolist_verzia_preklad (
   infolist_verzia integer not null references infolist_verzia(id),
@@ -614,11 +641,15 @@ CREATE TABLE infolist_verzia_vyucujuci_typ (
 
 CREATE TABLE infolist_verzia_cinnosti (
   infolist_verzia integer not null references infolist_verzia(id),
-  druh_cinnosti varchar(50) not null,
+  druh_cinnosti char(1) not null references druh_cinnosti(kod),
   metoda_vyucby char(1) not null references metoda_vyucby(kod),
-  pocet_hodin_tyzdenne integer not null,
+  pocet_hodin integer not null,
+  za_obdobie char(1) not null,
   primary key (infolist_verzia, druh_cinnosti)
 );
+
+COMMENT ON COLUMN infolist_verzia_cinnosti.pocet_hodin IS 'Pocet hodin vyucby za obdobie';
+COMMENT ON COLUMN infolist_verzia_cinnosti.za_obdobie IS 'Urcuje za ake obdobie je dany pocet hodin (S=semester, T=tyzden)';
 
 CREATE TABLE infolist (
   id serial not null primary key,

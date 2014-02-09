@@ -10,10 +10,14 @@ def VzdelavaciaCinnost(**kwargs):
   schema = MappingSchema(**kwargs)
   schema.add(SchemaNode(String(),
     name='druh_cinnosti',
-    widget=deform.widget.AutocompleteInputWidget(values=g.db.load_druhy_cinnosti())
+    widget=deform.widget.Select2Widget(values=g.db.load_druhy_cinnosti())
   ))
   schema.add(SchemaNode(Integer(),
-    name='pocet_hodin_tyzdenne',
+    name='pocet_hodin',
+  ))
+  schema.add(SchemaNode(String(),
+    name='za_obdobie',
+    widget=deform.widget.Select2Widget(values=(('T', 'týždeň'), ('S', 'semester')))
   ))
   schema.add(SchemaNode(String(),
     name='metoda_vyucby',

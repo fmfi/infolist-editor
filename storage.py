@@ -119,16 +119,17 @@ class DataStore(object):
   
   def _load_iv_cinnosti(self, cur, id):
     cur.execute('''SELECT druh_cinnosti, metoda_vyucby,
-      pocet_hodin_tyzdenne
+      pocet_hodin, za_obdobie
       FROM infolist_verzia_cinnosti
       WHERE infolist_verzia = %s''',
       (id,))
     cinnosti = []
-    for druh_cinnosti, metoda_vyucby, pocet_hodin_tyzdenne in cur:
+    for druh_cinnosti, metoda_vyucby, pocet_hodin, za_obdobie in cur:
       cinnosti.append({
         'druh_cinnosti': druh_cinnosti,
         'metoda_vyucby': metoda_vyucby,
-        'pocet_hodin_tyzdenne': pocet_hodin_tyzdenne
+        'pocet_hodin': pocet_hodin,
+        'za_obdobie': za_obdobie,
       })
     return cinnosti
   
@@ -191,8 +192,8 @@ class DataStore(object):
   def load_druhy_cinnosti(self):
     if self._druhy_cinnosti == None:
       with self.cursor() as cur:
-        cur.execute('SELECT DISTINCT druh_cinnosti FROM infolist_verzia_cinnosti')
-        self._druhy_cinnosti = [x[0] for x in cur.fetchall()]
+        cur.execute('SELECT kod, popis FROM druh_cinnosti ORDER BY poradie')
+        self._druhy_cinnosti = cur.fetchall()
     return self._druhy_cinnosti
   
   def load_fakulty(self):
