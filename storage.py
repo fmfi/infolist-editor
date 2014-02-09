@@ -228,3 +228,9 @@ class DataStore(object):
       cur.execute('SELECT bib_id, dokument, vyd_udaje FROM literatura WHERE id = %s',
         (id,))
       return cur.fetchone()
+  
+  def load_predmet(self, id):
+    with self.cursor() as cur:
+      cur.execute('SELECT id, kod_predmetu, skratka FROM predmet WHERE id = %s',
+        (id,))
+      return cur.fetchone()

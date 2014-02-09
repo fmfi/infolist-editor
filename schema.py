@@ -101,15 +101,16 @@ def Infolist():
     name='pocet_kreditov',
     title=u'Počet kreditov'
   ))
-  schema.add(SchemaNode(Sequence(),
-    SchemaNode(Sequence(),
-      SchemaNode(String(),
-        name='podm_and'
-      ),
-      name='podm_or'
-    ),
+  schema.add(SchemaNode(String(),
     name='podmienujuce_predmety',
-    title=u'Podmieňujúce predmety'
+    title=u'Podmieňujúce predmety',
+    missing='',
+    widget=widgets.PodmienkaWidget()
+  ))
+  schema.add(SchemaNode(String(),
+    name='vylucujuce_predmety',
+    title=u'Vylučujúce predmety',
+    missing=''
   ))
   schema.add(PodmienkyAbsolvovania(
     name='podm_absolvovania',

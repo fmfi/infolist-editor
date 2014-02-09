@@ -1,0 +1,62 @@
+<div tal:define="
+     name name|field.name;
+     style field.widget.style;
+     oid oid|field.oid;
+     css_class css_class|field.widget.css_class;"
+     tal:omit-tag="">
+
+  <input type="text" tal:attributes="
+          name name;
+          id oid;
+          class string: ${css_class};
+          style style;
+          value cstruct;"
+           />
+
+  <script type="text/javascript">
+    deform.addCallback(
+      '${field.oid}',
+      function(oid) {
+        $('#' + oid).selectize({
+          delimiter: " ",
+          enableDuplicate: true,
+          hideSelected: false,
+          options: ${options},
+          render: {
+            item: function(item, escape) {
+              var cls;
+              if (item.value == '(' || item.value == ')') {
+                cls = ' class="bracket"';
+              }
+              else if (item.value == 'OR' || item.value == 'AND') {
+                cls = ' class="join"';
+              }
+              else {
+                cls = '';
+              }
+              return '<div' + cls + '>'+
+                escape(item.text) +
+              '<' + '/div>';
+            }
+          }
+          //load: function(query, callback) {
+          //  callback([{"value":"OR", "text": "ALEBO"}, {"value":"AND", "text": "A"}]);
+          //},
+          //create: function(input) {
+          //  if (input.toUpperCase() == "ALEBO") {
+          //    return {"value":"OR", "text": "ALEBO"};
+          //  }
+          //  else if (input.toUpperCase() == "A") {
+          //    return {"value":"AND", "text": "A"};
+          //  }
+          //  else {
+          //    return false;
+          //  }
+          //}
+        });
+      }
+    );
+  </script>
+
+</div>
+

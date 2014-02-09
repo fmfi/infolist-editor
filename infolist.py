@@ -93,8 +93,6 @@ def logout():
 @app.route('/infolist/<int:id>')
 def show_infolist(id):
   infolist = g.db.load_infolist(id)
-  infolist['podmienujuce_predmety'] = []
-  infolist['vylucujuce_predmety'] = []
   if infolist['potrebny_jazyk'] == None:
     infolist['potrebny_jazyk'] = u'slovenský, anglický'
   #return repr(infolist)

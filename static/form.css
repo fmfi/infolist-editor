@@ -29,3 +29,7 @@ form .required:after {
 form .deform-readonly-text {
     font-style: italic;
 }
+
+.selectize-control.multi .selectize-input > div.join {
+  background-color: transparent;
+}
