@@ -1,0 +1,9 @@
+DROP TABLE infolist_verzia_suvisiace_predmety;
+DROP TABLE predmet_infolist;
+DROP TABLE predmet;
+DROP TABLE infolist;
+DROP TABLE infolist_verzia_cinnosti;
+DROP TABLE infolist_verzia_vyucujuci_typ;
+DROP TABLE infolist_verzia_vyucujuci;
+DROP TABLE infolist_verzia_preklad;
+DROP TABLE infolist_verzia;
