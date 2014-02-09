@@ -2267,7 +2267,8 @@
 				var i, active, options, value_next;
 				value = hash_key(value);
 	
-				if (self.items.indexOf(value) !== -1) {
+				// see https://github.com/brianreavis/selectize.js/issues/129
+				if (!self.settings.enableDuplicate && self.items.indexOf(value) !== -1) {
 					if (inputMode === 'single') self.close();
 					return;
 				}
@@ -2608,17 +2609,19 @@
 				if (direction > 0) { caret++; }
 	
 				for (i = 0, n = self.$activeItems.length; i < n; i++) {
-					values.push($(self.$activeItems[i]).attr('data-value'));
+					values.push($(self.$activeItems[i]));
 				}
 				if (e) {
 					e.preventDefault();
 					e.stopPropagation();
 				}
 			} else if ((self.isFocused || self.settings.mode === 'single') && self.items.length) {
+				var $children = self.$control.children(':not(input)');
+
 				if (direction < 0 && selection.start === 0 && selection.length === 0) {
-					values.push(self.items[self.caretPos - 1]);
+					values.push($($children[self.caretPos - 1]));
 				} else if (direction > 0 && selection.start === self.$control_input.val().length) {
-					values.push(self.items[self.caretPos]);
+					values.push($($children[self.caretPos]));
 				}
 			}
 	
