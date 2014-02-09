@@ -68,7 +68,7 @@ def teardown_request(*args, **kwargs):
   try:
     g.db.conn.close()
   except:
-    app.logger.exception()
+    app.logger.exception('Vynimka pocas uvolnovania spojenia s DB')
 
 @app.route('/', methods=['POST', 'GET'])
 def index():
