@@ -12,6 +12,8 @@ from werkzeug.datastructures import OrderedMultiDict
 from werkzeug.routing import BaseConverter
 import re
 import os
+import deform
+deform.widget.SequenceWidget.category = 'structural' #monkey patch fix
 from deform import Form
 from deform.exception import ValidationFailure
 import json

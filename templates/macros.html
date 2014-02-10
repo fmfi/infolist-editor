@@ -13,9 +13,13 @@
 
 {% macro render_description(field) %}
   {% if field.description and not field.widget.hidden %}
-    <p class="help-block">
-      {{ field.description }}
-    </p>
+    <div class="help-block">
+      {% if field.description|attr('__html__') %}
+        {{ field.description }}
+      {% else %}
+        <p>{{ field.description }}</p>
+      {% endif %}
+    </div>
   {% endif %}
 {% endmacro %}
 
