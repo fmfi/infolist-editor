@@ -24,18 +24,25 @@
           options: ${options},
           render: {
             item: function(item, escape) {
-              var cls;
               if (item.value == '(' || item.value == ')') {
-                cls = ' class="bracket"';
+                return '<div class="zatvorka">' + escape(item.value) + '</div>';
               }
               else if (item.value == 'OR' || item.value == 'AND') {
-                cls = ' class="join"';
+                return '<div class="spojka">' + escape(item.value == 'AND' ? 'a' : 'alebo') + '</div>';
               }
-              else {
-                cls = '';
+              return '<' + 'div>' +
+                 escape(item.kod) +
+              '<' + '/div>';
+            },
+            option: function(item, escape) {
+              if (item.value == '(' || item.value == ')') {
+                return '<div class="zatvorka">' + escape(item.value) + '</div>';
               }
-              return '<div' + cls + '>'+
-                escape(item.text) +
+              else if (item.value == 'OR' || item.value == 'AND') {
+                return '<div class="spojka">' + escape(item.value == 'AND' ? 'a' : 'alebo') + '</div>';
+              }
+              return '<' + 'div>' +
+                 escape(item.kod) +
               '<' + '/div>';
             }
           },
@@ -51,7 +58,7 @@
               },
               success: function(data) {
                 callback($.map(data.predmety, function(predmet) {
-                  return {value: predmet.id, text: predmet.kod}
+                  return {value: predmet.id, kod: predmet.kod, skratka: predmet.skratka, typ: 'predmet', text: predmet.kod}
                 }));
               }
             });

@@ -29,10 +29,10 @@ class PodmienkaWidget(Widget):
     if cstruct in (null, None):
       cstruct = self.null_value
     options = [
-      {'value': 'OR', 'text': 'ALEBO'},
-      {'value': 'AND', 'text': 'A'},
-      {'value': '(', 'text': '('},
-      {'value': ')', 'text': ')'}
+      {'typ': 'spojka', 'value': 'OR', 'text': 'alebo'},
+      {'typ': 'spojka', 'value': 'AND', 'text': 'a'},
+      {'typ': 'zatvorka', 'value': '(', 'text': '('},
+      {'typ': 'zatvorka', 'value': ')', 'text': ')'}
     ]
     podm = Podmienka(cstruct)
     for id in podm.idset():
@@ -41,7 +41,9 @@ class PodmienkaWidget(Widget):
         continue
       option = {
         'value': predmet.id,
-        'text': predmet.skratka
+        'skratka': predmet.skratka,
+        'kod': predmet.kod_predmetu,
+        'text': predmet.kod_predmetu
       }
       options.append(option)
       

@@ -30,6 +30,10 @@ form .deform-readonly-text {
     font-style: italic;
 }
 
-.selectize-control.multi .selectize-input > div.join {
+.selectize-control.multi .selectize-input > div.spojka {
+  background-color: transparent;
+}
+
+.selectize-control.multi .selectize-input > div.zatvorka {
   background-color: transparent;
 }
