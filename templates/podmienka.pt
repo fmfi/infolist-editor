@@ -56,17 +56,6 @@
               }
             });
           },
-          //create: function(input) {
-          //  if (input.toUpperCase() == "ALEBO") {
-          //    return {"value":"OR", "text": "ALEBO"};
-          //  }
-          //  else if (input.toUpperCase() == "A") {
-          //    return {"value":"AND", "text": "A"};
-          //  }
-          //  else {
-          //    return false;
-          //  }
-          //}
         });
       }
     );
