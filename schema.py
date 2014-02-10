@@ -123,7 +123,7 @@ def Infolist():
   schema.add(SchemaNode(Sequence(),
     VzdelavaciaCinnost(
       name='vzdelavacia_cinnost',
-      title=u''
+      title=u'Činnosť'
     ),
     name='cinnosti',
     title=u'Druh, rozsah a metóda vzdelávacích činností',
