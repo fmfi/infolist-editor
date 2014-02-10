@@ -15,6 +15,7 @@ class DataStore(object):
     self._typy_vyucujuceho = None
     self._druhy_cinnosti = None
     self._fakulty = None
+    self._jazyky_vyucby = None
   
   def cursor(self):
     return self.conn.cursor()
@@ -56,7 +57,7 @@ class DataStore(object):
       hodnotenia_a_pocet, hodnotenia_b_pocet, hodnotenia_c_pocet,
       hodnotenia_d_pocet, hodnotenia_e_pocet, hodnotenia_fx_pocet,
       podmienujuce_predmety, vylucujuce_predmety,
-      modifikovane, predosla_verzia, fakulta
+      modifikovane, predosla_verzia, fakulta, potrebny_jazyk
       FROM infolist_verzia WHERE id = %s''', (id,))
     row = cur.fetchone()
     if row == None:
@@ -66,7 +67,7 @@ class DataStore(object):
     pct_a, pct_b, pct_c, pct_d, pct_e,
     hodn_a, hodn_b, hodn_c, hodn_d, hodn_e, hodn_fx,
     podmienujuce_predmety, vylucujuce_predmety,
-    modifikovane, predosla_verzia, fakulta) = row
+    modifikovane, predosla_verzia, fakulta, potrebny_jazyk) = row
     
     iv = {
       'id': id,
@@ -94,6 +95,7 @@ class DataStore(object):
       'modifikovane': modifikovane,
       'predosla_verzia': predosla_verzia,
       'fakulta': fakulta,
+      'potrebny_jazyk': potrebny_jazyk
     }
     return iv
   
@@ -136,7 +138,7 @@ class DataStore(object):
   def _load_iv_trans(self, cur, id, lang='sk'):
     cur.execute('''SELECT nazov_predmetu, podm_absol_priebezne,
       podm_absol_skuska, podm_absol_nahrada, vysledky_vzdelavania,
-      strucna_osnova, potrebny_jazyk
+      strucna_osnova
       FROM infolist_verzia_preklad
       WHERE infolist_verzia = %s AND jazyk_prekladu = %s''',
       (id, lang))
@@ -153,7 +155,6 @@ class DataStore(object):
       },
       'vysledky_vzdelavania': data.vysledky_vzdelavania,
       'strucna_osnova': data.strucna_osnova,
-      'potrebny_jazyk': data.potrebny_jazyk,
       'jazyk_prekladu': lang,
     }
   
@@ -240,3 +241,10 @@ class DataStore(object):
       cur.execute('SELECT id, kod_predmetu, skratka FROM predmet WHERE kod_predmetu LIKE %s',
         (u'%{}%'.format(query),))
       return cur.fetchall()
+  
+  def load_jazyky_vyucby(self):
+    if self._jazyky_vyucby == None:
+      with self.cursor() as cur:
+        cur.execute('SELECT kod, popis FROM jazyk_vyucby')
+        self._jazyky_vyucby = cur.fetchall()
+    return self._jazyky_vyucby

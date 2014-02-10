@@ -185,7 +185,7 @@ def Infolist():
   schema.add(SchemaNode(String(),
     name='potrebny_jazyk',
     title=u'Jazyk, ktorého znalosť je potrebná na absolvovanie predmetu',
-    readonly=True
+    widget=deform.widget.Select2Widget(values=g.db.load_jazyky_vyucby())
   ))
   schema.add(SchemaNode(Sequence(),
     Vyucujuci(name='vyucujuci', title=u'Vyučujúci'),

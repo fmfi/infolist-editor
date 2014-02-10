@@ -587,6 +587,16 @@ VALUES
 
 COMMENT ON TABLE typ_vyucujuceho IS 'Prebrate z AISoveho ciselniku SCSTTypVyucujuceho';
 
+CREATE TABLE jazyk_vyucby (
+  kod varchar(10) not null primary key,
+  popis varchar(50) not null
+);
+
+INSERT INTO jazyk_vyucby (kod, popis)
+VALUES
+  ('sk_en', 'slovenský, anglický')
+;
+
 CREATE TABLE infolist_verzia (
   id serial not null primary key,
   podm_absol_percenta_skuska integer,
@@ -606,7 +616,8 @@ CREATE TABLE infolist_verzia (
   modifikovane timestamp not null default 'now',
   pocet_kreditov integer not null,
   predosla_verzia integer references infolist_verzia(id),
-  fakulta varchar(100) not null references organizacna_jednotka(kod)
+  fakulta varchar(100) not null references organizacna_jednotka(kod),
+  potrebny_jazyk varchar(10) not null references jazyk_vyucby(kod)
 );
 
 COMMENT ON COLUMN infolist_verzia.podm_absol_percenta_skuska IS 'podiel zaverecneho hodnotenia na znamke (priebezne je 100 - tato hodnota)';
@@ -620,7 +631,6 @@ CREATE TABLE infolist_verzia_preklad (
   podm_absol_nahrada text,
   vysledky_vzdelavania text,
   strucna_osnova text,
-  potrebny_jazyk varchar(200),
   primary key (infolist_verzia, jazyk_prekladu)
 );
 
