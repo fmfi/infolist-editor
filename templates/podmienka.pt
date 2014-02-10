@@ -47,7 +47,7 @@
             }
           },
           load: function(query, callback) {
-            if (!query.length) return callback();
+            if (!query.length || query.length < 2) return callback();
             $.ajax({
               url: "${search_url}",
               data: {
