@@ -16,6 +16,13 @@
       {{ render_field(form.povodny_kod_predmetu, readonly=True) }}
       {{ render_field(form.cinnosti) }}
       {{ render_field(form.pocet_kreditov) }}
+      <div class="form-group">
+        <label class="control-label">Odporúčaný semester štúdia a stupeň štúdia</label>
+        <div class="help-block">
+          <p>Informáciu o odporúčanom semestri a stupni štúdia pridá garant
+             študijného programu</p>
+        </div>
+      </div>
       {{ render_field(form.podmienujuce_predmety) }}
       {{ render_field(form.podm_absolvovania) }}
       {{ render_field(form.vysledky_vzdelavania) }}
