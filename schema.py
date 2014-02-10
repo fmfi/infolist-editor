@@ -114,6 +114,12 @@ def Infolist():
     name='nazov_predmetu',
     title=u'Názov predmetu'
   ))
+  schema.add(SchemaNode(String(),
+    name='povodny_kod_predmetu',
+    title=u'Kód predmetu',
+    description=u'Kódy predmetov budu priradené centrálne',
+    missing=colander.null
+  ))
   schema.add(SchemaNode(Sequence(),
     VzdelavaciaCinnost(
       name='vzdelavacia_cinnost',

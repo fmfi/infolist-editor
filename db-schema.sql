@@ -683,7 +683,8 @@ CREATE TABLE infolist (
   import_z_aisu boolean not null default false,
   forknute_z integer references infolist(id),
   zamknute boolean not null default false,
-  finalna_verzia boolean not null default false
+  finalna_verzia boolean not null default false,
+  povodny_kod_predmetu varchar(200)
 );
 
 CREATE TABLE predmet (

@@ -23,20 +23,21 @@ class DataStore(object):
   def load_infolist(self, id, lang='sk'):
     with self.cursor() as cur:
       cur.execute('''SELECT posledna_verzia, import_z_aisu,
-        forknute_z, zamknute, finalna_verzia
+        forknute_z, zamknute, finalna_verzia, povodny_kod_predmetu
         FROM infolist
         WHERE id = %s''',
         (id,))
       data = cur.fetchone()
       if data == None:
         raise NotFound('infolist({})'.format(id))
-      posledna_verzia, import_z_aisu, forknute_z, zamknute, finalna_verzia = data
+      posledna_verzia, import_z_aisu, forknute_z, zamknute, finalna_verzia, povodny_kod_predmetu = data
       i = {
         'posledna_verzia': posledna_verzia,
         'import_z_aisu': import_z_aisu,
         'forknute_z': forknute_z,
         'zamknute': zamknute,
-        'finalna_verzia': finalna_verzia
+        'finalna_verzia': finalna_verzia,
+        'povodny_kod_predmetu': povodny_kod_predmetu
       }
     i.update(self.load_infolist_verzia(id, lang))
     return i
