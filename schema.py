@@ -91,7 +91,10 @@ def OdporucanaLiteratura(**kwargs):
   schema.add(SchemaNode(Sequence(),
     SchemaNode(String(),
       name='bibl',
-      title=u'Nová literatúra'
+      title=u'Nová literatúra',
+      widget=deform.widget.AutocompleteInputWidget(min_length=1,
+        values=url_for('nova_literatura_search', _external=True)
+      )
     ),
     name='nove',
     title=u'Nová literatúra',

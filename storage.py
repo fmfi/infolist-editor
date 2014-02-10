@@ -251,6 +251,12 @@ class DataStore(object):
         (id,))
       return cur.fetchone()
   
+  def search_nova_literatura(self, query):
+    with self.cursor() as cur:
+      cur.execute('SELECT DISTINCT popis FROM infolist_verzia_nova_literatura WHERE popis LIKE %s ORDER by popis',
+        (u'%{}%'.format(query),))
+      return [x[0] for x in cur.fetchall()]
+  
   def load_predmet(self, id):
     with self.cursor() as cur:
       cur.execute('SELECT id, kod_predmetu, skratka FROM predmet WHERE id = %s',

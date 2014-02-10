@@ -142,6 +142,12 @@ def literatura_search():
     })
   return jsonify(literatura=literatura)
 
+@app.route('/nova-literatura/search')
+def nova_literatura_search():
+  query = request.args.get('q', None) or request.args['term']
+  return Response(json.dumps(g.db.search_nova_literatura(query)),
+    mimetype='application/json')
+
 @app.route('/literatura/json')
 def literatura_get():
   try:
