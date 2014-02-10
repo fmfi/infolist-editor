@@ -3,7 +3,7 @@ from deform.widget import Widget
 from colander import null
 import json
 from utils import Podmienka
-from flask import g
+from flask import g, url_for
 
 class RemoteSelect2Widget(Widget):
   null_value = ''
@@ -46,6 +46,7 @@ class PodmienkaWidget(Widget):
       options.append(option)
       
     kw['options'] = json.dumps(options)
+    kw['search_url'] = url_for('predmet_search', _external=True)
     tmpl_values = self.get_template_values(field, cstruct, kw)
     return field.renderer(self.template, **tmpl_values)
   

@@ -155,6 +155,18 @@ def literatura_get():
       vyd_udaje=literatura.vyd_udaje
     )
 
+@app.route('/predmet/search')
+def predmet_search():
+  query = request.args['q']
+  predmety = []
+  for id, kod, skratka in g.db.search_predmet(query):
+    predmety.append({
+      'id': id,
+      'kod': kod,
+      'skratka': skratka,
+    })
+  return jsonify(predmety=predmety)
+
 if __name__ == '__main__':
   import sys
 

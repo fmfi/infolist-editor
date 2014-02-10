@@ -234,3 +234,9 @@ class DataStore(object):
       cur.execute('SELECT id, kod_predmetu, skratka FROM predmet WHERE id = %s',
         (id,))
       return cur.fetchone()
+  
+  def search_predmet(self, query):
+    with self.cursor() as cur:
+      cur.execute('SELECT id, kod_predmetu, skratka FROM predmet WHERE kod_predmetu LIKE %s',
+        (u'%{}%'.format(query),))
+      return cur.fetchall()

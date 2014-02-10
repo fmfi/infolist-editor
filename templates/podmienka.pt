@@ -38,10 +38,24 @@
                 escape(item.text) +
               '<' + '/div>';
             }
-          }
-          //load: function(query, callback) {
-          //  callback([{"value":"OR", "text": "ALEBO"}, {"value":"AND", "text": "A"}]);
-          //},
+          },
+          load: function(query, callback) {
+            if (!query.length) return callback();
+            $.ajax({
+              url: "${search_url}",
+              data: {
+                q: query
+              },
+              error: function() {
+                callback();
+              },
+              success: function(data) {
+                callback($.map(data.predmety, function(predmet) {
+                  return {value: predmet.id, text: predmet.kod}
+                }));
+              }
+            });
+          },
           //create: function(input) {
           //  if (input.toUpperCase() == "ALEBO") {
           //    return {"value":"OR", "text": "ALEBO"};
