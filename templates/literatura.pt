@@ -36,7 +36,7 @@
             if (id !== "") {
               $.ajax("${item_url}", {
                 data: {id: id}
-              }).done(function(data) { callback({id: data.id, text: data.dokument}); });
+              }).done(function(data) { callback(data); });
             }
           },
           formatResult: function(object, container, query, escapeMarkup) {

@@ -226,7 +226,7 @@ class DataStore(object):
 
   def load_literatura(self, id):
     with self.cursor() as cur:
-      cur.execute('SELECT bib_id, dokument, vyd_udaje FROM literatura WHERE id = %s',
+      cur.execute('SELECT bib_id, dokument, vyd_udaje FROM literatura WHERE bib_id = %s',
         (id,))
       return cur.fetchone()
   
