@@ -23,6 +23,7 @@ from pkg_resources import resource_filename
 import colander
 import time
 import jinja2
+from utils import kod2skratka, filter_fakulta, filter_druh_cinnosti, filter_obdobie, filter_typ_vyucujuceho, filter_metoda_vyucby
 from markupsafe import Markup, soft_unicode
 import psycopg2
 # postgres unicode
@@ -49,6 +50,13 @@ form_deform_templates = resource_filename('deform', 'templates')
 form_my_templates = resource_filename(__name__, 'templates')
 form_template_path = (form_my_templates, form_deform_templates)
 Form.set_zpt_renderer(form_template_path)
+
+app.jinja_env.filters['skratka'] = kod2skratka
+app.jinja_env.filters['fakulta'] = filter_fakulta
+app.jinja_env.filters['druh_cinnosti'] = filter_druh_cinnosti
+app.jinja_env.filters['obdobie'] = filter_obdobie
+app.jinja_env.filters['typ_vyucujuceho'] = filter_typ_vyucujuceho
+app.jinja_env.filters['metoda_vyucby'] = filter_metoda_vyucby
 
 def load_user(username):
   with g.db.cursor() as cur:
