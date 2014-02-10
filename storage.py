@@ -46,6 +46,7 @@ class DataStore(object):
       data = self._load_iv_data(cur, id)
       data['vyucujuci'] = self._load_iv_vyucujuci(cur, id)
       data['cinnosti'] = self._load_iv_cinnosti(cur, id)
+      data['odporucana_literatura'] = self._load_iv_literatura(cur, id)
       dict_rec_update(data, self._load_iv_trans(cur, id, lang))
     return data
   
@@ -134,6 +135,26 @@ class DataStore(object):
         'za_obdobie': za_obdobie,
       })
     return cinnosti
+  
+  def _load_iv_literatura(self, cur, id):
+    cur.execute('''SELECT bib_id
+      FROM infolist_verzia_literatura
+      WHERE infolist_verzia = %s
+      ORDER BY poradie''',
+      (id,))
+    literatura = []
+    for bib_id, in cur:
+      literatura.append(bib_id)
+    
+    cur.execute('''SELECT popis
+      FROM infolist_verzia_nova_literatura
+      WHERE infolist_verzia = %s
+      ORDER BY poradie''',
+      (id,))
+    nove = []
+    for popis, in cur:
+      nove.append(popis)
+    return {'zoznam': literatura, 'nove': nove}
   
   def _load_iv_trans(self, cur, id, lang='sk'):
     cur.execute('''SELECT nazov_predmetu, podm_absol_priebezne,

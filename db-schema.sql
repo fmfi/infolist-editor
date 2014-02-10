@@ -661,6 +661,22 @@ CREATE TABLE infolist_verzia_cinnosti (
 COMMENT ON COLUMN infolist_verzia_cinnosti.pocet_hodin IS 'Pocet hodin vyucby za obdobie';
 COMMENT ON COLUMN infolist_verzia_cinnosti.za_obdobie IS 'Urcuje za ake obdobie je dany pocet hodin (S=semester, T=tyzden)';
 
+CREATE TABLE infolist_verzia_literatura (
+  infolist_verzia integer not null references infolist_verzia(id),
+  bib_id numeric(9) not null references literatura(bib_id),
+  poradie integer not null,
+  primary key (infolist_verzia, bib_id),
+  unique (infolist_verzia, poradie)
+);
+
+CREATE TABLE infolist_verzia_nova_literatura (
+  infolist_verzia integer not null references infolist_verzia(id),
+  popis varchar(2000) not null,
+  poradie integer not null,
+  primary key (infolist_verzia, popis),
+  unique (infolist_verzia, poradie)
+);
+
 CREATE TABLE infolist (
   id serial not null primary key,
   posledna_verzia integer not null references infolist_verzia(id),
