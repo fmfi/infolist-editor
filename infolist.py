@@ -107,7 +107,7 @@ def show_infolist(id):
     infolist['potrebny_jazyk'] = u'slovenský, anglický'
   #return repr(infolist)
   form = Form(schema.Infolist(), buttons=('submit',), appstruct=infolist)
-  return render_template('infolist.html', form=form)
+  return render_template('infolist.html', form=form, data=infolist)
 
 @app.route('/osoba/search')
 def osoba_search():
