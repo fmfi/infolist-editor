@@ -73,7 +73,7 @@ def restrict(api=False):
           abort(401)
         else:
           return redirect(url_for('index'))
-      f(*args, **kwargs)
+      return f(*args, **kwargs)
     return wrapper
   return decorator
 
