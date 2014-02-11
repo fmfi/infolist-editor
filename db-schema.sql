@@ -620,10 +620,12 @@ CREATE TABLE infolist_verzia (
   predosla_verzia integer references infolist_verzia(id),
   fakulta varchar(100) not null references organizacna_jednotka(kod),
   potrebny_jazyk varchar(10) not null references jazyk_vyucby(kod),
-  treba_zmenit_kod boolean not null
+  treba_zmenit_kod boolean not null,
+  predpokladany_semester char(1)
 );
 
 COMMENT ON COLUMN infolist_verzia.podm_absol_percenta_skuska IS 'podiel zaverecneho hodnotenia na znamke (priebezne je 100 - tato hodnota)';
+COMMENT ON COLUMN infolist_verzia.predpokladany_semester IS 'Z alebo L';
 
 CREATE TABLE infolist_verzia_preklad (
   infolist_verzia integer not null references infolist_verzia(id),

@@ -143,6 +143,11 @@ def Infolist():
       ako aj prípravy na skúšku.</p><p>Bližšie pokyny k tvorbe študijných programov:</p><ul class="help-block"><li>FMFI: <a href="https://sluzby.fmph.uniba.sk/ka/dokumenty/pravidla/pravidla-tvorby-studijnych-programov.docx">https://sluzby.fmph.uniba.sk/ka/dokumenty/pravidla/pravidla-tvorby-studijnych-programov.docx</a></li></ul>''')
   ))
   schema.add(SchemaNode(String(),
+    name='predpokladany_semester',
+    title=u'Predpokladaný semester výučby',
+    widget=deform.widget.Select2Widget(values=(('', ''), ('Z', 'zimný'), ('L', 'letný')), placeholder=u'Vyberte semester')
+  ))
+  schema.add(SchemaNode(String(),
     name='podmienujuce_predmety',
     title=u'Podmieňujúce predmety',
     missing='',

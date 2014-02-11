@@ -71,7 +71,7 @@ class DataStore(object):
       hodnotenia_d_pocet, hodnotenia_e_pocet, hodnotenia_fx_pocet,
       podmienujuce_predmety, vylucujuce_predmety,
       modifikovane, predosla_verzia, fakulta, potrebny_jazyk,
-      treba_zmenit_kod
+      treba_zmenit_kod, predpokladany_semester
       FROM infolist_verzia WHERE id = %s''', (id,))
     row = cur.fetchone()
     if row == None:
@@ -82,7 +82,7 @@ class DataStore(object):
     hodn_a, hodn_b, hodn_c, hodn_d, hodn_e, hodn_fx,
     podmienujuce_predmety, vylucujuce_predmety,
     modifikovane, predosla_verzia, fakulta, potrebny_jazyk,
-    treba_zmenit_kod) = row
+    treba_zmenit_kod, predpokladany_semester) = row
     
     iv = {
       'id': id,
@@ -111,7 +111,8 @@ class DataStore(object):
       'predosla_verzia': predosla_verzia,
       'fakulta': fakulta,
       'potrebny_jazyk': potrebny_jazyk,
-      'treba_zmenit_kod': treba_zmenit_kod
+      'treba_zmenit_kod': treba_zmenit_kod,
+      'predpokladany_semester': predpokladany_semester,
     }
     return iv
   

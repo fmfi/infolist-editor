@@ -32,11 +32,13 @@
       </div>
       {{ render_field(form.cinnosti) }}
       {{ render_field(form.pocet_kreditov) }}
-      <div class="form-group">
-        <label class="control-label">Odporúčaný semester štúdia a stupeň štúdia</label>
-        <div class="help-block">
-          <p>Informáciu o odporúčanom semestri a stupni štúdia pridá garant
-             študijného programu</p>
+      <div class="panel panel-default">
+        <div class="panel-heading">Odporúčaný semester štúdia a stupeň štúdia</div>
+        <div class="panel-body">
+          {{ render_field(form.predpokladany_semester) }}
+          <div class="help-block">
+            <p>Informáciu o odporúčanom umiestnení predmetu v rámci príslušného programu pridá garant programu.</p>
+          </div>
         </div>
       </div>
       {{ render_field(form.podmienujuce_predmety) }}
