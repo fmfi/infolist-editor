@@ -9,6 +9,14 @@ def dict_rec_update(d1, d2):
       d1[key] = d2[key]
   return d1
 
+class User(object):
+  def __init__(self, id, login, meno, priezvisko, cele_meno):
+    self.id = id
+    self.login = login
+    self.meno = meno
+    self.priezvisko = priezvisko
+    self.cele_meno = cele_meno
+
 class DataStore(object):
   def __init__(self, conn):
     self.conn = conn
@@ -19,6 +27,9 @@ class DataStore(object):
   
   def cursor(self):
     return self.conn.cursor()
+  
+  def commit(self):
+    return self.conn.commit()
   
   def load_infolist(self, id, lang='sk'):
     with self.cursor() as cur:
@@ -276,3 +287,25 @@ class DataStore(object):
         cur.execute('SELECT kod, popis FROM jazyk_vyucby')
         self._jazyky_vyucby = cur.fetchall()
     return self._jazyky_vyucby
+  
+  def fork_infolist(self, id, verzia=None, vytvoril=None):
+    with self.cursor() as cur:
+      cur.execute('SELECT povodny_kod_predmetu, posledna_verzia FROM infolist WHERE id = %s', (id,))
+      row = cur.fetchone()
+      if row == None:
+        raise NotFound('infolist({})'.format(id))
+      povodny_kod_predmetu = row.povodny_kod_predmetu
+      if verzia == None:
+        verzia = row.posledna_verzia
+      cur.execute('''INSERT INTO infolist (posledna_verzia, forknute_z, povodny_kod_predmetu, vytvoril)
+        VALUES (%s, %s, %s, %s) RETURNING id''',
+        (verzia, id, povodny_kod_predmetu, vytvoril))
+      return cur.fetchone()[0]
+  
+  def load_user(self, username):
+    with self.cursor() as cur:
+      cur.execute('SELECT id, login, meno, priezvisko, cele_meno FROM osoba WHERE login = %s', (username,))
+      row = cur.fetchone()
+      if row == None:
+        return None
+      return User(row.id, row.login, row.meno, row.priezvisko, row.cele_meno)

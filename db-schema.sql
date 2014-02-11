@@ -693,7 +693,9 @@ CREATE TABLE infolist (
   forknute_z integer references infolist(id),
   zamknute boolean not null default false,
   finalna_verzia boolean not null default false,
-  povodny_kod_predmetu varchar(200)
+  povodny_kod_predmetu varchar(200),
+  vytvorene timestamp not null default 'now',
+  vytvoril integer references osoba(id)
 );
 
 CREATE TABLE predmet (

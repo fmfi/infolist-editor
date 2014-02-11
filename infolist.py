@@ -59,11 +59,6 @@ app.jinja_env.filters['obdobie'] = filter_obdobie
 app.jinja_env.filters['typ_vyucujuceho'] = filter_typ_vyucujuceho
 app.jinja_env.filters['metoda_vyucby'] = filter_metoda_vyucby
 
-def load_user(username):
-  with g.db.cursor() as cur:
-    pass
-  return username
-
 def restrict(api=False):
   def decorator(f):
     @wraps(f)
@@ -85,7 +80,7 @@ def before_request():
   if app.debug and 'REMOTE_USER' in os.environ:
     username = os.environ['REMOTE_USER']
   
-  g.user = load_user(username)
+  g.user = g.db.load_user(username)
 
 @app.teardown_request
 def teardown_request(*args, **kwargs):
@@ -163,7 +158,15 @@ def show_infolist(id):
       print repr(data)
     except ValidationFailure, e:
       pass
-  return render_template('infolist.html', form=form, data=infolist, messages=form_messages(form))
+  return render_template('infolist.html', form=form, data=infolist,
+    messages=form_messages(form), infolist_id=id)
+
+@app.route('/infolist/<int:id>/fork', methods=['POST'])
+@restrict()
+def fork_infolist(id):
+  novy_infolist = g.db.fork_infolist(id, vytvoril=g.user.id)
+  g.db.commit()
+  return redirect(url_for('show_infolist', id=novy_infolist))
 
 @app.route('/osoba/search')
 @restrict(api=True)
