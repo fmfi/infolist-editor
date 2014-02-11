@@ -39,7 +39,7 @@ class DataStore(object):
         'finalna_verzia': finalna_verzia,
         'povodny_kod_predmetu': povodny_kod_predmetu
       }
-    i.update(self.load_infolist_verzia(id, lang))
+    i.update(self.load_infolist_verzia(posledna_verzia, lang))
     return i
   
   def load_infolist_verzia(self, id, lang='sk'):
