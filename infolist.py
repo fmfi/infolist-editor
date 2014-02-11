@@ -25,6 +25,7 @@ import time
 import jinja2
 from utils import kod2skratka, filter_fakulta, filter_druh_cinnosti, filter_obdobie, filter_typ_vyucujuceho, filter_metoda_vyucby
 from markupsafe import Markup, soft_unicode
+from functools import wraps
 import psycopg2
 # postgres unicode
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
@@ -62,6 +63,19 @@ def load_user(username):
   with g.db.cursor() as cur:
     pass
   return username
+
+def restrict(api=False):
+  def decorator(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+      if not g.user:
+        if api:
+          abort(401)
+        else:
+          return redirect(url_for('index'))
+      f(*args, **kwargs)
+    return wrapper
+  return decorator
 
 @app.before_request
 def before_request():
@@ -101,6 +115,7 @@ def logout():
   return response
 
 @app.route('/infolist/')
+@restrict()
 def infolist_index():
   with g.db.cursor() as cur:
     cur.execute('''SELECT i.id, ivp.nazov_predmetu, i.povodny_kod_predmetu
@@ -134,6 +149,7 @@ def form_messages(form):
   return errors
 
 @app.route('/infolist/<int:id>', methods=['GET', 'POST'])
+@restrict()
 def show_infolist(id):
   infolist = g.db.load_infolist(id)
   if infolist['potrebny_jazyk'] == None:
@@ -150,6 +166,7 @@ def show_infolist(id):
   return render_template('infolist.html', form=form, data=infolist, messages=form_messages(form))
 
 @app.route('/osoba/search')
+@restrict(api=True)
 def osoba_search():
   query = request.args['q']
   osoby = []
@@ -163,6 +180,7 @@ def osoba_search():
   return jsonify(osoby=osoby)
 
 @app.route('/osoba/json')
+@restrict(api=True)
 def osoba_get():
   try:
     id = int(request.args['id'])
@@ -179,6 +197,7 @@ def osoba_get():
     )
 
 @app.route('/literatura/search')
+@restrict(api=True)
 def literatura_search():
   query = request.args['q']
   literatura = []
@@ -191,12 +210,14 @@ def literatura_search():
   return jsonify(literatura=literatura)
 
 @app.route('/nova-literatura/search')
+@restrict(api=True)
 def nova_literatura_search():
   query = request.args.get('q', None) or request.args['term']
   return Response(json.dumps(g.db.search_nova_literatura(query)),
     mimetype='application/json')
 
 @app.route('/literatura/json')
+@restrict(api=True)
 def literatura_get():
   try:
     id = int(request.args['id'])
@@ -212,6 +233,7 @@ def literatura_get():
     )
 
 @app.route('/predmet/search')
+@restrict(api=True)
 def predmet_search():
   query = request.args['q']
   predmety = []
