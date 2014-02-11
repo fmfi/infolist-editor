@@ -1,0 +1,12 @@
+{% extends 'layout.html' %}
+{% from 'macros.html' import render_field %}
+{% block title %}Informačné listy{% endblock %}
+{% block content %}
+<div class="content-full">
+  <h1>Zoznam informačných listov</h1>
+  <ul>
+  {% for id, nazov_predmetu, povodny_kod in infolisty %}
+    <li><a href="{{ url_for('show_infolist', id=id) }}">{{ nazov_predmetu }} ({{ povodny_kod }})</a></li>
+  {% endfor %}
+</div>
+{% endblock %}

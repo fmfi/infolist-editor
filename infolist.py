@@ -100,6 +100,15 @@ def logout():
                         expires=1, path='/', secure=True)
   return response
 
+@app.route('/infolist/')
+def infolist_index():
+  with g.db.cursor() as cur:
+    cur.execute('''SELECT i.id, ivp.nazov_predmetu, i.povodny_kod_predmetu
+      FROM infolist i, infolist_verzia iv, infolist_verzia_preklad ivp
+      WHERE i.posledna_verzia = iv.id AND ivp.infolist_verzia = iv.id
+      ORDER BY ivp.nazov_predmetu''')
+    return render_template('infolist-index.html', infolisty=cur.fetchall())
+
 @app.route('/infolist/<int:id>')
 def show_infolist(id):
   infolist = g.db.load_infolist(id)
