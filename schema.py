@@ -66,10 +66,11 @@ def PodmienkyAbsolvovania(**kwargs):
     description=u'''Napríklad ak predmet nemá skúšku, váha skúšky bude 0. 
       Ak predmet nemá priebežné hodnotenie, váha skúšky bude 100.'''
   ))
-  for x in ['A', 'B', 'C', 'D', 'E']:
+  for i, x in enumerate(['A', 'B', 'C', 'D', 'E']):
     schema.add(SchemaNode(Integer(),
       name='percenta_na_{}'.format(x),
-      title=u'Minimálna hranica na {} (%)'.format(x)
+      title=u'Minimálna hranica na {} (%)'.format(x),
+      default=(90 - i * 10)
     ))
   return schema
 
