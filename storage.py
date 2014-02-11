@@ -236,11 +236,11 @@ class DataStore(object):
     for part in query.split():
       conds.append("""(unaccent(dokument) ILIKE unaccent(%s)
         OR unaccent(vyd_udaje) ILIKE unaccent(%s))""")
-      params.append(part + '%') # TODO escape
-      params.append(part + '%')
+      params.append('%' + part + '%') # TODO escape
+      params.append('%' + part + '%')
     
     select = '''SELECT bib_id, dokument, vyd_udaje FROM literatura
-      WHERE dostupne AND {}'''.format(' AND '.join(conds))
+      WHERE dostupne AND {} ORDER by dokument'''.format(' AND '.join(conds))
     
     with self.cursor() as cur:
       cur.execute(select, params)
