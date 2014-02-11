@@ -148,7 +148,9 @@ def Infolist():
   schema.add(SchemaNode(String(),
     name='vylucujuce_predmety',
     title=u'Vylučujúce predmety',
-    missing=''
+    missing='',
+    widget=widgets.PodmienkaWidget(),
+    description=u'Napríklad: "1-INF-123 alebo 1-INF-456"'
   ))
   schema.add(PodmienkyAbsolvovania(
     name='podm_absolvovania',
