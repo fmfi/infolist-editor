@@ -614,6 +614,8 @@ CREATE TABLE infolist_verzia (
   podmienujuce_predmety text,
   vylucujuce_predmety text,
   modifikovane timestamp not null default 'now',
+  modifikoval integer references osoba(id),
+  hromadna_zmena boolean not null default false,
   pocet_kreditov integer not null,
   predosla_verzia integer references infolist_verzia(id),
   fakulta varchar(100) not null references organizacna_jednotka(kod),
