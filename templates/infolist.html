@@ -9,6 +9,20 @@
       <h2>{{ data.nazov_predmetu }}</h2>
     </div>
     <div class="body">
+      {% if form.error or messages %}
+      <div class="alert alert-danger">
+        <div class="errorMsgLbl">Formulár sa nepodarilo uložiť. Skontrolujte vyplnené údaje!</div>
+        {% if messages %}
+          <p>Nasledovné polia ešte treba doplniť alebo opraviť:</p>
+          <ul>
+          {% for fieldname, fieldmsgs in messages %}
+            <li>{{ fieldname }}: {{ fieldmsgs|join('; ') }}</li>
+          {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+      {% endif %}
+    
       <form id="{{ form.formid }}" method="{{ form.method }}" enctype="multipart/form-data" accept-charset="utf-8">
       {{ render_field(form.fakulta) }}
       {{ render_field(form.nazov_predmetu) }}
@@ -31,6 +45,8 @@
       {{ render_field(form.potrebny_jazyk) }}
       {{ render_field(form.vyucujuci) }}
       {{ render_field(form.finalna_verzia) }}
+      
+      <button type="submit" class="btn btn-primary">Uložiť</button>
       </form>
     </div>
   </div>

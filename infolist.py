@@ -109,14 +109,45 @@ def infolist_index():
       ORDER BY ivp.nazov_predmetu''')
     return render_template('infolist-index.html', infolisty=cur.fetchall())
 
-@app.route('/infolist/<int:id>')
+def form_messages(form):
+  if not form.error:
+    return None
+  
+  def title(exc):
+    if exc.positional:
+      return u'{}.'.format(exc.pos + 1)
+    if exc.node.title == None or exc.node.title == u'':
+      return None
+    return exc.node.title
+  
+  errors = []
+  for path in form.error.paths():
+    titlepath = []
+    messages = []
+    for exc in path:
+      if exc.msg:
+        messages.extend(exc.messages())
+      tit = title(exc)
+      if tit != None:
+        titlepath.append(tit)
+    errors.append((Markup(u' – ').join(titlepath), messages))
+  return errors
+
+@app.route('/infolist/<int:id>', methods=['GET', 'POST'])
 def show_infolist(id):
   infolist = g.db.load_infolist(id)
   if infolist['potrebny_jazyk'] == None:
     infolist['potrebny_jazyk'] = u'slovenský, anglický'
   #return repr(infolist)
   form = Form(schema.Infolist(), buttons=('submit',), appstruct=infolist)
-  return render_template('infolist.html', form=form, data=infolist)
+  if request.method == 'POST':
+    controls = request.form.items(multi=True)
+    try:
+      data = form.validate(controls)
+      print repr(data)
+    except ValidationFailure, e:
+      pass
+  return render_template('infolist.html', form=form, data=infolist, messages=form_messages(form))
 
 @app.route('/osoba/search')
 def osoba_search():
