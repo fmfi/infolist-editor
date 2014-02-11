@@ -613,7 +613,7 @@ CREATE TABLE infolist_verzia (
   hodnotenia_fx_pocet integer,
   podmienujuce_predmety text,
   vylucujuce_predmety text,
-  modifikovane timestamp not null default 'now',
+  modifikovane timestamp not null default now(),
   modifikoval integer references osoba(id),
   hromadna_zmena boolean not null default false,
   pocet_kreditov integer not null,
@@ -694,7 +694,7 @@ CREATE TABLE infolist (
   zamknute boolean not null default false,
   finalna_verzia boolean not null default false,
   povodny_kod_predmetu varchar(200),
-  vytvorene timestamp not null default 'now',
+  vytvorene timestamp not null default now(),
   vytvoril integer references osoba(id)
 );
 
