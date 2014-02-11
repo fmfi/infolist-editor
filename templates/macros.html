@@ -35,6 +35,10 @@
   </div>
 {% endmacro %}
 
+{% macro render_checkbox(field) %}
+    <label for="{{ field.oid }}" ><input type="checkbox" value="true" id="{{ field.oid }}" name="{{ field.name }}" {% if field.cstruct == field.widget.true_val %}checked="checked"{% endif %} /> {{ field.title }}</label>
+{% endmacro %}
+
 {% macro widget_in_panel(field) %}
   <div class="panel panel-default">
     <div class="panel-heading">{{ field.title }}</div>

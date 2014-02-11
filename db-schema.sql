@@ -619,7 +619,8 @@ CREATE TABLE infolist_verzia (
   pocet_kreditov integer not null,
   predosla_verzia integer references infolist_verzia(id),
   fakulta varchar(100) not null references organizacna_jednotka(kod),
-  potrebny_jazyk varchar(10) not null references jazyk_vyucby(kod)
+  potrebny_jazyk varchar(10) not null references jazyk_vyucby(kod),
+  treba_zmenit_kod boolean not null
 );
 
 COMMENT ON COLUMN infolist_verzia.podm_absol_percenta_skuska IS 'podiel zaverecneho hodnotenia na znamke (priebezne je 100 - tato hodnota)';

@@ -1,5 +1,5 @@
 {% extends 'layout.html' %}
-{% from 'macros.html' import render_field %}
+{% from 'macros.html' import render_field, render_checkbox %}
 {% block title %}Informačný list{% endblock %}
 {% block content %}
 <div class="content-full">
@@ -27,6 +27,9 @@
       {{ render_field(form.fakulta) }}
       {{ render_field(form.nazov_predmetu) }}
       {{ render_field(form.povodny_kod_predmetu, readonly=True) }}
+      <div class="form-group">
+      {{ render_checkbox(form.treba_zmenit_kod) }}
+      </div>
       {{ render_field(form.cinnosti) }}
       {{ render_field(form.pocet_kreditov) }}
       <div class="form-group">

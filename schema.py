@@ -121,6 +121,10 @@ def Infolist():
     description=u'Kódy predmetov budu priradené centrálne',
     missing=colander.null
   ))
+  schema.add(SchemaNode(Bool(),
+    name='treba_zmenit_kod',
+    title=u'Ide o výraznú zmenu, žiadame priradiť predmetu nový kód'
+  ))
   schema.add(SchemaNode(Sequence(),
     VzdelavaciaCinnost(
       name='vzdelavacia_cinnost',
