@@ -24,6 +24,7 @@
     <script type="text/javascript" src="{{ url_for('static', filename='infolist.js') }}"></script>
   </head>
   <body>
+    {% block layout_body %}
     <header class="navbar navbar-top infolist-nb" role="navigation">
       <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
         <ul class="nav navbar-nav">
@@ -40,6 +41,7 @@
     {% block content %}
     {% endblock %}
     </div>
+    {% endblock %}
     <!-- Piwik -->
     <script type="text/javascript">
       var _paq = _paq || [];
