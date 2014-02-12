@@ -66,6 +66,7 @@ app.jinja_env.filters['podmienka'] = filter_podmienka
 app.jinja_env.filters['jazyk_vyucby'] = filter_jazyk_vyucby
 app.jinja_env.filters['literatura'] = filter_literatura
 app.jinja_env.filters['osoba'] = filter_osoba
+app.jinja_env.filters['any'] = any
 
 def restrict(api=False):
   def decorator(f):

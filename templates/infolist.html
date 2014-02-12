@@ -34,6 +34,7 @@
 
       <div class="polozka">
         <label>Druh, rozsah a metóda vzdelávacích činností</label>
+        {% if data.cinnosti %}
         <table class="table">
           <thead>
             <tr>
@@ -52,6 +53,7 @@
             {% endfor %}
           </tbody>
         </table>
+        {% endif %}
       </div>
 
       <div class="polozka">
@@ -105,9 +107,20 @@
         {% if data.podm_absolvovania.nahrada %}
           <p>{{ data.podm_absolvovania.nahrada }}</p>
         {% else %}
+          {% if data.podm_absolvovania.priebezne %}
           <p>Priebežné hodnotenie: {{ data.podm_absolvovania.priebezne }}</p>
+          {% endif %}
+
+          {% if data.podm_absolvovania.skuska %}
           <p>Skúška: {{ data.podm_absolvovania.skuska }}</p>
+          {% endif %}
+          
+          {% if data.podm_absolvovania.percenta_skuska %}
           <p>Váha skúšky: {{ data.podm_absolvovania.percenta_skuska }}%</p>
+          {% endif %}
+          
+          {% with stupnica = data.podm_absolvovania.percenta_na %}
+          {% if stupnica and stupnica.values()|any %}
           <table class="table">
             <caption>Stupnica hodnotenia</caption>
             <thead>
@@ -118,22 +131,28 @@
             <tbody>
               <tr>
                 {% for znamka in ['A', 'B', 'C', 'D', 'E'] %}
-                  <td>{{ data.podm_absolvovania.percenta_na[znamka] }}%</td>
+                  <td>{{ stupnica[znamka] }}%</td>
                 {% endfor %}
               </tr>
             </tbody>
           </table>
+          {% endif %}
+          {% endwith %}
         {% endif %}
       </div>
 
       <div class="polozka">
         <label>Výsledky vzdelávania</label>
+        {% if data.vysledky_vzdelavania %}
         <p>{{ data.vysledky_vzdelavania }}</p>
+        {% endif %}
       </div>
 
       <div class="polozka">
         <label>Stručná osnova predmetu</label>
+        {% if data.strucna_osnova %}
         <p>{{ data.strucna_osnova }}</p>
+        {% endif %}
       </div>
 
       <div class="polozka">
