@@ -36,9 +36,11 @@
     <div class="panel-heading">${title}</div>
     <div class="panel-body">
       
-      <p class="help-block" tal:condition="description">
-        ${description}
-      </p>
+      <div class="help-block" tal:condition="description">
+        <p tal:omit-tag="hasattr(description, '__html__')">
+          ${description}
+        </p>
+      </div>
 
       <div class="deformSeqContainer"
            id="${oid}-orderable">
