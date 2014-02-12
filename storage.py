@@ -69,7 +69,7 @@ class DataStore(object):
       podm_absol_percenta_na_d, podm_absol_percenta_na_e,
       hodnotenia_a_pocet, hodnotenia_b_pocet, hodnotenia_c_pocet,
       hodnotenia_d_pocet, hodnotenia_e_pocet, hodnotenia_fx_pocet,
-      podmienujuce_predmety, vylucujuce_predmety,
+      podmienujuce_predmety, odporucane_predmety, vylucujuce_predmety,
       modifikovane, predosla_verzia, fakulta, potrebny_jazyk,
       treba_zmenit_kod, predpokladany_semester
       FROM infolist_verzia WHERE id = %s''', (id,))
@@ -80,7 +80,7 @@ class DataStore(object):
     (pocet_kreditov, percenta_skuska,
     pct_a, pct_b, pct_c, pct_d, pct_e,
     hodn_a, hodn_b, hodn_c, hodn_d, hodn_e, hodn_fx,
-    podmienujuce_predmety, vylucujuce_predmety,
+    podmienujuce_predmety, odporucane_predmety, vylucujuce_predmety,
     modifikovane, predosla_verzia, fakulta, potrebny_jazyk,
     treba_zmenit_kod, predpokladany_semester) = row
     
@@ -106,6 +106,7 @@ class DataStore(object):
         'Fx': hodn_fx
       },
       'podmienujuce_predmety': podmienujuce_predmety,
+      'odporucane_predmety': odporucane_predmety,
       'vylucujuce_predmety': vylucujuce_predmety,
       'modifikovane': modifikovane,
       'predosla_verzia': predosla_verzia,

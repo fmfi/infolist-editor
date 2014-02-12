@@ -167,6 +167,13 @@ def Infolist():
     description=u'Uvádzajú sa predmety, ktoré študent musí riadne absolvovať, aby si mohol zapísať tento predmet. Napríklad: "(1-INF-123 alebo 1-INF-234) a 1-INF-456". Kódy budú automaticky preklopené na nové priradené kódy.'
   ))
   schema.add(SchemaNode(String(),
+    name='odporucane_predmety',
+    title=u'Odporúčané predmety',
+    missing='',
+    widget=widgets.PodmienkaWidget(),
+    description=u'Napríklad: "(1-INF-123 alebo 1-INF-234) a 1-INF-456". Kódy budú automaticky preklopené na nové priradené kódy.'
+  ))
+  schema.add(SchemaNode(String(),
     name='vylucujuce_predmety',
     title=u'Vylučujúce predmety',
     missing='',
