@@ -57,6 +57,9 @@ def filter_jazyk_vyucby(search_kod):
 def filter_literatura(id):
   return g.db.load_literatura(id)
 
+def filter_osoba(id):
+  return g.db.load_osoba(id)
+
 def filter_podmienka(podmienka):
   result = []
   for token in Podmienka(podmienka)._tokens:

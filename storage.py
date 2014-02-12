@@ -37,19 +37,20 @@ class DataStore(object):
   def load_infolist(self, id, lang='sk'):
     with self.cursor() as cur:
       cur.execute('''SELECT posledna_verzia, import_z_aisu,
-        forknute_z, zamknute, povodny_kod_predmetu
+        forknute_z, zamknute, zamkol, povodny_kod_predmetu
         FROM infolist
         WHERE id = %s''',
         (id,))
       data = cur.fetchone()
       if data == None:
         raise NotFound('infolist({})'.format(id))
-      posledna_verzia, import_z_aisu, forknute_z, zamknute, povodny_kod_predmetu = data
+      posledna_verzia, import_z_aisu, forknute_z, zamknute, zamkol, povodny_kod_predmetu = data
       i = {
         'posledna_verzia': posledna_verzia,
         'import_z_aisu': import_z_aisu,
         'forknute_z': forknute_z,
         'zamknute': zamknute,
+        'zamkol': zamkol,
         'povodny_kod_predmetu': povodny_kod_predmetu
       }
     i.update(self.load_infolist_verzia(posledna_verzia, lang))
@@ -422,3 +423,23 @@ class DataStore(object):
       if row == None:
         return None
       return User(row.id, row.login, row.meno, row.priezvisko, row.cele_meno)
+  
+  def lock_infolist(self, id, user):
+    with self.cursor() as cur:
+      cur.execute('SELECT zamknute, zamkol FROM infolist WHERE id = %s FOR UPDATE', (id,))
+      row = cur.fetchone()
+      if row == None:
+        raise NotFound('infolist({})'.format(id))
+      if row.zamknute:
+        raise ValueError('Infolist je uz zamknuty')
+      cur.execute('UPDATE infolist SET zamknute = now(), zamkol = %s WHERE id = %s', (user, id))
+  
+  def unlock_infolist(self, id):
+    with self.cursor() as cur:
+      cur.execute('SELECT zamknute, zamkol FROM infolist WHERE id = %s FOR UPDATE', (id,))
+      row = cur.fetchone()
+      if row == None:
+        raise NotFound('infolist({})'.format(id))
+      if not row.zamknute:
+        raise ValueError('Infolist je uz odomknuty')
+      cur.execute('UPDATE infolist SET zamknute = NULL, zamkol = NULL WHERE id = %s', (id,))

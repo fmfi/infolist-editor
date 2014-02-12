@@ -26,6 +26,7 @@ import jinja2
 from utils import kod2skratka, filter_fakulta, filter_druh_cinnosti
 from utils import filter_obdobie, filter_typ_vyucujuceho, filter_metoda_vyucby
 from utils import filter_podmienka, filter_jazyk_vyucby, filter_literatura
+from utils import filter_osoba
 from utils import recursive_replace, recursive_update
 from markupsafe import Markup, soft_unicode
 from functools import wraps
@@ -64,6 +65,7 @@ app.jinja_env.filters['metoda_vyucby'] = filter_metoda_vyucby
 app.jinja_env.filters['podmienka'] = filter_podmienka
 app.jinja_env.filters['jazyk_vyucby'] = filter_jazyk_vyucby
 app.jinja_env.filters['literatura'] = filter_literatura
+app.jinja_env.filters['osoba'] = filter_osoba
 
 def restrict(api=False):
   def decorator(f):
@@ -154,6 +156,9 @@ def form_messages(form):
 @restrict()
 def show_infolist(id, edit):
   infolist = g.db.load_infolist(id)
+  if infolist['zamknute'] and edit:
+    flash(u'Informačný list je zamknutý proti úpravám, vytvorte si vlastnú kópiu', 'danger')
+    return redirect(url_for('show_infolist', id=id, edit=False))
   form = Form(schema.Infolist(), buttons=('submit',),
               appstruct=recursive_replace(infolist, None, colander.null))
   error_saving = False
@@ -183,6 +188,22 @@ def fork_infolist(id):
   novy_infolist = g.db.fork_infolist(id, vytvoril=g.user.id)
   g.db.commit()
   return redirect(url_for('show_infolist', id=novy_infolist))
+
+@app.route('/infolist/<int:id>/lock', methods=['POST'], defaults={'lock': True})
+@app.route('/infolist/<int:id>/unlock', methods=['POST'], defaults={'lock': False})
+@restrict()
+def lock_infolist(id, lock):
+  try:
+    if lock:
+      g.db.lock_infolist(id, g.user.id)
+    else:
+      g.db.unlock_infolist(id)
+    g.db.commit()
+  except:
+    flash(u'Nepodarilo sa {} informačný list!'.format(u'zamknúť' if lock else u'odomknúť'), 'danger')
+    app.logger.exception('Vynimka pocat zamykania/odomykania infolistu')
+    g.db.rollback()
+  return redirect(url_for('show_infolist', id=id, edit=False))
 
 @app.route('/osoba/search')
 @restrict(api=True)

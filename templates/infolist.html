@@ -172,10 +172,22 @@
   </div><div class="right">
   {% if not editing %}
   <div class="meta">
+  {% if not data.zamknute %}
     <a href="{{ url_for('show_infolist', id=infolist_id, edit=True) }}"
-      class="btn btn-default btn-block btn-primary">Upraviť</a>
+      class="btn btn-block btn-primary">Upraviť</a>
+    <form action="{{ url_for('lock_infolist', id=infolist_id, lock=True) }}" method="POST">
+      <button type="submit" class="btn btn-default btn-block">Zamknúť proti úpravám</button>
     </form>
+  {% else %}
+    <p>Tento informačný list je zamknutý proti úpravám používateľom: {{ (data.zamkol|osoba)[1] }}</p>
+    {% if data.zamkol == g.user.id %}
+    <form action="{{ url_for('lock_infolist', id=infolist_id, lock=False) }}" method="POST">
+      <button type="submit" class="btn btn-default btn-block">Povoliť úpravy</button>
+    </form>
+    {% endif %}
+  {% endif %}
   </div>
+
   <div class="meta">
     <p>Predmet, ktorý je logickým pokračovateľom (modifikáciou) existujúceho
     predmetu <b>musíte vytvoriť pomocou kópie tohto predmetu.</b> Dôvodom
@@ -189,6 +201,8 @@
       <button type="submit" class="btn btn-default btn-block">Vytvoriť kópiu</button>
     </form>
   </div>
+
+  
   {% endif %}
   </div>
   <div class="clearfix"></div>

@@ -696,7 +696,8 @@ CREATE TABLE infolist (
   posledna_verzia integer not null references infolist_verzia(id),
   import_z_aisu boolean not null default false,
   forknute_z integer references infolist(id),
-  zamknute boolean not null default false,
+  zamknute timestamp,
+  zamkol integer references osoba(id),
   povodny_kod_predmetu varchar(200),
   vytvorene timestamp not null default now(),
   vytvoril integer references osoba(id)

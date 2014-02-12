@@ -52,8 +52,16 @@
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
 
+.meta .btn-block {
+  margin-bottom: 0.5em;
+}
+
 .meta + .meta {
   margin-top: 1em;
+}
+
+.meta :last-child {
+  margin-bottom: 0;
 }
 
 .infolist-readonly .polozka {
