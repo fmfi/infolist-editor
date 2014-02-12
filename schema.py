@@ -53,12 +53,14 @@ def PodmienkyAbsolvovania(**kwargs):
   schema.add(SchemaNode(String(),
     name='priebezne',
     title=u'Spôsob priebežného hodnotenia',
-    description=u'Napríklad: domáce úlohy, písomka'
+    description=u'Napríklad: domáce úlohy, písomka',
+    missing=''
   ))
   schema.add(SchemaNode(String(),
     name='skuska',
     title=u'Forma skúšky',
-    description=u'Napríklad: písomná, ústna; nevyplňovať ak predmet nemá skúšku'
+    description=u'Napríklad: písomná, ústna; nevyplňovať ak predmet nemá skúšku',
+    missing=''
   ))
   schema.add(SchemaNode(Integer(),
     name='percenta_skuska',
