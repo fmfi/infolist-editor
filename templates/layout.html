@@ -24,8 +24,11 @@
     <script type="text/javascript" src="{{ url_for('static', filename='infolist.js') }}"></script>
   </head>
   <body>
-    <header class="navbar navbar-top" role="banner">
+    <header class="navbar navbar-top infolist-nb" role="navigation">
       <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+        <ul class="nav navbar-nav">
+          <li><a href="{{ url_for('infolist_index') }}">Zoznam predmetov</a></li>
+        </ul>
         <ul class="nav navbar-nav navbar-right">
           {% if g.user %}
           <li><a href="{{ url_for('logout') }}">Odhlásiť</a></li>
