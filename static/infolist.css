@@ -51,3 +51,26 @@
   padding: 1em;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
+
+.meta + .meta {
+  margin-top: 1em;
+}
+
+.infolist-readonly .polozka {
+  padding-left: 1em;
+  padding-right: 1em;
+}
+
+.infolist-readonly .polozka+.polozka {
+  border-top: 1px solid #ddd;
+  padding-top: 0.5em;
+  margin-top: 0.5em;
+}
+
+.infolist-readonly label {
+  padding-right: 0.5em;
+}
+
+.infolist-readonly label:after {
+  content: ":"
+}

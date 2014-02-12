@@ -5,59 +5,177 @@
 <div class="content-full">
   {{ flashes() }}
   <div class="left">
-  <div class="infolist">
+  <div class="infolist{% if not editing %} infolist-readonly{% endif %}">
     <div class="header">
       <h2>{{ data.nazov_predmetu }}</h2>
     </div>
-    <div class="body">
-      {% if form.error or messages or error_saving %}
-      <div class="alert alert-danger">
-        <div class="errorMsgLbl">Formulár sa nepodarilo uložiť. {% if not error_saving %}Skontrolujte vyplnené údaje!{% endif %}</div>
-        {% if messages %}
-          <p>Nasledovné polia ešte treba doplniť alebo opraviť:</p>
-          <ul>
-          {% for fieldname, fieldmsgs in messages %}
-            <li>{{ fieldname }}: {{ fieldmsgs|join('; ') }}</li>
-          {% endfor %}
-          </ul>
-        {% endif %}
+    {% block infolist %}
+      
+      <div class="polozka">
+        <label class="pull-left">Fakulta</label>
+        <p>{{ data.fakulta|fakulta }}</p>
       </div>
-      {% endif %}
-    
-      <form id="{{ form.formid }}" method="{{ form.method }}" enctype="multipart/form-data" accept-charset="utf-8">
-      {{ render_field(form.fakulta) }}
-      {{ render_field(form.nazov_predmetu) }}
-      {{ render_field(form.povodny_kod_predmetu, readonly=True) }}
-      <div class="form-group">
-      {{ render_checkbox(form.treba_zmenit_kod) }}
+
+      <div class="polozka">
+        <label class="pull-left">Kód predmetu</label>
+        <p>{{ data.povodny_kod_predmetu }} {% if data.treba_zmenit_kod %}(požadujeme zmeniť){% endif %}</p>
       </div>
-      {{ render_field(form.cinnosti) }}
-      {{ render_field(form.pocet_kreditov) }}
-      <div class="panel panel-default">
-        <div class="panel-heading">Odporúčaný semester štúdia a stupeň štúdia</div>
-        <div class="panel-body">
-          {{ render_field(form.predpokladany_semester) }}
-          <div class="help-block">
-            <p>Informáciu o odporúčanom umiestnení predmetu v rámci príslušného programu pridá garant programu.</p>
-          </div>
+
+      <div class="polozka">
+        <label class="pull-left">Názov predmetu</label>
+        <p>{{ data.nazov_predmetu }}</p>
+      </div>
+
+      <div class="polozka">
+        <label>Druh, rozsah a metóda vzdelávacích činností</label>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Druh</th>
+              <th>Rozsah</th>
+              <th>Metóda</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cinnost in data.cinnosti %}
+            <tr>
+              <td>{{ cinnost.druh_cinnosti|druh_cinnosti }}</td>
+              <td>{{ cinnost.pocet_hodin }}h/{{ cinnost.za_obdobie|obdobie }}</td>
+              <td>{{ cinnost.metoda_vyucby|metoda_vyucby }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="polozka">
+        <label class="pull-left">Počet kreditov</label>
+        <p>{{ data.pocet_kreditov }}</p>
+      </div>
+      
+      <div class="polozka">
+        <label>Odporúčaný semester štúdia a stupeň štúdia</label>
+        <div class="help-block">
+          <p>Informáciu o odporúčanom semestri a stupni štúdia pridá garant
+            študijného programu</p>
         </div>
       </div>
-      {{ render_field(form.podmienujuce_predmety) }}
-      {{ render_field(form.odporucane_predmety) }}
-      {{ render_field(form.vylucujuce_predmety) }}
-      {{ render_field(form.podm_absolvovania) }}
-      {{ render_field(form.vysledky_vzdelavania) }}
-      {{ render_field(form.strucna_osnova) }}
-      {{ render_field(form.odporucana_literatura) }}
-      {{ render_field(form.potrebny_jazyk) }}
-      {{ render_field(form.vyucujuci) }}
-      {{ render_field(form.finalna_verzia) }}
+
+      <div class="polozka">
+        <label>Podmieňujúce predmety</label>
+        {% for token in data.podmienujuce_predmety|podmienka %}
+          {% if token is string %}
+            {{ token }}
+          {% else %}
+            {{ token.skratka }}
+          {% endif %}
+        {% endfor %}
+      </div>
       
-      <button type="submit" class="btn btn-primary">Uložiť</button>
-      </form>
-    </div>
+      <div class="polozka">
+        <label>Odporúčané predmety</label>
+        {% for token in data.odporucane_predmety|podmienka %}
+          {% if token is string %}
+            {{ token }}
+          {% else %}
+            {{ token.skratka }}
+          {% endif %}
+        {% endfor %}
+      </div>
+      
+      <div class="polozka">
+        <label>Vylučujúce predmety</label>
+        {% for token in data.vylucujuce_predmety|podmienka %}
+          {% if token is string %}
+            {{ token }}
+          {% else %}
+            {{ token.skratka }}
+          {% endif %}
+        {% endfor %}
+      </div>
+      
+      <div class="polozka">
+        <label>Podmienky na absolvovanie predmetu</label>
+        {% if data.podm_absolvovania.nahrada %}
+          <p>{{ data.podm_absolvovania.nahrada }}</p>
+        {% else %}
+          <p>Priebežné hodnotenie: {{ data.podm_absolvovania.priebezne }}</p>
+          <p>Skúška: {{ data.podm_absolvovania.skuska }}</p>
+          <p>Váha skúšky: {{ data.podm_absolvovania.percenta_skuska }}%</p>
+          <table class="table">
+            <caption>Stupnica hodnotenia</caption>
+            <thead>
+              <tr>
+                <th>A</th><th>B</th><th>C</th><th>D</th><th>E</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                {% for znamka in ['A', 'B', 'C', 'D', 'E'] %}
+                  <td>{{ data.podm_absolvovania.percenta_na[znamka] }}%</td>
+                {% endfor %}
+              </tr>
+            </tbody>
+          </table>
+        {% endif %}
+      </div>
+
+      <div class="polozka">
+        <label>Výsledky vzdelávania</label>
+        <p>{{ data.vysledky_vzdelavania }}</p>
+      </div>
+
+      <div class="polozka">
+        <label>Stručná osnova predmetu</label>
+        <p>{{ data.strucna_osnova }}</p>
+      </div>
+
+      <div class="polozka">
+        <label>Odporúčaná literatúra</label>
+        <ul>
+          {% for lit_id in data.odporucana_literatura.zoznam %}
+            {% with lit = lit_id|literatura %}
+              <li>{{ lit.dokument }}<br />{{ lit.vyd_udaje }}</li>
+            {% endwith %}
+          {% endfor %}
+          {% for popis in data.odporucana_literatura.nove %}
+            <li>{{ popis }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="polozka">
+        <label>Jazyk, ktorého znalosť je potrebná na absolvovanie predmetu</label>
+        <p>{{ data.potrebny_jazyk|jazyk_vyucby }}</p>
+      </div>
+
+      {#
+      <div class="polozka">
+        <label>Hodnotenie predmetov</label>
+        <p>Celkový počet hodnotených študentov: {{ data. }}</p>
+      </div>
+      #}
+
+      <div class="polozka">
+        <label class="pull-left">Vyučujúci</label>
+        <table class="table">
+          {% for v in data.vyucujuci %}
+            <tr>
+              <td>{{ v.cele_meno }}</td>
+              <td>{% for typ in v.typy %}{{ typ|typ_vyucujuceho }}{% endfor %}</td>
+            </tr>
+          {% endfor %}
+        </table>
+      </div>
+    {% endblock %}
   </div>
   </div><div class="right">
+  {% if not editing %}
+  <div class="meta">
+    <a href="{{ url_for('show_infolist', id=infolist_id, edit=True) }}"
+      class="btn btn-default btn-block btn-primary">Upraviť</a>
+    </form>
+  </div>
   <div class="meta">
     <p>Predmet, ktorý je logickým pokračovateľom (modifikáciou) existujúceho
     predmetu <b>musíte vytvoriť pomocou kópie tohto predmetu.</b> Dôvodom
@@ -71,6 +189,7 @@
       <button type="submit" class="btn btn-default btn-block">Vytvoriť kópiu</button>
     </form>
   </div>
+  {% endif %}
   </div>
   <div class="clearfix"></div>
 </div>

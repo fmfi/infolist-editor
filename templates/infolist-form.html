@@ -1,0 +1,50 @@
+{% extends 'infolist.html' %}
+{% block infolist %}
+<div class="body">
+  {% if form.error or messages or error_saving %}
+  <div class="alert alert-danger">
+    <div class="errorMsgLbl">Formulár sa nepodarilo uložiť. {% if not error_saving %}Skontrolujte vyplnené údaje!{% endif %}</div>
+    {% if messages %}
+      <p>Nasledovné polia ešte treba doplniť alebo opraviť:</p>
+      <ul>
+      {% for fieldname, fieldmsgs in messages %}
+        <li>{{ fieldname }}: {{ fieldmsgs|join('; ') }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <form id="{{ form.formid }}" method="{{ form.method }}" enctype="multipart/form-data" accept-charset="utf-8">
+  {{ render_field(form.fakulta) }}
+  {{ render_field(form.nazov_predmetu) }}
+  {{ render_field(form.povodny_kod_predmetu, readonly=True) }}
+  <div class="form-group">
+  {{ render_checkbox(form.treba_zmenit_kod) }}
+  </div>
+  {{ render_field(form.cinnosti) }}
+  {{ render_field(form.pocet_kreditov) }}
+  <div class="panel panel-default">
+    <div class="panel-heading">Odporúčaný semester štúdia a stupeň štúdia</div>
+    <div class="panel-body">
+      {{ render_field(form.predpokladany_semester) }}
+      <div class="help-block">
+        <p>Informáciu o odporúčanom umiestnení predmetu v rámci príslušného programu pridá garant programu.</p>
+      </div>
+    </div>
+  </div>
+  {{ render_field(form.podmienujuce_predmety) }}
+  {{ render_field(form.odporucane_predmety) }}
+  {{ render_field(form.vylucujuce_predmety) }}
+  {{ render_field(form.podm_absolvovania) }}
+  {{ render_field(form.vysledky_vzdelavania) }}
+  {{ render_field(form.strucna_osnova) }}
+  {{ render_field(form.odporucana_literatura) }}
+  {{ render_field(form.potrebny_jazyk) }}
+  {{ render_field(form.vyucujuci) }}
+  {{ render_field(form.finalna_verzia) }}
+  
+  <button type="submit" class="btn btn-primary">Uložiť</button>
+  </form>
+</div>
+{% endblock %}

@@ -48,6 +48,28 @@ def filter_typ_vyucujuceho(search_kod):
       return popis
   return None
 
+def filter_jazyk_vyucby(search_kod):
+  for kod, popis in g.db.load_jazyky_vyucby():
+    if search_kod == kod:
+      return popis
+  return None
+
+def filter_literatura(id):
+  return g.db.load_literatura(id)
+
+def filter_podmienka(podmienka):
+  result = []
+  for token in Podmienka(podmienka)._tokens:
+    if token in Podmienka.symbols:
+      if token == 'OR':
+        token = 'alebo'
+      elif token == 'AND':
+        token = 'a'
+      result.append(token)
+    else:
+      result.append(g.db.load_predmet(int(token)))
+  return result
+
 def recursive_replace(d, value, replacement):
   if isinstance(d, dict):
     return {key: recursive_replace(d[key], value, replacement) for key in d}
