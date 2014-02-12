@@ -186,7 +186,8 @@ def show_infolist(id, edit):
 def fork_infolist(id):
   novy_infolist = g.db.fork_infolist(id, vytvoril=g.user.id)
   g.db.commit()
-  return redirect(url_for('show_infolist', id=novy_infolist))
+  flash(u'Kópia bola úspešne vytvorená', 'success')
+  return redirect(url_for('show_infolist', id=novy_infolist, edit=False))
 
 @app.route('/infolist/<int:id>/lock', methods=['POST'], defaults={'lock': True})
 @app.route('/infolist/<int:id>/unlock', methods=['POST'], defaults={'lock': False})
