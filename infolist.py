@@ -154,9 +154,6 @@ def form_messages(form):
 @restrict()
 def show_infolist(id, edit):
   infolist = g.db.load_infolist(id)
-  if infolist['potrebny_jazyk'] == None:
-    infolist['potrebny_jazyk'] = u'slovenský, anglický'
-  #return repr(infolist)
   form = Form(schema.Infolist(), buttons=('submit',),
               appstruct=recursive_replace(infolist, None, colander.null))
   error_saving = False
