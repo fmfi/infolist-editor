@@ -6,7 +6,7 @@
   <h1>Zoznam informačných listov</h1>
   <ul>
   {% for id, nazov_predmetu, povodny_kod in infolisty %}
-    <li><a href="{{ url_for('show_infolist', id=id) }}">{{ nazov_predmetu }} ({{ povodny_kod }})</a></li>
+    <li><a href="{{ url_for('show_infolist', id=id, edit=False) }}">{{ nazov_predmetu }} ({{ povodny_kod }})</a></li>
   {% endfor %}
 </div>
 {% endblock %}
