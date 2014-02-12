@@ -629,7 +629,8 @@ CREATE TABLE infolist_verzia (
   fakulta varchar(100) not null references organizacna_jednotka(kod),
   potrebny_jazyk varchar(10) not null references jazyk_vyucby(kod),
   treba_zmenit_kod boolean not null,
-  predpokladany_semester char(1)
+  predpokladany_semester char(1),
+  finalna_verzia boolean not null default false
 );
 
 COMMENT ON COLUMN infolist_verzia.podm_absol_percenta_skuska IS 'podiel zaverecneho hodnotenia na znamke (priebezne je 100 - tato hodnota)';
@@ -696,7 +697,6 @@ CREATE TABLE infolist (
   import_z_aisu boolean not null default false,
   forknute_z integer references infolist(id),
   zamknute boolean not null default false,
-  finalna_verzia boolean not null default false,
   povodny_kod_predmetu varchar(200),
   vytvorene timestamp not null default now(),
   vytvoril integer references osoba(id)

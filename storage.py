@@ -37,20 +37,19 @@ class DataStore(object):
   def load_infolist(self, id, lang='sk'):
     with self.cursor() as cur:
       cur.execute('''SELECT posledna_verzia, import_z_aisu,
-        forknute_z, zamknute, finalna_verzia, povodny_kod_predmetu
+        forknute_z, zamknute, povodny_kod_predmetu
         FROM infolist
         WHERE id = %s''',
         (id,))
       data = cur.fetchone()
       if data == None:
         raise NotFound('infolist({})'.format(id))
-      posledna_verzia, import_z_aisu, forknute_z, zamknute, finalna_verzia, povodny_kod_predmetu = data
+      posledna_verzia, import_z_aisu, forknute_z, zamknute, povodny_kod_predmetu = data
       i = {
         'posledna_verzia': posledna_verzia,
         'import_z_aisu': import_z_aisu,
         'forknute_z': forknute_z,
         'zamknute': zamknute,
-        'finalna_verzia': finalna_verzia,
         'povodny_kod_predmetu': povodny_kod_predmetu
       }
     i.update(self.load_infolist_verzia(posledna_verzia, lang))
@@ -74,7 +73,7 @@ class DataStore(object):
       hodnotenia_d_pocet, hodnotenia_e_pocet, hodnotenia_fx_pocet,
       podmienujuce_predmety, odporucane_predmety, vylucujuce_predmety,
       modifikovane, predosla_verzia, fakulta, potrebny_jazyk,
-      treba_zmenit_kod, predpokladany_semester
+      treba_zmenit_kod, predpokladany_semester, finalna_verzia
       FROM infolist_verzia WHERE id = %s''', (id,))
     row = cur.fetchone()
     if row == None:
@@ -85,7 +84,7 @@ class DataStore(object):
     hodn_a, hodn_b, hodn_c, hodn_d, hodn_e, hodn_fx,
     podmienujuce_predmety, odporucane_predmety, vylucujuce_predmety,
     modifikovane, predosla_verzia, fakulta, potrebny_jazyk,
-    treba_zmenit_kod, predpokladany_semester) = row
+    treba_zmenit_kod, predpokladany_semester, finalna_verzia) = row
     
     iv = {
       'id': id,
@@ -117,6 +116,7 @@ class DataStore(object):
       'potrebny_jazyk': potrebny_jazyk,
       'treba_zmenit_kod': treba_zmenit_kod,
       'predpokladany_semester': predpokladany_semester,
+      'finalna_verzia': finalna_verzia
     }
     return iv
   
@@ -202,7 +202,7 @@ class DataStore(object):
   def save_infolist(self, id, data, user=None):
     with self.cursor() as cur:
       def select_for_update(id):
-        cur.execute('''SELECT posledna_verzia, zamknute, finalna_verzia
+        cur.execute('''SELECT posledna_verzia, zamknute
           FROM infolist
           WHERE id = %s
           FOR UPDATE''',
@@ -247,8 +247,8 @@ class DataStore(object):
           podmienujuce_predmety, odporucane_predmety, vylucujuce_predmety,
           predosla_verzia, fakulta, potrebny_jazyk,
           treba_zmenit_kod, predpokladany_semester,
-          modifikoval)
-        VALUES (''' + ', '.join(['%s'] * 22) + ''')
+          modifikoval, finalna_verzia)
+        VALUES (''' + ', '.join(['%s'] * 23) + ''')
         RETURNING id''',
         (data['pocet_kreditov'], data['podm_absolvovania']['percenta_skuska'],
         pct['A'], pct['B'], pct['C'], pct['D'], pct['E'],
@@ -256,7 +256,7 @@ class DataStore(object):
         data['podmienujuce_predmety'], data['odporucane_predmety'],
         data['vylucujuce_predmety'], data['predosla_verzia'],
         data['fakulta'], data['potrebny_jazyk'], data['treba_zmenit_kod'],
-        data['predpokladany_semester'], user))
+        data['predpokladany_semester'], user, data['finalna_verzia']))
       return cur.fetchone()[0]
   
   def _save_iv_vyucujuci(self, iv_id, vyucujuci):
