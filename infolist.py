@@ -168,7 +168,7 @@ def show_infolist(id, edit):
         g.db.save_infolist(id, infolist, user=g.user.id)
         g.db.commit()
         flash(u'Informačný list bol úspešne uložený', 'success')
-        return redirect(url_for('show_infolist', id=id))
+        return redirect(url_for('show_infolist', id=id, edit=False))
       except:
         app.logger.exception('Vynimka pocas ukladania infolistu')
         g.db.rollback()
