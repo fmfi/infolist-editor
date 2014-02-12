@@ -66,9 +66,14 @@ def PodmienkyAbsolvovania(**kwargs):
     description=u'''Napríklad ak predmet nemá skúšku, váha skúšky bude 0. 
       Ak predmet nemá priebežné hodnotenie, váha skúšky bude 100.'''
   ))
+  percenta_na = MappingSchema(
+    name='percenta_na',
+    title=u'Stupnica hodnotenia'
+  )
+  schema.add(percenta_na)
   for i, x in enumerate(['A', 'B', 'C', 'D', 'E']):
-    schema.add(SchemaNode(Integer(),
-      name='percenta_na_{}'.format(x),
+    percenta_na.add(SchemaNode(Integer(),
+      name=x,
       title=u'Minimálna hranica na {} (%)'.format(x),
       default=(90 - i * 10)
     ))

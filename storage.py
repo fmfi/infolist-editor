@@ -31,6 +31,9 @@ class DataStore(object):
   def commit(self):
     return self.conn.commit()
   
+  def rollback(self):
+    return self.conn.rollback()
+  
   def load_infolist(self, id, lang='sk'):
     with self.cursor() as cur:
       cur.execute('''SELECT posledna_verzia, import_z_aisu,
@@ -195,6 +198,110 @@ class DataStore(object):
       'strucna_osnova': data.strucna_osnova,
       'jazyk_prekladu': lang,
     }
+  
+  def save_infolist(self, id, data):
+    with self.cursor() as cur:
+      def select_for_update(id):
+        cur.execute('''SELECT posledna_verzia, zamknute, finalna_verzia
+          FROM infolist
+          WHERE id = %s
+          FOR UPDATE''',
+          (id,))
+      select_for_update(id)
+      row = cur.fetchone()
+      if row == None:
+        raise NotFound('infolist({})'.format(id))
+      if row.zamknute:
+        id = self.fork_infolist(id)
+        select_for_update(id)
+        row = cur.fetchone()
+        if row == None:
+          raise NotFound('infolist({})'.format(id))
+        if row.zamknute:
+          raise ValueError('Zamknuty novo vytvoreny infolist')
+      nova_verzia = self.save_infolist_verzia(row.posledna_verzia, data)
+      cur.execute('''UPDATE infolist
+        SET posledna_verzia = %s
+        WHERE id = %s''',
+        (nova_verzia, id))
+  
+  def save_infolist_verzia(self, predosla_verzia, data, lang='sk'):
+    nove_id = self._save_iv_data(predosla_verzia, data)
+    self._save_iv_vyucujuci(nove_id, data['vyucujuci'])
+    self._save_iv_cinnosti(nove_id, data['cinnosti'])
+    self._save_iv_literatura(nove_id, data['odporucana_literatura'])
+    self._save_iv_trans(nove_id, data, lang=lang)
+    return nove_id
+    
+  def _save_iv_data(self, predosla_verzia, data):
+    pct = data['podm_absolvovania']['percenta_na']
+    hodn = data['hodnotenia_pocet']
+    with self.cursor() as cur:
+      cur.execute('''INSERT INTO infolist_verzia (
+          pocet_kreditov,
+          podm_absol_percenta_skuska, podm_absol_percenta_na_a,
+          podm_absol_percenta_na_b, podm_absol_percenta_na_c,
+          podm_absol_percenta_na_d, podm_absol_percenta_na_e,
+          hodnotenia_a_pocet, hodnotenia_b_pocet, hodnotenia_c_pocet,
+          hodnotenia_d_pocet, hodnotenia_e_pocet, hodnotenia_fx_pocet,
+          podmienujuce_predmety, odporucane_predmety, vylucujuce_predmety,
+          predosla_verzia, fakulta, potrebny_jazyk,
+          treba_zmenit_kod, predpokladany_semester)
+        VALUES (''' + ', '.join(['%s'] * 21) + ''')
+        RETURNING id''',
+        (data['pocet_kreditov'], data['podm_absolvovania']['percenta_skuska'],
+        pct['A'], pct['B'], pct['C'], pct['D'], pct['E'],
+        hodn['A'], hodn['B'], hodn['C'], hodn['D'], hodn['E'], hodn['Fx'],
+        data['podmienujuce_predmety'], data['odporucane_predmety'],
+        data['vylucujuce_predmety'], data['predosla_verzia'],
+        data['fakulta'], data['potrebny_jazyk'], data['treba_zmenit_kod'],
+        data['predpokladany_semester']))
+      return cur.fetchone()[0]
+  
+  def _save_iv_vyucujuci(self, iv_id, vyucujuci):
+    with self.cursor() as cur:
+      for poradie, polozka in enumerate(vyucujuci, start=1):
+        cur.execute('''INSERT INTO infolist_verzia_vyucujuci
+          (infolist_verzia, poradie, osoba)
+          VALUES (%s, %s, %s)''',
+          (iv_id, poradie, polozka['osoba']))
+        for typ in polozka['typy']:
+          cur.execute('''INSERT INTO infolist_verzia_vyucujuci_typ
+            (infolist_verzia, osoba, typ_vyucujuceho)
+            VALUES (%s, %s, %s)''',
+            (iv_id, polozka['osoba'], typ))
+  
+  def _save_iv_cinnosti(self, iv_id, cinnosti):
+    with self.cursor() as cur:
+      for cinnost in cinnosti:
+        cur.execute('''INSERT INTO infolist_verzia_cinnosti
+          (infolist_verzia, metoda_vyucby, druh_cinnosti, pocet_hodin,
+          za_obdobie)
+          VALUES (%s, %s, %s, %s, %s)''',
+          (iv_id, cinnost['metoda_vyucby'], cinnost['druh_cinnosti'],
+           cinnost['pocet_hodin'], cinnost['za_obdobie']))
+  
+  def _save_iv_literatura(self, iv_id, literatura):
+    with self.cursor() as cur:
+      for poradie, bib_id in enumerate(literatura['zoznam'], start=1):
+        cur.execute('''INSERT INTO infolist_verzia_literatura
+          (infolist_verzia, bib_id, poradie) VALUES (%s, %s, %s)''',
+          (iv_id, bib_id, poradie))
+      for poradie, popis in enumerate(literatura['nove'], start=1):
+        cur.execute('''INSERT INTO infolist_verzia_nova_literatura
+          (infolist_verzia, popis, poradie) VALUES (%s, %s, %s)''',
+          (iv_id, popis, poradie))
+  
+  def _save_iv_trans(self, iv_id, data, lang='sk'):
+    with self.cursor() as cur:
+      podm = data['podm_absolvovania']
+      cur.execute('''INSERT INTO infolist_verzia_preklad
+        (infolist_verzia, jazyk_prekladu,
+         nazov_predmetu, podm_absol_priebezne, podm_absol_skuska,
+         podm_absol_nahrada, vysledky_vzdelavania, strucna_osnova)
+       VALUES (''' + ', '.join(['%s']*8) + ''')''',
+       (iv_id, lang, data['nazov_predmetu'], podm['priebezne'], podm['skuska'],
+        podm['nahrada'], data['vysledky_vzdelavania'], data['strucna_osnova']))
   
   def search_osoba(self, query):
     if len(query) < 2:

@@ -1,17 +1,18 @@
 {% extends 'layout.html' %}
-{% from 'macros.html' import render_field, render_checkbox %}
+{% from 'macros.html' import render_field, render_checkbox, flashes %}
 {% block title %}Informačný list{% endblock %}
 {% block content %}
 <div class="content-full">
+  {{ flashes() }}
   <div class="left">
   <div class="infolist">
     <div class="header">
       <h2>{{ data.nazov_predmetu }}</h2>
     </div>
     <div class="body">
-      {% if form.error or messages %}
+      {% if form.error or messages or error_saving %}
       <div class="alert alert-danger">
-        <div class="errorMsgLbl">Formulár sa nepodarilo uložiť. Skontrolujte vyplnené údaje!</div>
+        <div class="errorMsgLbl">Formulár sa nepodarilo uložiť. {% if not error_saving %}Skontrolujte vyplnené údaje!{% endif %}</div>
         {% if messages %}
           <p>Nasledovné polia ešte treba doplniť alebo opraviť:</p>
           <ul>

@@ -4,7 +4,7 @@
 from flask import Flask, Blueprint
 app = Flask(__name__)
 
-from flask import render_template, url_for, redirect, jsonify, abort
+from flask import render_template, url_for, redirect, jsonify, abort, flash
 from flask import request, Request, g
 from flask import Response
 from werkzeug.exceptions import BadRequest
@@ -23,7 +23,9 @@ from pkg_resources import resource_filename
 import colander
 import time
 import jinja2
-from utils import kod2skratka, filter_fakulta, filter_druh_cinnosti, filter_obdobie, filter_typ_vyucujuceho, filter_metoda_vyucby
+from utils import kod2skratka, filter_fakulta, filter_druh_cinnosti
+from utils import filter_obdobie, filter_typ_vyucujuceho, filter_metoda_vyucby
+from utils import recursive_replace, recursive_update
 from markupsafe import Markup, soft_unicode
 from functools import wraps
 import psycopg2
@@ -150,16 +152,26 @@ def show_infolist(id):
   if infolist['potrebny_jazyk'] == None:
     infolist['potrebny_jazyk'] = u'slovenský, anglický'
   #return repr(infolist)
-  form = Form(schema.Infolist(), buttons=('submit',), appstruct=infolist)
+  form = Form(schema.Infolist(), buttons=('submit',),
+              appstruct=recursive_replace(infolist, None, colander.null))
+  error_saving = False
   if request.method == 'POST':
     controls = request.form.items(multi=True)
     try:
-      data = form.validate(controls)
-      print repr(data)
+      recursive_update(infolist, recursive_replace(form.validate(controls), colander.null, None))
+      try:
+        g.db.save_infolist(id, infolist)
+        g.db.commit()
+        flash(u'Informačný list bol úspešne uložený', 'success')
+        return redirect(url_for('show_infolist', id=id))
+      except:
+        app.logger.exception('Vynimka pocas ukladania infolistu')
+        g.db.rollback()
+        error_saving = True
     except ValidationFailure, e:
       pass
   return render_template('infolist.html', form=form, data=infolist,
-    messages=form_messages(form), infolist_id=id)
+    messages=form_messages(form), infolist_id=id, error_saving=error_saving)
 
 @app.route('/infolist/<int:id>/fork', methods=['POST'])
 @restrict()

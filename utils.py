@@ -47,3 +47,22 @@ def filter_typ_vyucujuceho(search_kod):
     if search_kod == kod:
       return popis
   return None
+
+def recursive_replace(d, value, replacement):
+  if isinstance(d, dict):
+    return {key: recursive_replace(d[key], value, replacement) for key in d}
+  elif isinstance(d, list):
+    return [recursive_replace(x, value, replacement) for x in d]
+  elif d == value:
+    return replacement
+  else:
+    return d
+
+def recursive_update(d, otherd):
+  if not isinstance(d, dict) or not isinstance(otherd, dict):
+    raise TypeError()
+  for key in otherd:
+    if key in d and isinstance(d[key], dict):
+      recursive_update(d[key], otherd[key])
+    else:
+      d[key] = otherd[key]
