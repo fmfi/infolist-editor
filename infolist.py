@@ -160,7 +160,7 @@ def show_infolist(id):
     try:
       recursive_update(infolist, recursive_replace(form.validate(controls), colander.null, None))
       try:
-        g.db.save_infolist(id, infolist)
+        g.db.save_infolist(id, infolist, user=g.user.id)
         g.db.commit()
         flash(u'Informačný list bol úspešne uložený', 'success')
         return redirect(url_for('show_infolist', id=id))

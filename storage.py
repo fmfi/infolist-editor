@@ -199,7 +199,7 @@ class DataStore(object):
       'jazyk_prekladu': lang,
     }
   
-  def save_infolist(self, id, data):
+  def save_infolist(self, id, data, user=None):
     with self.cursor() as cur:
       def select_for_update(id):
         cur.execute('''SELECT posledna_verzia, zamknute, finalna_verzia
@@ -219,21 +219,21 @@ class DataStore(object):
           raise NotFound('infolist({})'.format(id))
         if row.zamknute:
           raise ValueError('Zamknuty novo vytvoreny infolist')
-      nova_verzia = self.save_infolist_verzia(row.posledna_verzia, data)
+      nova_verzia = self.save_infolist_verzia(row.posledna_verzia, data, user=user)
       cur.execute('''UPDATE infolist
         SET posledna_verzia = %s
         WHERE id = %s''',
         (nova_verzia, id))
   
-  def save_infolist_verzia(self, predosla_verzia, data, lang='sk'):
-    nove_id = self._save_iv_data(predosla_verzia, data)
+  def save_infolist_verzia(self, predosla_verzia, data, lang='sk', user=None):
+    nove_id = self._save_iv_data(predosla_verzia, data, user=user)
     self._save_iv_vyucujuci(nove_id, data['vyucujuci'])
     self._save_iv_cinnosti(nove_id, data['cinnosti'])
     self._save_iv_literatura(nove_id, data['odporucana_literatura'])
     self._save_iv_trans(nove_id, data, lang=lang)
     return nove_id
     
-  def _save_iv_data(self, predosla_verzia, data):
+  def _save_iv_data(self, predosla_verzia, data, user=None):
     pct = data['podm_absolvovania']['percenta_na']
     hodn = data['hodnotenia_pocet']
     with self.cursor() as cur:
@@ -246,8 +246,9 @@ class DataStore(object):
           hodnotenia_d_pocet, hodnotenia_e_pocet, hodnotenia_fx_pocet,
           podmienujuce_predmety, odporucane_predmety, vylucujuce_predmety,
           predosla_verzia, fakulta, potrebny_jazyk,
-          treba_zmenit_kod, predpokladany_semester)
-        VALUES (''' + ', '.join(['%s'] * 21) + ''')
+          treba_zmenit_kod, predpokladany_semester,
+          modifikoval)
+        VALUES (''' + ', '.join(['%s'] * 22) + ''')
         RETURNING id''',
         (data['pocet_kreditov'], data['podm_absolvovania']['percenta_skuska'],
         pct['A'], pct['B'], pct['C'], pct['D'], pct['E'],
@@ -255,7 +256,7 @@ class DataStore(object):
         data['podmienujuce_predmety'], data['odporucane_predmety'],
         data['vylucujuce_predmety'], data['predosla_verzia'],
         data['fakulta'], data['potrebny_jazyk'], data['treba_zmenit_kod'],
-        data['predpokladany_semester']))
+        data['predpokladany_semester'], user))
       return cur.fetchone()[0]
   
   def _save_iv_vyucujuci(self, iv_id, vyucujuci):
