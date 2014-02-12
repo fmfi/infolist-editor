@@ -87,7 +87,10 @@ def OdporucanaLiteratura(**kwargs):
       )
     ),
     name='zoznam',
-    title=u'Literatúra z knižného fondu'
+    title=u'Literatúra z knižného fondu',
+    description=u'''Písaním do boxu sa spustí vyhľadávanie knihy v aktuálnom
+      knižnom fonde. Ak sa kniha nenájde, musíte ju pridať do položky
+      "Nová literatúra"'''
   ))
   schema.add(SchemaNode(Sequence(),
     SchemaNode(String(),
@@ -99,7 +102,14 @@ def OdporucanaLiteratura(**kwargs):
     ),
     name='nove',
     title=u'Nová literatúra',
-    description=u'Napríklad: J. Mrkvička, F. Hruška: Propedeutika astrológie, Springer 2012'
+    description=Markup(u'''<p>Pozor, literatúru musíme byť schopní zabezpečiť!</p>
+      <p>Napríklad:</p>
+      <ul>
+        <li>J. Mrkvička, F. Hruška: Propedeutika astrológie, Springer 2012</li>
+        <li>Vlastné elektronické texty vyučujúceho predmetu zverejňované
+          prostredníctvom web stránky predmetu.</li>
+        <li>Výber aktuálnych článkov z oblasti.</li>
+      </ul>''')
   ))
   return schema
 
@@ -132,6 +142,8 @@ def Infolist():
     ),
     name='cinnosti',
     title=u'Druh, rozsah a metóda vzdelávacích činností',
+    description=u'''Ak má predmet prednášky a cvičenia, treba vyplniť dva bloky
+      s príslušnými rozsahmi'''
   ))
   schema.add(SchemaNode(Integer(),
     name='pocet_kreditov',
@@ -152,14 +164,14 @@ def Infolist():
     title=u'Podmieňujúce predmety',
     missing='',
     widget=widgets.PodmienkaWidget(),
-    description=u'Uvádzajú sa predmety, ktoré študent musí riadne absolvovať, aby si mohol zapísať tento predmet. Napríklad: "(1-INF-123 alebo 1-INF-234) a 1-INF-456"'
+    description=u'Uvádzajú sa predmety, ktoré študent musí riadne absolvovať, aby si mohol zapísať tento predmet. Napríklad: "(1-INF-123 alebo 1-INF-234) a 1-INF-456". Kódy budú automaticky preklopené na nové priradené kódy.'
   ))
   schema.add(SchemaNode(String(),
     name='vylucujuce_predmety',
     title=u'Vylučujúce predmety',
     missing='',
     widget=widgets.PodmienkaWidget(),
-    description=u'Napríklad: "1-INF-123 alebo 1-INF-456"'
+    description=u'Napríklad: "1-INF-123 alebo 1-INF-456". Kódy budú automaticky preklopené na nové priradené kódy.'
   ))
   schema.add(PodmienkyAbsolvovania(
     name='podm_absolvovania',
@@ -168,23 +180,23 @@ def Infolist():
   schema.add(SchemaNode(String(),
     name='vysledky_vzdelavania',
     title=u'Výsledky vzdelávania',
-    description=u'''Výsledky vzdelávania určujú, aké znalosti alebo schopnosti študenti
-      budú mať po absolvovaní tohto predmetu. Môžu sa týkať obsahových
+    description=Markup(u'''Výsledky vzdelávania určujú, <strong>aké znalosti alebo schopnosti študenti
+      budú mať po absolvovaní tohto predmetu</strong>. Môžu sa týkať obsahových
       znalostí (po absolvovaní predmetu študenti budú vedieť kategorizovať
       makroekonomické stratégie na základe ekonomických teórií, z ktorých
       tieto stratégie vychádzajú), schopností (po absolvovaní predmetu
       študenti budú schopní počítať jednoduché derivácie), alebo hodnôt a
       všeobecných schopností (po absolvovaní predmetu budú študenti schopní
-      spolupracovať v rámci malých tímov; po absolvovaní predmetu budú
-      študenti schopní identifikovať vlastné politické názory a zaradiť ich
-      v rámci politického spektra).''',
+      spolupracovať v rámci malých tímov). <strong>Formulácia typu "oboznámiť
+      študentov s ..." nie je v tomto kontexte vhodná.</strong>'''),
     widget=deform.widget.TextAreaWidget(rows=5)
   ))
   schema.add(SchemaNode(String(),
     name='strucna_osnova',
     title=u'Stručná osnova predmetu',
     description=u'''Osnova predmetu určuje postupnosť obsahových tém,
-      ktoré budú v rámci predmetu preberané.''',
+      ktoré budú v rámci predmetu preberané. Text zbytočne neštrukturujte
+      (ideálne vymenujte postupnosť tém v rámci jedného odstavca).''',
     widget=deform.widget.TextAreaWidget(rows=5)
   ))
   schema.add(OdporucanaLiteratura(
@@ -194,13 +206,13 @@ def Infolist():
       študijná literatúra v rámci prezenčného fondu knižnice. Preto v rámci
       odporúčanej literatúry k predmetu:</p>
       <ol style="list-style-type: lower-alpha">
-        <li>Uvádzajte maximálne 1-2 knihy, ktoré slúžia ako hlavný zdroj
-          informácií pre študentov. Ďalšie zdroje možno študentom odporučiť
-          napr. pomocou web stránky predmetu.</li>
+        <li>Uvádzajte knihy, ktoré slúžia ako <strong>hlavný zdroj</strong>
+          informácií pre študentov (spravidla 1-3). Ďalšie zdroje možno
+          študentom odporučiť napr. pomocou web stránky predmetu.</li>
         <li>Vyberajte pokiaľ možno zo zoznamu literatúry, ktorá je v
           súčasnosti k dispozícii v knižnom fonde.</li>
-        <li>Pri nových tituloch dbajte na to, aby ich bolo možné zohnať.
-          (Neuvádzajte knihy, ktoré sú vypredané.)</li>
+        <li>V žiadnom prípade <strong>neuvádzajte literatúru, ktorú nie je
+          možné zohnať</strong>.</li>
       </ol>''')
   ))
   schema.add(SchemaNode(String(),
@@ -212,9 +224,10 @@ def Infolist():
     Vyucujuci(name='vyucujuci', title=u'Vyučujúci'),
     name='vyucujuci',
     title=u'Vyučujúci',
-    descrption=Markup(u'''<p><strong>U všetkých povinných a povinne voliteľných
-      predmetov musí byť medzi vyučujúcimi zaradený profesor alebo
-      docent.</strong> V prípade, že sa požadovaný vyučujúci nenachádza v
+    descrption=Markup(u'''<p><strong>Ak je predmet zaradený v niektorom
+      študijnom programe ako povinný alebo povinne voliteľný, musí prvý z
+      uvedených vyučujúcich byť profesor alebo docent.</strong>
+      V prípade, že sa požadovaný vyučujúci nenachádza v
       zozname, prosím kontaktujte nás (potrebujeme meno, priezvisko a tituly
       vyučujúceho).</p>''')
   ))
