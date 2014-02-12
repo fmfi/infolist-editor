@@ -101,8 +101,7 @@ def teardown_request(*args, **kwargs):
 def index():
   if not g.user:
     return render_template('login.html')
-  form = Form(schema.Infolist(), buttons=('submit',))
-  return render_template('infolist.html', form=form)
+  return redirect(url_for('infolist_index'))
 
 @app.route('/login')
 def login():
