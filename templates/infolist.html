@@ -155,12 +155,28 @@
         <p>{{ data.potrebny_jazyk|jazyk_vyucby }}</p>
       </div>
 
-      {#
       <div class="polozka">
-        <label>Hodnotenie predmetov</label>
-        <p>Celkový počet hodnotených študentov: {{ data. }}</p>
+        <label>Hodnotenia študentov na predmete</label>
+        {% with znamky = ['A', 'B', 'C', 'D' , 'E', 'Fx'] %}
+          <table class="table">
+            <caption>Počet hodnotení</caption>
+            <thead>
+              <tr>
+                {% for znamka in znamky %}
+                <th>{{ znamka }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                {% for znamka in znamky %}
+                <td>{{ data.hodnotenia_pocet[znamka] }}</td>
+                {% endfor %}
+              </tr>
+            </tbody>
+          </table>
+        {% endwith %}
       </div>
-      #}
 
       <div class="polozka">
         <label class="pull-left">Vyučujúci</label>
