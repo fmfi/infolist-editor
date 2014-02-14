@@ -365,7 +365,7 @@ class DataStore(object):
       params.append('%' + part + '%')
     
     select = '''SELECT bib_id, dokument, vyd_udaje FROM literatura
-      WHERE dostupne AND {} ORDER by dokument'''.format(' AND '.join(conds))
+      WHERE {} ORDER by dokument'''.format(' AND '.join(conds))
     
     with self.cursor() as cur:
       cur.execute(select, params)
