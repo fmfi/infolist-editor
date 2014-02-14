@@ -104,3 +104,39 @@
 .infolist-readonly label:after {
   content: ":"
 }
+
+ul.predmety {
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+ul.predmety > li {
+  margin: 0;
+  padding: 0;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1em;
+  border: 1px solid #eee;
+  background: white;
+  list-style-type: none;
+}
+
+ul.predmety > li > div {
+  border-bottom: 1px solid #eee;
+  padding: 0.5em 1em;
+}
+
+ul.predmety > li > ul {
+  margin: 0;
+  padding: 0.5em 1em;
+  list-style-type: none;
+}
+
+ul.predmety > li > ul > li {
+  display: inline-block;
+  vertical-align: top;
+  border: 1px solid #eee;
+  padding: 0.5em;
+  margin: 0;
+  width: 49%;
+}

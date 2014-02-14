@@ -1,0 +1,38 @@
+{% extends 'layout.html' %}
+{% from 'macros.html' import render_field %}
+{% block title %}Predmety a informačné listy{% endblock %}
+{% block content %}
+<div class="content-full">
+  <h1>Zoznam predmetov a informačných listov</h1>
+  <ul class="predmety">
+  {% for predmet in predmety %}
+    <li><div title="{{ predmet.kod_predmetu }}">{{ predmet.skratka }}</div>
+      <ul>
+        {% for infolist in predmet.infolisty %}
+          <li><a href="{{ url_for('show_infolist', id=infolist.id, edit=False) }}">{{ infolist.nazov_predmetu }}</a>
+            <ul class="inline-label">
+              {% if infolist.import_z_aisu %}
+                <li>import z AIS-u</li>
+              {% elif infolist.zamknute %}
+                <li>uzamknuté{% if infolist.zamkol %} ({{ (infolist.zamkol|osoba).cele_meno|space2nbsp }}){% endif %}</li>
+              {% endif %}
+              <li>posledná zmena: {{ infolist.modifikovane|datetime(iba_datum=infolist.import_z_aisu)|space2nbsp }}</li>
+              {% if infolist.modifikovali %}
+              <li>upravovali:
+                {% for osoba in infolist.modifikovali %}
+                  {%- if not loop.first %}; {% endif %}
+                  {{ osoba.cele_meno|space2nbsp }}
+                {% endfor %}
+              </li>
+              {% endif %}
+              {% if infolist.finalna_verzia %}
+              <li>finálna verzia</li>
+              {% endif %}
+            </ul>
+          </li>
+        {% endfor %}
+      </ul>
+      {##}</li>
+  {% endfor %}
+</div>
+{% endblock %}

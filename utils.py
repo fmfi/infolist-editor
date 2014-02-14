@@ -92,5 +92,10 @@ def recursive_update(d, otherd):
     else:
       d[key] = otherd[key]
       
-def format_datetime(value):
+def format_datetime(value, iba_datum=False):
+  if iba_datum:
+    return value.strftime('%d.%m.%Y')
   return value.strftime('%d.%m.%Y %H:%M:%S')
+
+def space2nbsp(value):
+  return value.replace(u' ', u'\u00A0')

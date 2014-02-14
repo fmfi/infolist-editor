@@ -415,35 +415,22 @@ class DataStore(object):
       return [x[0] for x in cur.fetchall()]
   
   def load_predmet(self, id):
-    predmety = self._fetch_predmety(where=('p.id = %s', (id,)))
+    predmety = self.fetch_predmety(where=('p.id = %s', (id,)))
     if len(predmety) == 0:
       return None
     return predmety[0]
   
   def search_predmet(self, query):
-    return self._fetch_predmety(where=(
-      'p.kod_predmetu LIKE %s OR ivp.nazov_predmetu LIKE %s',
-      (u'%{}%'.format(query),u'%{}%'.format(query))
-      )
-    )
-  
-  def _fetch_predmety(self, where=None):
     with self.cursor() as cur:
-      if where:
-        where_cond = ' AND ' + where[0]
-        where_params = where[1]
-      else:
-        where_cond = ''
-        where_params = []
       sql = '''SELECT DISTINCT p.id, p.kod_predmetu, p.skratka, ivp.nazov_predmetu
           FROM predmet p
           LEFT JOIN predmet_infolist pi ON p.id = pi.predmet
           LEFT JOIN infolist i ON pi.infolist = i.id
           INNER JOIN infolist_verzia iv ON i.posledna_verzia = iv.id
           INNER JOIN infolist_verzia_preklad ivp ON iv.id = ivp.infolist_verzia
-          WHERE ivp.jazyk_prekladu = 'sk' {}
-          ORDER BY p.skratka, p.id, ivp.nazov_predmetu'''.format(where_cond)
-      cur.execute(sql, where_params)
+          WHERE ivp.jazyk_prekladu = 'sk' AND p.kod_predmetu LIKE %s OR ivp.nazov_predmetu LIKE %s
+          ORDER BY p.skratka, p.id, ivp.nazov_predmetu'''
+      cur.execute(sql, (u'%{}%'.format(query),u'%{}%'.format(query)))
       predmety = []
       for row in cur:
         if len(predmety) == 0 or predmety[-1]['id'] != row.id:
@@ -455,6 +442,62 @@ class DataStore(object):
           })
         if row.nazov_predmetu:
           predmety[-1]['nazvy_predmetu'].append(row.nazov_predmetu)
+      return predmety
+  
+  def fetch_predmety(self, where=None):
+    if where != None:
+      where_cond = ' AND ' + where[0]
+      where_params = where[1]
+    else:
+      where_cond = ''
+      where_params = []
+    
+    with self.cursor() as cur:
+      sql = '''SELECT p.id as predmet_id, p.kod_predmetu, p.skratka,
+          i.id as infolist_id, i.zamknute, i.zamkol, i.import_z_aisu,
+          oz.cele_meno as zamkol_cele_meno,
+          iv.modifikovane, iv.finalna_verzia,
+          ivp.nazov_predmetu,
+          o.id as osoba_id, o.cele_meno
+          FROM predmet p
+          LEFT JOIN predmet_infolist pi ON p.id = pi.predmet
+          LEFT JOIN infolist i ON pi.infolist = i.id
+          INNER JOIN infolist_verzia iv ON i.posledna_verzia = iv.id
+          LEFT JOIN osoba oz ON i.zamkol = oz.id
+          INNER JOIN infolist_verzia_preklad ivp ON iv.id = ivp.infolist_verzia
+          LEFT JOIN infolist_verzia_modifikovali ivm ON iv.id = ivm.infolist_verzia
+          LEFT JOIN osoba o ON ivm.osoba = o.id
+          WHERE ivp.jazyk_prekladu = 'sk' {}
+          ORDER BY p.skratka, p.id, ivp.nazov_predmetu, iv.id, o.cele_meno'''.format(where_cond)
+      cur.execute(sql, where_params)
+      predmety = []
+      for row in cur:
+        if len(predmety) == 0 or predmety[-1]['id'] != row.predmet_id:
+          predmety.append({
+            'id': row.predmet_id,
+            'kod_predmetu': row.kod_predmetu,
+            'skratka': row.skratka,
+            'infolisty': []
+          })
+        if row.infolist_id:
+          infolisty = predmety[-1]['infolisty']
+          if len(infolisty) == 0 or infolisty[-1]['id'] != row.infolist_id:
+            infolisty.append({
+              'id': row.infolist_id,
+              'zamknute': row.zamknute,
+              'zamkol': row.zamkol,
+              'zamkol_cele_meno': row.zamkol_cele_meno,
+              'import_z_aisu': row.import_z_aisu,
+              'modifikovane': row.modifikovane,
+              'finalna_verzia': row.finalna_verzia,
+              'nazov_predmetu': row.nazov_predmetu,
+              'modifikovali': []
+            })
+          if row.osoba_id:
+            infolisty[-1]['modifikovali'].append({
+              'id': row.osoba_id,
+              'cele_meno': row.cele_meno
+            })
       return predmety
   
   def load_jazyky_vyucby(self):
@@ -476,7 +519,13 @@ class DataStore(object):
       cur.execute('''INSERT INTO infolist (posledna_verzia, forknute_z, povodny_kod_predmetu, vytvoril)
         VALUES (%s, %s, %s, %s) RETURNING id''',
         (verzia, id, povodny_kod_predmetu, vytvoril))
-      return cur.fetchone()[0]
+      nove_id = cur.fetchone()[0]
+      cur.execute('''INSERT INTO predmet_infolist (predmet, infolist)
+        SELECT predmet, %s
+        FROM predmet_infolist
+        WHERE infolist = %s''',
+        (nove_id, id))
+      return nove_id
   
   def load_user(self, username):
     with self.cursor() as cur:
