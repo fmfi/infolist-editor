@@ -16,6 +16,7 @@ class User(object):
     self.meno = meno
     self.priezvisko = priezvisko
     self.cele_meno = cele_meno
+    self.opravnenia = {}
 
 class DataStore(object):
   def __init__(self, conn):
@@ -449,11 +450,21 @@ class DataStore(object):
   
   def load_user(self, username):
     with self.cursor() as cur:
-      cur.execute('SELECT id, login, meno, priezvisko, cele_meno FROM osoba WHERE login = %s', (username,))
-      row = cur.fetchone()
-      if row == None:
-        return None
-      return User(row.id, row.login, row.meno, row.priezvisko, row.cele_meno)
+      cur.execute('''SELECT o.id, o.login, o.meno, o.priezvisko, o.cele_meno, op.organizacna_jednotka, op.je_admin
+        FROM osoba o
+        INNER JOIN ilsp_opravnenia op ON o.id = op.osoba
+        WHERE o.login = %s'''
+        , (username,))
+      user = None
+      for row in cur:
+        if user == None:
+          user = User(row.id, row.login, row.meno, row.priezvisko, row.cele_meno)
+        elif user.id != row.id:
+            raise ValueError('SELECT vratil viacerych pouzivatelov... WTF')
+        user.opravnenia[row.organizacna_jednotka] = {
+          'admin': row.je_admin
+        }
+      return user
   
   def lock_infolist(self, id, user):
     with self.cursor() as cur:

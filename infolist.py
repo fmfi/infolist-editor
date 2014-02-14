@@ -76,6 +76,8 @@ def restrict(api=False):
         if api:
           abort(401)
         else:
+          if g.username:
+            return render_template('unauthorized.html'), 401
           return redirect(url_for('index'))
       return f(*args, **kwargs)
     return wrapper
@@ -89,6 +91,7 @@ def before_request():
   if app.debug and 'REMOTE_USER' in os.environ:
     username = os.environ['REMOTE_USER']
   
+  g.username = username
   g.user = g.db.load_user(username)
 
 @app.teardown_request

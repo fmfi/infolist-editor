@@ -604,6 +604,17 @@ CREATE TABLE literatura (
   dostupne boolean not null
 );
 
+CREATE TABLE ilsp_opravnenia (
+  osoba integer not null references osoba(id),
+  organizacna_jednotka varchar(100) not null references organizacna_jednotka(kod),
+  je_admin boolean not null,
+  primary key (osoba, organizacna_jednotka)
+);
+
+INSERT INTO ilsp_opravnenia (osoba, organizacna_jednotka, je_admin)
+SELECT o.id, 'FMFI', true
+FROM osoba o WHERE o.login IN ('sucha14', 'vinar1');
+
 CREATE TABLE infolist_verzia (
   id serial not null primary key,
   podm_absol_percenta_skuska integer,
