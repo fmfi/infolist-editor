@@ -733,4 +733,10 @@ CREATE TABLE infolist_verzia_suvisiace_predmety (
   primary key (infolist_verzia, predmet)
 );
 
+CREATE TABLE infolist_verzia_modifikovali (
+  infolist_verzia integer not null references infolist_verzia(id),
+  osoba integer not null references osoba(id),
+  primary key (infolist_verzia, osoba)
+);
+
 COMMIT;

@@ -75,6 +75,17 @@
   margin-bottom: 0;
 }
 
+.meta ul.zoznam-osob {
+  list-style-type: none;
+  margin-left: 0;
+  padding-left: 0;
+}
+
+.meta ul.zoznam-osob li {
+  margin-left: 0;
+  padding-left: 0;
+}
+
 .infolist-readonly .polozka {
   padding-left: 1em;
   padding-right: 1em;

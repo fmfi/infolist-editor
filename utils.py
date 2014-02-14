@@ -91,3 +91,6 @@ def recursive_update(d, otherd):
       recursive_update(d[key], otherd[key])
     else:
       d[key] = otherd[key]
+      
+def format_datetime(value):
+  return value.strftime('%d.%m.%Y %H:%M:%S')

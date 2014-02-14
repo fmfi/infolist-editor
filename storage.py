@@ -63,6 +63,7 @@ class DataStore(object):
       data['vyucujuci'] = self._load_iv_vyucujuci(cur, id)
       data['cinnosti'] = self._load_iv_cinnosti(cur, id)
       data['odporucana_literatura'] = self._load_iv_literatura(cur, id)
+      data['modifikovali'] = self._load_iv_modifikovali(cur, id)
       dict_rec_update(data, self._load_iv_trans(cur, id, lang))
     return data
   
@@ -177,6 +178,21 @@ class DataStore(object):
     for popis, in cur:
       nove.append(popis)
     return {'zoznam': literatura, 'nove': nove}
+
+  def _load_iv_modifikovali(self, cur, id):
+    cur.execute('''SELECT o.id, o.cele_meno, o.meno, o.priezvisko
+      FROM infolist_verzia_modifikovali ivm
+      INNER JOIN osoba o ON ivm.osoba = o.id
+      WHERE infolist_verzia = %s''',
+      (id,))
+    osoby = {}
+    for row in cur:
+      osoby[row.id] = {
+        'cele_meno': row.cele_meno,
+        'meno': row.meno,
+        'priezvisko': row.priezvisko,
+      }
+    return osoby
   
   def _load_iv_trans(self, cur, id, lang='sk'):
     cur.execute('''SELECT nazov_predmetu, podm_absol_priebezne,
@@ -203,6 +219,12 @@ class DataStore(object):
   
   def save_infolist(self, id, data, user=None):
     with self.cursor() as cur:
+      if user.id not in data['modifikovali']:
+        data['modifikovali'][user.id] = {
+          'meno': user.meno,
+          'priezvisko': user.priezvisko,
+          'cele_meno': user.cele_meno
+        }
       def select_for_update(id):
         cur.execute('''SELECT posledna_verzia, zamknute
           FROM infolist
@@ -232,6 +254,7 @@ class DataStore(object):
     self._save_iv_vyucujuci(nove_id, data['vyucujuci'])
     self._save_iv_cinnosti(nove_id, data['cinnosti'])
     self._save_iv_literatura(nove_id, data['odporucana_literatura'])
+    self._save_iv_modifikovali(nove_id, data['modifikovali'])
     self._save_iv_trans(nove_id, data, lang=lang)
     return nove_id
     
@@ -258,7 +281,7 @@ class DataStore(object):
         data['podmienujuce_predmety'], data['odporucane_predmety'],
         data['vylucujuce_predmety'], data['predosla_verzia'],
         data['fakulta'], data['potrebny_jazyk'], data['treba_zmenit_kod'],
-        data['predpokladany_semester'], user, data['finalna_verzia']))
+        data['predpokladany_semester'], None if user is None else user.id, data['finalna_verzia']))
       return cur.fetchone()[0]
   
   def _save_iv_vyucujuci(self, iv_id, vyucujuci):
@@ -294,6 +317,13 @@ class DataStore(object):
         cur.execute('''INSERT INTO infolist_verzia_nova_literatura
           (infolist_verzia, popis, poradie) VALUES (%s, %s, %s)''',
           (iv_id, popis, poradie))
+  
+  def _save_iv_modifikovali(self, iv_id, modifikovali):
+    with self.cursor() as cur:
+      for osoba in modifikovali:
+        cur.execute('''INSERT INTO infolist_verzia_modifikovali
+          (infolist_verzia, osoba) VALUES (%s, %s)''',
+          (iv_id, osoba))
   
   def _save_iv_trans(self, iv_id, data, lang='sk'):
     with self.cursor() as cur:
@@ -385,7 +415,7 @@ class DataStore(object):
       return [x[0] for x in cur.fetchall()]
   
   def load_predmet(self, id):
-    predmety = self._fetch_predmety(where=('id = %s', (id,)))
+    predmety = self._fetch_predmety(where=('p.id = %s', (id,)))
     if len(predmety) == 0:
       return None
     return predmety[0]

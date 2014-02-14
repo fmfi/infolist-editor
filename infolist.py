@@ -26,7 +26,7 @@ import jinja2
 from utils import kod2skratka, filter_fakulta, filter_druh_cinnosti
 from utils import filter_obdobie, filter_typ_vyucujuceho, filter_metoda_vyucby
 from utils import filter_podmienka, filter_jazyk_vyucby, filter_literatura
-from utils import filter_osoba
+from utils import filter_osoba, format_datetime
 from utils import recursive_replace, recursive_update
 from markupsafe import Markup, soft_unicode
 from functools import wraps
@@ -67,6 +67,7 @@ app.jinja_env.filters['jazyk_vyucby'] = filter_jazyk_vyucby
 app.jinja_env.filters['literatura'] = filter_literatura
 app.jinja_env.filters['osoba'] = filter_osoba
 app.jinja_env.filters['any'] = any
+app.jinja_env.filters['datetime'] = format_datetime
 
 def restrict(api=False):
   def decorator(f):
@@ -154,6 +155,9 @@ def form_messages(form):
     errors.append((Markup(u' – ').join(titlepath), messages))
   return errors
 
+def zorad_osoby(o):
+  return sorted(o.values(), key=lambda x: x['priezvisko'])
+
 @app.route('/infolist/<int:id>', defaults={'edit': False})
 @app.route('/infolist/<int:id>/upravit', defaults={'edit': True}, methods=['GET', 'POST'])
 @restrict()
@@ -170,7 +174,7 @@ def show_infolist(id, edit):
     try:
       recursive_update(infolist, recursive_replace(form.validate(controls), colander.null, None))
       try:
-        g.db.save_infolist(id, infolist, user=g.user.id)
+        g.db.save_infolist(id, infolist, user=g.user)
         g.db.commit()
         flash(u'Informačný list bol úspešne uložený', 'success')
         return redirect(url_for('show_infolist', id=id, edit=False))
@@ -183,7 +187,7 @@ def show_infolist(id, edit):
   template = 'infolist-form.html' if edit else 'infolist.html'
   return render_template(template, form=form, data=infolist,
     messages=form_messages(form), infolist_id=id, error_saving=error_saving,
-    editing=edit)
+    editing=edit, modifikovali=zorad_osoby(infolist['modifikovali']))
 
 @app.route('/infolist/<int:id>/fork', methods=['POST'])
 @restrict()
