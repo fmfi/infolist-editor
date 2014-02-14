@@ -112,7 +112,7 @@ def OdporucanaLiteratura(**kwargs):
     description=Markup(u'''<p>Pozor, literatúru musíme byť schopní zabezpečiť!</p>
       <p>Napríklad:</p>
       <ul>
-        <li>J. Mrkvička, F. Hruška: Propedeutika astrológie, Springer 2012</li>
+        <li>Propedeutika astrológie / Jozef Mrkvička, František Hruška. Springer, 2012</li>
         <li>Vlastné elektronické texty vyučujúceho predmetu zverejňované
           prostredníctvom web stránky predmetu.</li>
         <li>Výber aktuálnych článkov z oblasti.</li>
