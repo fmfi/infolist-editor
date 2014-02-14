@@ -277,14 +277,7 @@ def literatura_get():
 @restrict(api=True)
 def predmet_search():
   query = request.args['q']
-  predmety = []
-  for id, kod, skratka in g.db.search_predmet(query):
-    predmety.append({
-      'id': id,
-      'kod': kod,
-      'skratka': skratka,
-    })
-  return jsonify(predmety=predmety)
+  return jsonify(predmety=g.db.search_predmet(query))
 
 if __name__ == '__main__':
   import sys

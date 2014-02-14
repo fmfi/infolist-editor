@@ -384,16 +384,47 @@ class DataStore(object):
       return [x[0] for x in cur.fetchall()]
   
   def load_predmet(self, id):
-    with self.cursor() as cur:
-      cur.execute('SELECT id, kod_predmetu, skratka FROM predmet WHERE id = %s',
-        (id,))
-      return cur.fetchone()
+    predmety = self._fetch_predmety(where=('id = %s', (id,)))
+    if len(predmety) == 0:
+      return None
+    return predmety[0]
   
   def search_predmet(self, query):
+    return self._fetch_predmety(where=(
+      'p.kod_predmetu LIKE %s OR ivp.nazov_predmetu LIKE %s',
+      (u'%{}%'.format(query),u'%{}%'.format(query))
+      )
+    )
+  
+  def _fetch_predmety(self, where=None):
     with self.cursor() as cur:
-      cur.execute('SELECT id, kod_predmetu, skratka FROM predmet WHERE kod_predmetu LIKE %s',
-        (u'%{}%'.format(query),))
-      return cur.fetchall()
+      if where:
+        where_cond = ' AND ' + where[0]
+        where_params = where[1]
+      else:
+        where_cond = ''
+        where_params = []
+      sql = '''SELECT DISTINCT p.id, p.kod_predmetu, p.skratka, ivp.nazov_predmetu
+          FROM predmet p
+          LEFT JOIN predmet_infolist pi ON p.id = pi.predmet
+          LEFT JOIN infolist i ON pi.infolist = i.id
+          INNER JOIN infolist_verzia iv ON i.posledna_verzia = iv.id
+          INNER JOIN infolist_verzia_preklad ivp ON iv.id = ivp.infolist_verzia
+          WHERE ivp.jazyk_prekladu = 'sk' {}
+          ORDER BY p.skratka, p.id, ivp.nazov_predmetu'''.format(where_cond)
+      cur.execute(sql, where_params)
+      predmety = []
+      for row in cur:
+        if len(predmety) == 0 or predmety[-1]['id'] != row.id:
+          predmety.append({
+            'id': row.id,
+            'kod_predmetu': row.kod_predmetu,
+            'skratka': row.skratka,
+            'nazvy_predmetu': []
+          })
+        if row.nazov_predmetu:
+          predmety[-1]['nazvy_predmetu'].append(row.nazov_predmetu)
+      return predmety
   
   def load_jazyky_vyucby(self):
     if self._jazyky_vyucby == None:
