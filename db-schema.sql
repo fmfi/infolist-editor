@@ -724,7 +724,9 @@ CREATE TABLE predmet (
   skratka varchar(200),
   zmenit_kod boolean default false,
   vytvorene timestamp not null default now(),
-  vytvoril integer references osoba(id)
+  vytvoril integer references osoba(id),
+  povodny_kod varchar(200) unique,
+  povodna_skratka varchar(200)
 );
 
 CREATE TABLE predmet_infolist (
