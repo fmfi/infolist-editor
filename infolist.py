@@ -193,7 +193,8 @@ def show_infolist(id, edit, predmet_id=None):
       'modifikovane': None,
       'hodnotenia_pocet': {'A': None, 'B': None, 'C': None, 'D': None, 'E': None, 'Fx': None},
       'predosla_verzia': None,
-      'podm_absolvovania': {'nahrada': ''}
+      'podm_absolvovania': {'nahrada': ''},
+      'fakulta': 'FMFI'
     }
   if infolist['zamknute'] and edit:
     flash(u'Informačný list je zamknutý proti úpravám, vytvorte si vlastnú kópiu', 'danger')
