@@ -107,7 +107,7 @@ def teardown_request(*args, **kwargs):
 def index():
   if not g.user:
     return render_template('login.html')
-  return redirect(url_for('predmet_index'))
+  return redirect(url_for('predmet_index', tab='moje'))
 
 @app.route('/login')
 def login():
