@@ -154,6 +154,16 @@ def predmet_vyucujem():
     tab='vyucujem'
   )
 
+@app.route('/predmet/novy', methods=['POST'])
+@restrict()
+def predmet_novy():
+  id, skratka = g.db.create_predmet(g.user.id)
+  g.db.commit()
+  flash((u'Predmet sme úspešne vytvorili s dočasným kódom {}, ' +
+        u'finálny kód bude pridelený centrálne').format(skratka),
+        'success')
+  return redirect(url_for('show_infolist', id=None, predmet_id=id))
+
 def form_messages(form):
   if not form.error:
     return None
@@ -183,9 +193,20 @@ def zorad_osoby(o):
 
 @app.route('/infolist/<int:id>', defaults={'edit': False})
 @app.route('/infolist/<int:id>/upravit', defaults={'edit': True}, methods=['GET', 'POST'])
+@app.route('/predmet/<int:predmet_id>/novy-infolist', defaults={'id': None, 'edit': True}, methods=['GET', 'POST'])
 @restrict()
-def show_infolist(id, edit):
-  infolist = g.db.load_infolist(id)
+def show_infolist(id, edit, predmet_id=None):
+  if id != None:
+    infolist = g.db.load_infolist(id)
+  else:
+    infolist = {
+      'zamknute': False,
+      'modifikovali': {},
+      'modifikovane': None,
+      'hodnotenia_pocet': {'A': None, 'B': None, 'C': None, 'D': None, 'E': None, 'Fx': None},
+      'predosla_verzia': None,
+      'podm_absolvovania': {'nahrada': ''}
+    }
   if infolist['zamknute'] and edit:
     flash(u'Informačný list je zamknutý proti úpravám, vytvorte si vlastnú kópiu', 'danger')
     return redirect(url_for('show_infolist', id=id, edit=False))
@@ -197,10 +218,12 @@ def show_infolist(id, edit):
     try:
       recursive_update(infolist, recursive_replace(form.validate(controls), colander.null, None))
       try:
-        g.db.save_infolist(id, infolist, user=g.user)
+        nove_id = g.db.save_infolist(id, infolist, user=g.user)
+        if id == None and predmet_id != None:
+          g.db.predmet_add_infolist(predmet_id, nove_id)
         g.db.commit()
         flash(u'Informačný list bol úspešne uložený', 'success')
-        return redirect(url_for('show_infolist', id=id, edit=False))
+        return redirect(url_for('show_infolist', id=nove_id, edit=False))
       except:
         app.logger.exception('Vynimka pocas ukladania infolistu')
         g.db.rollback()

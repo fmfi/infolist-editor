@@ -1,8 +1,9 @@
 {% extends 'layout.html' %}
-{% from 'macros.html' import render_field %}
+{% from 'macros.html' import flashes %}
 {% block title %}Predmety a informačné listy{% endblock %}
 {% block content %}
 <div class="content-100">
+  {{ flashes() }}
   <h1>Zoznam predmetov a informačných listov</h1>
   <ul class="nav nav-tabs">
     <li class="{{ 'active' if tab == 'moje' else '' }}"><a href="{{ url_for('predmet_moje') }}">Moje</a></li>
@@ -50,7 +51,10 @@
           </li>
         {% endfor %}
       </ul>
-      {##}</li>
+    </li>
   {% endfor %}
+  <form action="{{ url_for('predmet_novy') }}" method="POST">
+    <button type="submit" class="btn btn-primary">Vytvoriť úplne nový predmet</button>
+  </form>
 </div>
 {% endblock %}

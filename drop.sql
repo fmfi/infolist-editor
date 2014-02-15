@@ -1,3 +1,5 @@
+DROP SEQUENCE predmet_novy_kod;
+DROP TABLE infolist_verzia_modifikoval;
 DROP TABLE infolist_verzia_suvisiace_predmety;
 DROP TABLE predmet_infolist;
 DROP TABLE predmet;

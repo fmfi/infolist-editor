@@ -718,7 +718,9 @@ CREATE TABLE predmet (
   id serial not null primary key,
   kod_predmetu varchar(200) unique,
   skratka varchar(200),
-  zmenit_kod boolean default false
+  zmenit_kod boolean default false,
+  vytvorene timestamp not null default now(),
+  vytvoril integer references osoba(id)
 );
 
 CREATE TABLE predmet_infolist (
@@ -738,5 +740,7 @@ CREATE TABLE infolist_verzia_modifikovali (
   osoba integer not null references osoba(id),
   primary key (infolist_verzia, osoba)
 );
+
+CREATE SEQUENCE predmet_novy_kod;
 
 COMMIT;

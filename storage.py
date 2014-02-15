@@ -231,23 +231,35 @@ class DataStore(object):
           WHERE id = %s
           FOR UPDATE''',
           (id,))
-      select_for_update(id)
-      row = cur.fetchone()
-      if row == None:
-        raise NotFound('infolist({})'.format(id))
-      if row.zamknute:
-        id = self.fork_infolist(id)
+      posledna_verzia = None
+      if id != None:
         select_for_update(id)
         row = cur.fetchone()
         if row == None:
           raise NotFound('infolist({})'.format(id))
         if row.zamknute:
-          raise ValueError('Zamknuty novo vytvoreny infolist')
-      nova_verzia = self.save_infolist_verzia(row.posledna_verzia, data, user=user)
-      cur.execute('''UPDATE infolist
-        SET posledna_verzia = %s
-        WHERE id = %s''',
-        (nova_verzia, id))
+          id = self.fork_infolist(id)
+          select_for_update(id)
+          row = cur.fetchone()
+          if row == None:
+            raise NotFound('infolist({})'.format(id))
+          if row.zamknute:
+            raise ValueError('Zamknuty novo vytvoreny infolist')
+        posledna_verzia = row.posledna_verzia
+      nova_verzia = self.save_infolist_verzia(posledna_verzia, data, user=user)
+      if id != None:
+        cur.execute('''UPDATE infolist
+          SET posledna_verzia = %s
+          WHERE id = %s''',
+          (nova_verzia, id))
+      else:
+        cur.execute('''INSERT INTO infolist (posledna_verzia, vytvoril)
+          VALUES (%s, %s)
+          RETURNING id''',
+          (nova_verzia, user.id if user else None)
+        )
+        id = cur.fetchone()[0]
+      return id
   
   def save_infolist_verzia(self, predosla_verzia, data, lang='sk', user=None):
     nove_id = self._save_iv_data(predosla_verzia, data, user=user)
@@ -463,10 +475,10 @@ class DataStore(object):
           FROM predmet p
           LEFT JOIN predmet_infolist pi ON p.id = pi.predmet
           LEFT JOIN infolist i ON pi.infolist = i.id
-          INNER JOIN infolist_verzia iv ON i.posledna_verzia = iv.id
+          LEFT JOIN infolist_verzia iv ON i.posledna_verzia = iv.id
           LEFT JOIN osoba oz ON i.zamkol = oz.id
           LEFT JOIN osoba ov ON i.vytvoril = ov.id
-          INNER JOIN infolist_verzia_preklad ivp ON iv.id = ivp.infolist_verzia
+          LEFT JOIN infolist_verzia_preklad ivp ON iv.id = ivp.infolist_verzia
           LEFT JOIN infolist_verzia_modifikovali ivm ON iv.id = ivm.infolist_verzia
           LEFT JOIN osoba o ON ivm.osoba = o.id
           WHERE ivp.jazyk_prekladu = 'sk' {}
@@ -504,15 +516,15 @@ class DataStore(object):
             })
       return predmety
   
-  def fetch_moje_predmety(self, osoba_id, upravy=True, uci=True):
+  def fetch_moje_predmety(self, osoba_id, upravy=True, uci=True, vytvoril=False):
     if not upravy and not uci:
       raise ValueError('Podla niecoho musime selectovat')
     
-    params = []
-    conds = []
+    il_params = []
+    il_conds = []
     
     if upravy:
-      conds.append(
+      il_conds.append(
         '''
           ri.vytvoril = %s
           OR EXISTS (
@@ -522,11 +534,12 @@ class DataStore(object):
               AND rivm.osoba = %s
           )
         ''')
-      params.append(osoba_id)
-      params.append(osoba_id)
+      il_params.append(osoba_id)
+      il_params.append(osoba_id)
+      vytvoril = True
     
     if uci:
-      conds.append(
+      il_conds.append(
         '''
           EXISTS (
             SELECT id
@@ -535,20 +548,33 @@ class DataStore(object):
               AND rivv.osoba = %s
           )
         ''')
+      il_params.append(osoba_id)
+    
+    params = []
+    conds = []
+    
+    if il_conds:
+      conds.append(
+        '''
+          EXISTS (
+            SELECT ri.id
+            FROM predmet_infolist rpi, infolist ri
+            WHERE rpi.predmet = p.id AND rpi.infolist = ri.id
+              AND 
+              (
+                {}
+              )
+          )
+        '''.format(' OR ' .join(il_conds))
+      )
+      params.extend(il_params)
+    
+    if vytvoril:
+      conds.append('p.vytvoril = %s')
       params.append(osoba_id)
     
     return self.fetch_predmety(where=(
-      '''
-        EXISTS (
-          SELECT ri.id
-          FROM predmet_infolist rpi, infolist ri
-          WHERE rpi.predmet = p.id AND rpi.infolist = ri.id
-            AND 
-            (
-              {}
-            )
-        )
-      '''.format(' OR ' .join(conds)),
+      ' OR '.join(conds),
       params
     ))
   
@@ -616,3 +642,21 @@ class DataStore(object):
       if not row.zamknute:
         raise ValueError('Infolist je uz odomknuty')
       cur.execute('UPDATE infolist SET zamknute = NULL, zamkol = NULL WHERE id = %s', (id,))
+  
+  def create_predmet(self, osoba_id=None):
+    with self.cursor() as cur:
+      cur.execute(
+        '''
+          WITH kod AS (SELECT 'TEMP-' || nextval('predmet_novy_kod') AS skratka)
+          INSERT INTO predmet(kod_predmetu, skratka, zmenit_kod, vytvoril)
+          SELECT skratka, skratka, true, %s FROM kod
+          RETURNING id, skratka
+        ''',
+        (osoba_id,)
+      )
+      return cur.fetchone()
+  
+  def predmet_add_infolist(self, predmet_id, infolist_id):
+    with self.cursor() as cur:
+      cur.execute('INSERT INTO predmet_infolist (predmet, infolist) VALUES (%s, %s)',
+                  (predmet_id, infolist_id))

@@ -93,6 +93,8 @@ def recursive_update(d, otherd):
       d[key] = otherd[key]
       
 def format_datetime(value, iba_datum=False):
+  if value == None:
+    return ''
   if iba_datum:
     return value.strftime('%d.%m.%Y')
   return value.strftime('%d.%m.%Y %H:%M:%S')
