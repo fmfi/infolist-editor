@@ -22,6 +22,10 @@
   float: right;
 }
 
+.content-100 {
+  margin: 0 1em;
+}
+
 .infolist-nb {
   background: #eee;
   border-bottom: 1px solid #ddd;
@@ -127,16 +131,58 @@ ul.predmety > li > div {
 }
 
 ul.predmety > li > ul {
-  margin: 0;
-  padding: 0.5em 1em;
-  list-style-type: none;
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
 }
 
 ul.predmety > li > ul > li {
-  display: inline-block;
-  vertical-align: top;
-  border: 1px solid #eee;
-  padding: 0.5em;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+ul.predmety > li > ul > li a {
+  margin-right: 1.3em;
+}
+
+
+ul.predmety ul.inline-label {
+  display: inline;
   margin: 0;
-  width: 49%;
+  padding: 0;
+}
+
+ul.predmety ul.inline-label li {
+  display: inline;
+  margin: 0;
+  padding: 0.1em;
+}
+
+ul.predmety ul.inline-label li.finalna-verzia,
+ul.predmety ul.inline-label li.uzamknute,
+ul.predmety ul.inline-label li.import-z-aisu,
+ul.predmety ul.inline-label li.posledna-zmena {
+  display: inline-block;
+  border-radius: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 0.1em 0.3em;
+}
+
+ul.predmety ul.inline-label li.finalna-verzia {
+  background: #5c5;
+  color: white;
+}
+
+ul.predmety ul.inline-label li.uzamknute {
+  background: #fc7;
+  color: black;
+}
+
+ul.predmety ul.inline-label li.import-z-aisu {
+  background: #77c;
+  color: white;
+}
+
+ul.predmety ul.inline-label li.posledna-zmena {
+  background: #eee;
+  color: black;
 }

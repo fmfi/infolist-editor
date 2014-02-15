@@ -468,7 +468,7 @@ class DataStore(object):
           LEFT JOIN infolist_verzia_modifikovali ivm ON iv.id = ivm.infolist_verzia
           LEFT JOIN osoba o ON ivm.osoba = o.id
           WHERE ivp.jazyk_prekladu = 'sk' {}
-          ORDER BY p.skratka, p.id, ivp.nazov_predmetu, iv.id, o.cele_meno'''.format(where_cond)
+          ORDER BY p.skratka, p.id, i.id, iv.id, o.cele_meno'''.format(where_cond)
       cur.execute(sql, where_params)
       predmety = []
       for row in cur:
