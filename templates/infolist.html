@@ -248,8 +248,11 @@
   </div>
   {% endif %}
   
+  {% if data.modifikovane or (not data.import_z_aisu and modifikovali) %}
   <div class="meta">
+    {% if data.modifikovane %}
     <p>Čas zmeny: {{ data.modifikovane|datetime }}</p>
+    {% endif %}
 
     {% if not data.import_z_aisu and modifikovali %}
     <p>Tento informačný list doteraz upravili:</p>
@@ -260,6 +263,7 @@
     </ul>
     {% endif %}
   </div>
+  {% endif %}
   
   {% if data.suvisiace_predmety %}
   <div class="meta">
