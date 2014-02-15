@@ -601,7 +601,8 @@ CREATE TABLE literatura (
   bib_id integer not null primary key,
   dokument varchar(2000) not null,
   vyd_udaje varchar(2000),
-  dostupne boolean not null
+  dostupne boolean not null,
+  signatura text
 );
 
 CREATE TABLE ilsp_opravnenia (
