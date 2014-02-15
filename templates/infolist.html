@@ -260,6 +260,24 @@
     </ul>
     {% endif %}
   </div>
+  
+  {% if data.suvisiace_predmety %}
+  <div class="meta">
+    <p>Predmety súvisiace s týmto informačným listom:</p>
+    <ul class="suvisiace-predmety">
+      {% for predmet in data.suvisiace_predmety %}
+        <li>{{ predmet.skratka }}
+          <ul>
+            {% for il in predmet.infolisty %}
+              <li><a href="{{ url_for('show_infolist', edit=False, id=il.id) }}">{{ il.nazov_predmetu }}</a></li>
+            {% endfor %}
+          </ul>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+  
   </div>
   <div class="clearfix"></div>
 </div>

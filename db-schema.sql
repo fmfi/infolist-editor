@@ -715,6 +715,8 @@ CREATE TABLE infolist (
   vytvoril integer references osoba(id)
 );
 
+CREATE index ON infolist (posledna_verzia);
+
 CREATE TABLE predmet (
   id serial not null primary key,
   kod_predmetu varchar(200) unique,
@@ -729,6 +731,7 @@ CREATE TABLE predmet_infolist (
   infolist integer not null references infolist(id),
   primary key (predmet, infolist)
 );
+CREATE index ON predmet_infolist (infolist);
 
 CREATE TABLE infolist_verzia_suvisiace_predmety (
   infolist_verzia integer not null references infolist_verzia(id),

@@ -64,6 +64,7 @@ class DataStore(object):
       data['cinnosti'] = self._load_iv_cinnosti(cur, id)
       data['odporucana_literatura'] = self._load_iv_literatura(cur, id)
       data['modifikovali'] = self._load_iv_modifikovali(cur, id)
+      data['suvisiace_predmety'] = self._load_iv_suvisiace_predmety(id)
       dict_rec_update(data, self._load_iv_trans(cur, id, lang))
     return data
   
@@ -125,6 +126,27 @@ class DataStore(object):
       'bude_v_povinnom': bude_v_povinnom
     }
     return iv
+  
+  def _load_iv_suvisiace_predmety(self, id):
+    return self.fetch_predmety(where=(
+      '''p.id IN (
+          SELECT predmet
+          FROM infolist_verzia_suvisiace_predmety ivsp
+          WHERE ivsp.infolist_verzia = %s
+         )
+         OR p.id IN (
+          SELECT rpi2.predmet 
+          FROM infolist ri, predmet_infolist rpi,
+            infolist_verzia_suvisiace_predmety rivsp,
+            infolist ri2, predmet_infolist rpi2
+          WHERE ri.posledna_verzia = %s
+            AND rpi.infolist = ri.id
+            AND rivsp.predmet = rpi.predmet
+            AND rivsp.infolist_verzia = ri2.posledna_verzia
+            AND ri2.id = rpi2.infolist
+         )
+      ''',
+      (id,id)))
   
   def _load_iv_vyucujuci(self, cur, id):
     cur.execute('''SELECT ivv.osoba,
@@ -266,6 +288,7 @@ class DataStore(object):
   
   def save_infolist_verzia(self, predosla_verzia, data, lang='sk', user=None):
     nove_id = self._save_iv_data(predosla_verzia, data, user=user)
+    self._save_iv_suvisiace_predmety(nove_id, data)
     self._save_iv_vyucujuci(nove_id, data['vyucujuci'])
     self._save_iv_cinnosti(nove_id, data['cinnosti'])
     self._save_iv_literatura(nove_id, data['odporucana_literatura'])
@@ -299,6 +322,16 @@ class DataStore(object):
         data['predpokladany_semester'], None if user is None else user.id,
         data['finalna_verzia'], data['bude_v_povinnom']))
       return cur.fetchone()[0]
+  
+  def _save_iv_suvisiace_predmety(self, iv_id, data):
+    suvisiace_predmety = set()
+    suvisiace_predmety.update(Podmienka(data['podmienujuce_predmety']).idset())
+    suvisiace_predmety.update(Podmienka(data['odporucane_predmety']).idset())
+    suvisiace_predmety.update(Podmienka(data['vylucujuce_predmety']).idset())
+    for predmet in suvisiace_predmety:
+      cur.execute('''INSERT INTO infolist_vezia_suvisiace_predmety (infolist_verzia, predmet)
+        VALUES (%s, %s)''',
+        (iv_id, predmet))
   
   def _save_iv_vyucujuci(self, iv_id, vyucujuci):
     with self.cursor() as cur:

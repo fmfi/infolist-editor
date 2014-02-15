@@ -189,3 +189,16 @@ ul.predmety ul.inline-label li.vytvoril {
   background: #eee;
   color: black;
 }
+
+ul.suvisiace-predmety {
+  display: block;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+ul.suvisiace-predmety > li {
+  display: block;
+  margin: 0;
+  padding: 0;
+}
