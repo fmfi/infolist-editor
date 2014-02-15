@@ -6,10 +6,10 @@
   {{ flashes() }}
   <h1>Zoznam predmetov a informačných listov</h1>
   <ul class="nav nav-tabs">
-    <li class="{{ 'active' if tab == 'moje' else '' }}"><a href="{{ url_for('predmet_moje') }}">Moje</a></li>
-    <li class="{{ 'active' if tab == 'upravy' else '' }}"><a href="{{ url_for('predmet_moje_upravy') }}">Moje úpravy</a></li>
-    <li class="{{ 'active' if tab == 'vyucujem' else '' }}"><a href="{{ url_for('predmet_vyucujem') }}">Vyučujem</a></li>
-    <li class="{{ 'active' if tab == 'vsetky' else '' }}"><a href="{{ url_for('predmet_index') }}">Všetky</a></li>
+    <li class="{{ 'active' if tab == 'moje' else '' }}"><a href="{{ url_for('predmet_index', tab='moje') }}">Moje</a></li>
+    <li class="{{ 'active' if tab == 'moje-upravy' else '' }}"><a href="{{ url_for('predmet_index', tab='moje-upravy') }}">Moje úpravy</a></li>
+    <li class="{{ 'active' if tab == 'vyucujem' else '' }}"><a href="{{ url_for('predmet_index', tab='vyucujem') }}">Vyučujem</a></li>
+    <li class="{{ 'active' if tab == 'vsetky' else '' }}"><a href="{{ url_for('predmet_index', tab='vsetky') }}">Všetky</a></li>
   </ul>
   {% if tab == 'moje' %}
     <p class="help-block">Táto záložka zobrazuje predmety, v ktorých ste buď vytvorili alebo upravili nejaký informačný list,

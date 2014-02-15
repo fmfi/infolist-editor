@@ -122,36 +122,23 @@ def logout():
                         expires=1, path='/', secure=True)
   return response
 
-@app.route('/predmet/')
+@app.route('/predmet/', defaults={'tab': 'vsetky'})
+@app.route('/predmet/moje', defaults={'tab': 'moje'})
+@app.route('/predmet/moje-upravy', defaults={'tab': 'moje-upravy'})
+@app.route('/predmet/vyucujem', defaults={'tab': 'vyucujem'})
 @restrict()
-def predmet_index():
+def predmet_index(tab):
+  if tab == 'vsetky':
+    predmety = g.db.fetch_predmety()
+  elif tab == 'moje':
+    predmety = g.db.fetch_moje_predmety(g.user.id)
+  elif tab == 'moje-upravy':
+    predmety = g.db.fetch_moje_predmety(g.user.id, uci=False)
+  elif tab == 'vyucujem':
+    predmety = g.db.fetch_moje_predmety(g.user.id, upravy=False)
   return render_template('predmet-index.html',
-    predmety=g.db.fetch_predmety(),
-    tab='vsetky'
-  )
-
-@app.route('/predmet/moje')
-@restrict()
-def predmet_moje():
-  return render_template('predmet-index.html',
-    predmety=g.db.fetch_moje_predmety(g.user.id),
-    tab='moje'
-  )
-
-@app.route('/predmet/moje-upravy')
-@restrict()
-def predmet_moje_upravy():
-  return render_template('predmet-index.html',
-    predmety=g.db.fetch_moje_predmety(g.user.id, uci=False),
-    tab='upravy'
-  )
-
-@app.route('/predmet/vyucujem')
-@restrict()
-def predmet_vyucujem():
-  return render_template('predmet-index.html',
-    predmety=g.db.fetch_moje_predmety(g.user.id, upravy=False),
-    tab='vyucujem'
+    predmety=predmety,
+    tab=tab
   )
 
 @app.route('/predmet/novy', methods=['POST'])
