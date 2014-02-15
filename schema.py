@@ -5,6 +5,7 @@ import deform
 from chameleon.utils import Markup
 import widgets
 from flask import url_for, g
+from utils import je_profesor_alebo_docent
 
 def VzdelavaciaCinnost(**kwargs):
   schema = MappingSchema(**kwargs)
@@ -120,8 +121,34 @@ def OdporucanaLiteratura(**kwargs):
   ))
   return schema
 
+def invalid_add_exc(exc, node, name, subexc):
+  for num, child in enumerate(node.children):
+    if child.name == name:
+      exc.add(subexc, num)
+      return
+  raise KeyError(name)
+
+def bude_v_povinnom_validator(form, value):
+  if value['bude_v_povinnom']:
+    if len(value['vyucujuci']) == 0 or not je_profesor_alebo_docent(value['vyucujuci'][0]['osoba']):
+      exc = colander.Invalid(form)
+      exc['vyucujuci'] = u'''Ak je predmet zaradený v niektorom
+        študijnom programe ako povinný alebo povinne voliteľný, musí prvý z
+        uvedených vyučujúcich byť profesor alebo docent.'''
+      raise exc
+  else:
+    if value['podm_absolvovania']['percenta_skuska'] != 0:
+      exc = colander.Invalid(form['podm_absolvovania']['percenta_skuska'],
+        u'''Ak predmet nie je zaradený v niektorom
+        študijnom programe ako povinný alebo povinne voliteľný, váha skúšky musí byť nulová.''')
+      exc2 = colander.Invalid(form['podm_absolvovania'])
+      invalid_add_exc(exc2, form['podm_absolvovania'], 'percenta_skuska', exc)
+      exc3 = colander.Invalid(form)
+      invalid_add_exc(exc3, form, 'podm_absolvovania', exc2)
+      raise exc3
+
 def Infolist():
-  schema = MappingSchema()
+  schema = MappingSchema(validator=bude_v_povinnom_validator)
   schema.add(SchemaNode(String(),
     name='fakulta',
     title=u'Fakulta',
@@ -141,6 +168,10 @@ def Infolist():
   schema.add(SchemaNode(Bool(),
     name='treba_zmenit_kod',
     title=u'Ide o výraznú zmenu, žiadame priradiť predmetu nový kód'
+  ))
+  schema.add(SchemaNode(Bool(),
+    name='bude_v_povinnom',
+    title=u'Tento predmet bude zaradený ako povinný alebo povinne voliteľný v niektorom študijnom programe'
   ))
   schema.add(SchemaNode(Sequence(),
     VzdelavaciaCinnost(

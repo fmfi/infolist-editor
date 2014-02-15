@@ -101,3 +101,8 @@ def format_datetime(value, iba_datum=False):
 
 def space2nbsp(value):
   return value.replace(u' ', u'\u00A0')
+
+def je_profesor_alebo_docent(osoba_id):
+  osoba = g.db.load_osoba(osoba_id)
+  parts = osoba.cele_meno.lower().split()
+  return ('doc.' in parts) or ('prof.' in parts)
