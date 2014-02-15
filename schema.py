@@ -98,7 +98,8 @@ def OdporucanaLiteratura(**kwargs):
     title=u'Literatúra z knižného fondu',
     description=u'''Písaním do boxu sa spustí vyhľadávanie knihy v aktuálnom
       knižnom fonde. Ak sa kniha nenájde, musíte ju pridať do položky
-      "Nová literatúra"'''
+      "Nová literatúra"''',
+    widget=deform.widget.SequenceWidget(orderable=True)
   ))
   schema.add(SchemaNode(Sequence(),
     SchemaNode(String(),
@@ -117,7 +118,8 @@ def OdporucanaLiteratura(**kwargs):
         <li>Vlastné elektronické texty vyučujúceho predmetu zverejňované
           prostredníctvom web stránky predmetu.</li>
         <li>Výber aktuálnych článkov z oblasti.</li>
-      </ul>''')
+      </ul>'''),
+    widget=deform.widget.SequenceWidget(orderable=True)
   ))
   return schema
 
@@ -274,7 +276,8 @@ def Infolist():
       uvedených vyučujúcich byť profesor alebo docent.</strong>
       V prípade, že sa požadovaný vyučujúci nenachádza v
       zozname, prosím kontaktujte nás (potrebujeme meno, priezvisko a tituly
-      vyučujúceho).</p>''')
+      vyučujúceho).</p>'''),
+    widget=deform.widget.SequenceWidget(orderable=True)
   ))
   schema.add(SchemaNode(Bool(),
     name='finalna_verzia',
