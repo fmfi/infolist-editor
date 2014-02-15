@@ -40,8 +40,22 @@
             }
           },
           formatResult: function(object, container, query, escapeMarkup) {
+            var lenLimit = 30;
+            var skratenaSignatura = object.signatura;
+            if (skratenaSignatura.length > lenLimit) {
+              var parts = skratenaSignatura.split(', ');
+              skratenaSignatura = parts[0];
+              for (var i = 1; i < parts.length; i++) {
+                if (skratenaSignatura.length + 2 + parts[i].length > lenLimit) {
+                  skratenaSignatura = skratenaSignatura + ', ...';
+                  break;
+                }
+                skratenaSignatura += ', ' + parts[i];
+              }
+            }
             return "<strong>" + escapeMarkup(object.dokument) + "</strong><br/>" + 
-              escapeMarkup(object.vyd_udaje);
+              escapeMarkup(object.vyd_udaje) + '<br/>Signatúra: ' +
+              escapeMarkup(skratenaSignatura);
           },
           formatSelection: function(object, container, escapeMarkup) {
             return escapeMarkup(object.dokument);

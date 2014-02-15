@@ -290,11 +290,12 @@ def osoba_get():
 def literatura_search():
   query = request.args['q']
   literatura = []
-  for id, dokument, vyd_udaje in g.db.search_literatura(query):
+  for id, dokument, vyd_udaje, signatura in g.db.search_literatura(query):
     literatura.append({
       'id': int(id),
       'dokument': dokument,
       'vyd_udaje': vyd_udaje,
+      'signatura': signatura
     })
   return jsonify(literatura=literatura)
 
@@ -318,7 +319,8 @@ def literatura_get():
   return jsonify(
       id=int(literatura.bib_id),
       dokument=literatura.dokument,
-      vyd_udaje=literatura.vyd_udaje
+      vyd_udaje=literatura.vyd_udaje,
+      signatura=literatura.signatura
     )
 
 @app.route('/predmet/search')

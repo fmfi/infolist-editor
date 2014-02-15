@@ -440,11 +440,13 @@ class DataStore(object):
     params = []
     for part in query.split():
       conds.append("""(unaccent(dokument) ILIKE unaccent(%s)
-        OR unaccent(vyd_udaje) ILIKE unaccent(%s))""")
+        OR unaccent(vyd_udaje) ILIKE unaccent(%s)
+        OR unaccent(signatura) ILIKE unaccent(%s))""")
       params.append('%' + part + '%') # TODO escape
       params.append('%' + part + '%')
+      params.append('%' + part + '%')
     
-    select = '''SELECT bib_id, dokument, vyd_udaje FROM literatura
+    select = '''SELECT bib_id, dokument, vyd_udaje, signatura FROM literatura
       WHERE {} ORDER by dokument'''.format(' AND '.join(conds))
     
     with self.cursor() as cur:
@@ -453,7 +455,7 @@ class DataStore(object):
 
   def load_literatura(self, id):
     with self.cursor() as cur:
-      cur.execute('SELECT bib_id, dokument, vyd_udaje FROM literatura WHERE bib_id = %s',
+      cur.execute('SELECT bib_id, dokument, vyd_udaje, signatura FROM literatura WHERE bib_id = %s',
         (id,))
       return cur.fetchone()
   
