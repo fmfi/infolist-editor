@@ -194,6 +194,7 @@ def zorad_osoby(o):
 @app.route('/infolist/<int:id>', defaults={'edit': False})
 @app.route('/infolist/<int:id>/upravit', defaults={'edit': True}, methods=['GET', 'POST'])
 @app.route('/predmet/<int:predmet_id>/novy-infolist', defaults={'id': None, 'edit': True}, methods=['GET', 'POST'])
+@app.route('/infolist/novy', defaults={'id': None, 'edit': True, 'predmet_id': None}, methods=['GET', 'POST'])
 @restrict()
 def show_infolist(id, edit, predmet_id=None):
   if id != None:
@@ -219,10 +220,17 @@ def show_infolist(id, edit, predmet_id=None):
       recursive_update(infolist, recursive_replace(form.validate(controls), colander.null, None))
       try:
         nove_id = g.db.save_infolist(id, infolist, user=g.user)
+        nova_skratka = None
+        if predmet_id == None:
+          predmet_id, nova_skratka = g.db.create_predmet(g.user.id)
         if id == None and predmet_id != None:
           g.db.predmet_add_infolist(predmet_id, nove_id)
         g.db.commit()
         flash(u'Informačný list bol úspešne uložený', 'success')
+        if nova_skratka:
+          flash((u'Predmet sme úspešne vytvorili s dočasným kódom {}, ' +
+            u'finálny kód bude pridelený centrálne').format(nova_skratka),
+            'success')
         return redirect(url_for('show_infolist', id=nove_id, edit=False))
       except:
         app.logger.exception('Vynimka pocas ukladania infolistu')

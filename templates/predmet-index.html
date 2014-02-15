@@ -53,8 +53,9 @@
       </ul>
     </li>
   {% endfor %}
-  <form action="{{ url_for('predmet_novy') }}" method="POST">
-    <button type="submit" class="btn btn-primary">Vytvoriť úplne nový predmet</button>
-  </form>
+  
+  <a href="{{ url_for('show_infolist', id=None, predmet_id=None, edit=True) }}"
+    class="btn btn-primary">Vytvoriť úplne nový predmet</a>
+  
 </div>
 {% endblock %}
