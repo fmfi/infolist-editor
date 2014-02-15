@@ -113,6 +113,7 @@ ul.predmety {
   display: block;
   margin: 0;
   padding: 0;
+  margin-top: 0.5em;
 }
 
 ul.predmety > li {
@@ -160,7 +161,8 @@ ul.predmety ul.inline-label li {
 ul.predmety ul.inline-label li.finalna-verzia,
 ul.predmety ul.inline-label li.uzamknute,
 ul.predmety ul.inline-label li.import-z-aisu,
-ul.predmety ul.inline-label li.posledna-zmena {
+ul.predmety ul.inline-label li.posledna-zmena,
+ul.predmety ul.inline-label li.vytvoril {
   display: inline-block;
   border-radius: 2px;
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -182,7 +184,8 @@ ul.predmety ul.inline-label li.import-z-aisu {
   color: white;
 }
 
-ul.predmety ul.inline-label li.posledna-zmena {
+ul.predmety ul.inline-label li.posledna-zmena,
+ul.predmety ul.inline-label li.vytvoril {
   background: #eee;
   color: black;
 }

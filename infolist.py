@@ -125,7 +125,34 @@ def logout():
 @app.route('/predmet/')
 @restrict()
 def predmet_index():
-  return render_template('predmet-index.html', predmety=g.db.fetch_predmety())
+  return render_template('predmet-index.html',
+    predmety=g.db.fetch_predmety(),
+    tab='vsetky'
+  )
+
+@app.route('/predmet/moje')
+@restrict()
+def predmet_moje():
+  return render_template('predmet-index.html',
+    predmety=g.db.fetch_moje_predmety(g.user.id),
+    tab='moje'
+  )
+
+@app.route('/predmet/moje-upravy')
+@restrict()
+def predmet_moje_upravy():
+  return render_template('predmet-index.html',
+    predmety=g.db.fetch_moje_predmety(g.user.id, uci=False),
+    tab='upravy'
+  )
+
+@app.route('/predmet/vyucujem')
+@restrict()
+def predmet_vyucujem():
+  return render_template('predmet-index.html',
+    predmety=g.db.fetch_moje_predmety(g.user.id, upravy=False),
+    tab='vyucujem'
+  )
 
 def form_messages(form):
   if not form.error:

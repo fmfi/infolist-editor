@@ -454,8 +454,9 @@ class DataStore(object):
     
     with self.cursor() as cur:
       sql = '''SELECT p.id as predmet_id, p.kod_predmetu, p.skratka,
-          i.id as infolist_id, i.zamknute, i.zamkol, i.import_z_aisu,
+          i.id as infolist_id, i.zamknute, i.zamkol, i.import_z_aisu, i.vytvoril,
           oz.cele_meno as zamkol_cele_meno,
+          ov.cele_meno as vytvoril_cele_meno,
           iv.modifikovane, iv.finalna_verzia,
           ivp.nazov_predmetu,
           o.id as osoba_id, o.cele_meno
@@ -464,6 +465,7 @@ class DataStore(object):
           LEFT JOIN infolist i ON pi.infolist = i.id
           INNER JOIN infolist_verzia iv ON i.posledna_verzia = iv.id
           LEFT JOIN osoba oz ON i.zamkol = oz.id
+          LEFT JOIN osoba ov ON i.vytvoril = ov.id
           INNER JOIN infolist_verzia_preklad ivp ON iv.id = ivp.infolist_verzia
           LEFT JOIN infolist_verzia_modifikovali ivm ON iv.id = ivm.infolist_verzia
           LEFT JOIN osoba o ON ivm.osoba = o.id
@@ -487,6 +489,8 @@ class DataStore(object):
               'zamknute': row.zamknute,
               'zamkol': row.zamkol,
               'zamkol_cele_meno': row.zamkol_cele_meno,
+              'vytvoril': row.vytvoril,
+              'vytvoril_cele_meno': row.vytvoril_cele_meno,
               'import_z_aisu': row.import_z_aisu,
               'modifikovane': row.modifikovane,
               'finalna_verzia': row.finalna_verzia,
@@ -499,6 +503,54 @@ class DataStore(object):
               'cele_meno': row.cele_meno
             })
       return predmety
+  
+  def fetch_moje_predmety(self, osoba_id, upravy=True, uci=True):
+    if not upravy and not uci:
+      raise ValueError('Podla niecoho musime selectovat')
+    
+    params = []
+    conds = []
+    
+    if upravy:
+      conds.append(
+        '''
+          ri.vytvoril = %s
+          OR EXISTS (
+            SELECT id
+            FROM infolist_verzia_modifikovali rivm
+            WHERE rivm.infolist_verzia = ri.posledna_verzia
+              AND rivm.osoba = %s
+          )
+        ''')
+      params.append(osoba_id)
+      params.append(osoba_id)
+    
+    if uci:
+      conds.append(
+        '''
+          EXISTS (
+            SELECT id
+            FROM infolist_verzia_vyucujuci rivv
+            WHERE rivv.infolist_verzia = ri.posledna_verzia
+              AND rivv.osoba = %s
+          )
+        ''')
+      params.append(osoba_id)
+    
+    return self.fetch_predmety(where=(
+      '''
+        EXISTS (
+          SELECT ri.id
+          FROM predmet_infolist rpi, infolist ri
+          WHERE rpi.predmet = p.id AND rpi.infolist = ri.id
+            AND 
+            (
+              {}
+            )
+        )
+      '''.format(' OR ' .join(conds)),
+      params
+    ))
   
   def load_jazyky_vyucby(self):
     if self._jazyky_vyucby == None:

@@ -4,6 +4,20 @@
 {% block content %}
 <div class="content-100">
   <h1>Zoznam predmetov a informačných listov</h1>
+  <ul class="nav nav-tabs">
+    <li class="{{ 'active' if tab == 'moje' else '' }}"><a href="{{ url_for('predmet_moje') }}">Moje</a></li>
+    <li class="{{ 'active' if tab == 'upravy' else '' }}"><a href="{{ url_for('predmet_moje_upravy') }}">Moje úpravy</a></li>
+    <li class="{{ 'active' if tab == 'vyucujem' else '' }}"><a href="{{ url_for('predmet_vyucujem') }}">Vyučujem</a></li>
+    <li class="{{ 'active' if tab == 'vsetky' else '' }}"><a href="{{ url_for('predmet_index') }}">Všetky</a></li>
+  </ul>
+  {% if tab == 'moje' %}
+    <p class="help-block">Táto záložka zobrazuje predmety, v ktorých ste buď vytvorili alebo upravili nejaký informačný list,
+       alebo ste v nejakom informačnom liste uvedení ako vyučujúci</p>
+  {% elif tab == 'upravy' %}
+    <p class="help-block">Táto záložka zobrazuje predmety, v ktorých ste vytvorili alebo upravili nejaký informačný list</p>
+  {% elif tab == 'vyucujem' %}
+    <p class="help-block">Táto záložka zobrazuje predmety, v ktorých ste v nejakom informačnom liste uvedení ako vyučujúci</p>
+  {% endif %}
   <ul class="predmety">
   {% for predmet in predmety %}
     <li><div title="{{ predmet.kod_predmetu }}">{{ predmet.skratka }}</div>
@@ -19,8 +33,12 @@
               {% elif infolist.zamknute %}
                 <li class="uzamknute">uzamknuté{% if infolist.zamkol %} ({{ (infolist.zamkol|osoba).cele_meno|space2nbsp }}){% endif %}</li>
               {% endif %}
+              {% if infolist.vytvoril %}
+                <li class="vytvoril">vytvoril: {{ infolist.vytvoril_cele_meno }}</li>
+              {% endif %}
               <li class="posledna-zmena">posledná zmena: {{ infolist.modifikovane|datetime(iba_datum=infolist.import_z_aisu)|space2nbsp }}</li>
-              {% if infolist.modifikovali %}
+              {% if infolist.modifikovali and not
+                   (infolist.modifikovali|length == 1 and infolist.modifikovali[0].id == infolist.vytvoril) %}
               <li class="upravovali">upravovali:
                 {% for osoba in infolist.modifikovali %}
                   {%- if not loop.first %}; {% endif %}
