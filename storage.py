@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from werkzeug.exceptions import BadRequest, NotFound
+from utils import Podmienka
 
 def dict_rec_update(d1, d2):
   for key in d2:
