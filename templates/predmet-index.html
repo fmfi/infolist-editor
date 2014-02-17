@@ -29,6 +29,9 @@
               {% if infolist.finalna_verzia %}
               <li class="finalna-verzia">finálna verzia</li>
               {% endif %}
+              {% if infolist.obsahuje_varovania %}
+              <li class="obsahuje-varovania">obsahuje varovania</li>
+              {% endif %}
               {% if infolist.import_z_aisu %}
                 <li class="import-z-aisu">import z AIS-u</li>
               {% elif infolist.zamknute %}

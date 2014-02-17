@@ -539,7 +539,7 @@ class DataStore(object):
           i.id as infolist_id, i.zamknute, i.zamkol, i.import_z_aisu, i.vytvoril,
           oz.cele_meno as zamkol_cele_meno,
           ov.cele_meno as vytvoril_cele_meno,
-          iv.modifikovane, iv.finalna_verzia,
+          iv.modifikovane, iv.finalna_verzia, iv.obsahuje_varovania,
           ivp.nazov_predmetu,
           o.id as osoba_id, o.cele_meno
           FROM predmet p
@@ -576,6 +576,7 @@ class DataStore(object):
               'import_z_aisu': row.import_z_aisu,
               'modifikovane': row.modifikovane,
               'finalna_verzia': row.finalna_verzia,
+              'obsahuje_varovania': row.obsahuje_varovania,
               'nazov_predmetu': row.nazov_predmetu,
               'modifikovali': []
             })

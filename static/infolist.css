@@ -160,6 +160,7 @@ ul.predmety ul.inline-label li {
 
 ul.predmety ul.inline-label li.finalna-verzia,
 ul.predmety ul.inline-label li.uzamknute,
+ul.predmety ul.inline-label li.obsahuje-varovania,
 ul.predmety ul.inline-label li.import-z-aisu,
 ul.predmety ul.inline-label li.posledna-zmena,
 ul.predmety ul.inline-label li.vytvoril {
@@ -177,6 +178,11 @@ ul.predmety ul.inline-label li.finalna-verzia {
 ul.predmety ul.inline-label li.uzamknute {
   background: #fc7;
   color: black;
+}
+
+ul.predmety ul.inline-label li.obsahuje-varovania {
+  background: #f77;
+  color: white;
 }
 
 ul.predmety ul.inline-label li.import-z-aisu {
