@@ -221,6 +221,7 @@ def show_infolist(id, edit, predmet_id=None):
       pass
     else:
       check_warnings()
+      infolist['obsahuje_varovania'] = msg_ns.has_warnings
       try:
         nove_id = g.db.save_infolist(id, infolist, user=g.user)
         nova_skratka = None

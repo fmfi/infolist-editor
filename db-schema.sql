@@ -645,7 +645,8 @@ CREATE TABLE infolist_verzia (
   predpokladany_semester char(1),
   predpokladany_stupen_studia varchar(10),
   finalna_verzia boolean not null default false,
-  bude_v_povinnom boolean not null default false
+  bude_v_povinnom boolean not null default false,
+  obsahuje_varovania boolean not null default false
 );
 
 COMMENT ON COLUMN infolist_verzia.podm_absol_percenta_skuska IS 'podiel zaverecneho hodnotenia na znamke (priebezne je 100 - tato hodnota)';

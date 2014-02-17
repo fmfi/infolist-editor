@@ -79,7 +79,8 @@ class DataStore(object):
       podmienujuce_predmety, odporucane_predmety, vylucujuce_predmety,
       modifikovane, predosla_verzia, fakulta, potrebny_jazyk,
       treba_zmenit_kod, predpokladany_semester, finalna_verzia,
-      bude_v_povinnom, predpokladany_stupen_studia, nepouzivat_stupnicu
+      bude_v_povinnom, predpokladany_stupen_studia, nepouzivat_stupnicu,
+      obsahuje_varovania
       FROM infolist_verzia WHERE id = %s''', (id,))
     row = cur.fetchone()
     if row == None:
@@ -91,7 +92,8 @@ class DataStore(object):
     podmienujuce_predmety, odporucane_predmety, vylucujuce_predmety,
     modifikovane, predosla_verzia, fakulta, potrebny_jazyk,
     treba_zmenit_kod, predpokladany_semester, finalna_verzia,
-    bude_v_povinnom, predpokladany_stupen_studia, nepouzivat_stupnicu) = row
+    bude_v_povinnom, predpokladany_stupen_studia, nepouzivat_stupnicu,
+    obsahuje_varovania) = row
     
     iv = {
       'id': id,
@@ -126,7 +128,8 @@ class DataStore(object):
       'predpokladany_semester': predpokladany_semester,
       'predpokladany_stupen_studia': predpokladany_stupen_studia,
       'finalna_verzia': finalna_verzia,
-      'bude_v_povinnom': bude_v_povinnom
+      'bude_v_povinnom': bude_v_povinnom,
+      'obsahuje_varovania': obsahuje_varovania
     }
     return iv
   
@@ -314,8 +317,9 @@ class DataStore(object):
           predosla_verzia, fakulta, potrebny_jazyk,
           treba_zmenit_kod, predpokladany_semester,
           modifikoval, finalna_verzia, bude_v_povinnom,
-          predpokladany_stupen_studia, nepouzivat_stupnicu)
-        VALUES (''' + ', '.join(['%s'] * 26) + ''')
+          predpokladany_stupen_studia, nepouzivat_stupnicu,
+          obsahuje_varovania)
+        VALUES (''' + ', '.join(['%s'] * 27) + ''')
         RETURNING id''',
         (data['pocet_kreditov'], data['podm_absolvovania']['percenta_skuska'],
         pct['A'], pct['B'], pct['C'], pct['D'], pct['E'],
@@ -326,7 +330,8 @@ class DataStore(object):
         data['predpokladany_semester'], None if user is None else user.id,
         data['finalna_verzia'], data['bude_v_povinnom'],
         data['predpokladany_stupen_studia'],
-        data['podm_absolvovania']['nepouzivat_stupnicu']))
+        data['podm_absolvovania']['nepouzivat_stupnicu'],
+        data['obsahuje_varovania']))
       return cur.fetchone()[0]
   
   def _save_iv_suvisiace_predmety(self, iv_id, data):
