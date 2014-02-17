@@ -209,9 +209,9 @@ def show_infolist(id, edit, predmet_id=None):
       try:
         nove_id = g.db.save_infolist(id, infolist, user=g.user)
         nova_skratka = None
-        if predmet_id == None:
-          predmet_id, nova_skratka = g.db.create_predmet(g.user.id)
-        if id == None and predmet_id != None:
+        if id == None:
+          if predmet_id == None:
+            predmet_id, nova_skratka = g.db.create_predmet(g.user.id)
           g.db.predmet_add_infolist(predmet_id, nove_id)
         g.db.commit()
         flash(u'Informačný list bol úspešne uložený', 'success')
