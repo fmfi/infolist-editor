@@ -334,10 +334,11 @@ class DataStore(object):
     suvisiace_predmety.update(Podmienka(data['podmienujuce_predmety']).idset())
     suvisiace_predmety.update(Podmienka(data['odporucane_predmety']).idset())
     suvisiace_predmety.update(Podmienka(data['vylucujuce_predmety']).idset())
-    for predmet in suvisiace_predmety:
-      cur.execute('''INSERT INTO infolist_vezia_suvisiace_predmety (infolist_verzia, predmet)
-        VALUES (%s, %s)''',
-        (iv_id, predmet))
+    with self.cursor() as cur:
+      for predmet in suvisiace_predmety:
+        cur.execute('''INSERT INTO infolist_verzia_suvisiace_predmety (infolist_verzia, predmet)
+          VALUES (%s, %s)''',
+          (iv_id, predmet))
   
   def _save_iv_vyucujuci(self, iv_id, vyucujuci):
     with self.cursor() as cur:
