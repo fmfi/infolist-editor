@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 from flask import g
+from jinja2 import evalcontextfilter, Markup, escape
 
 class Podmienka(object):
   symbols = ('(', ')', 'OR', 'AND')
@@ -106,3 +107,13 @@ def je_profesor_alebo_docent(osoba_id):
   osoba = g.db.load_osoba(osoba_id)
   parts = osoba.cele_meno.lower().split()
   return ('doc.' in parts) or ('prof.' in parts)
+
+_paragraph_re = re.compile(r'(?:\r\n|\r|\n){2,}')
+
+@evalcontextfilter
+def nl2br(eval_ctx, value):
+    result = u'\n\n'.join(u'<p>%s</p>' % p.replace('\n', '<br />\n')
+                          for p in _paragraph_re.split(escape(value)))
+    if eval_ctx.autoescape:
+        result = Markup(result)
+    return result

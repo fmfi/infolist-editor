@@ -144,14 +144,14 @@
       <div class="polozka">
         <label>Výsledky vzdelávania</label>
         {% if data.vysledky_vzdelavania %}
-        <p>{{ data.vysledky_vzdelavania }}</p>
+        {{ data.vysledky_vzdelavania|nl2br }}
         {% endif %}
       </div>
 
       <div class="polozka">
         <label>Stručná osnova predmetu</label>
         {% if data.strucna_osnova %}
-        <p>{{ data.strucna_osnova }}</p>
+        {{ data.strucna_osnova|nl2br }}
         {% endif %}
       </div>
 

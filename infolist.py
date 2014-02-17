@@ -26,7 +26,7 @@ import jinja2
 from utils import kod2skratka, filter_fakulta, filter_druh_cinnosti
 from utils import filter_obdobie, filter_typ_vyucujuceho, filter_metoda_vyucby
 from utils import filter_podmienka, filter_jazyk_vyucby, filter_literatura
-from utils import filter_osoba, format_datetime, space2nbsp
+from utils import filter_osoba, format_datetime, space2nbsp, nl2br
 from utils import recursive_replace, recursive_update
 from markupsafe import Markup, soft_unicode
 from functools import wraps
@@ -69,6 +69,7 @@ app.jinja_env.filters['osoba'] = filter_osoba
 app.jinja_env.filters['any'] = any
 app.jinja_env.filters['datetime'] = format_datetime
 app.jinja_env.filters['space2nbsp'] = space2nbsp
+app.jinja_env.filters['nl2br'] = nl2br
 
 def restrict(api=False):
   def decorator(f):
