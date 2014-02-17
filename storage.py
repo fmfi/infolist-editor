@@ -496,9 +496,9 @@ class DataStore(object):
           FROM predmet p
           LEFT JOIN predmet_infolist pi ON p.id = pi.predmet
           LEFT JOIN infolist i ON pi.infolist = i.id
-          INNER JOIN infolist_verzia iv ON i.posledna_verzia = iv.id
-          INNER JOIN infolist_verzia_preklad ivp ON iv.id = ivp.infolist_verzia
-          WHERE ivp.jazyk_prekladu = 'sk' {}
+          LEFT JOIN infolist_verzia iv ON i.posledna_verzia = iv.id
+          LEFT JOIN infolist_verzia_preklad ivp ON iv.id = ivp.infolist_verzia
+          WHERE (ivp.jazyk_prekladu = 'sk' OR ivp.jazyk_prekladu IS NULL) {}
           ORDER BY p.skratka, p.id, ivp.nazov_predmetu'''.format(where_cond)
       cur.execute(sql, where_params)
       predmety = []
