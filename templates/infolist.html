@@ -237,6 +237,11 @@
       {% endif %}
     {% endif %}
   {% endif %}
+  {% if data.obsahuje_varovania %}
+    <div class="alert alert-warning">
+      Tento informačný list obsahuje varovania.
+    </div>
+  {% endif %}
   </div>
 
   <div class="meta">
