@@ -67,6 +67,12 @@
           <p>Informáciu o odporúčanom semestri a stupni štúdia pridá garant
             študijného programu</p>
         </div>
+        {% if data.predpokladany_semester %}
+          <p>Predpokladaný semester výučby: {{ data.predpokladany_semester }}</p>
+        {% endif %}
+        {% if data.predpokladany_semester %}
+          <p>Predpokladaný stupeň štúdia: {{ data.predpokladany_stupen_studia }}</p>
+        {% endif %}
       </div>
 
       <div class="polozka">
