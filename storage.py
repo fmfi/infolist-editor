@@ -521,10 +521,13 @@ class DataStore(object):
     ))
 
   def load_predmet_simple(self, id):
-    return self._fetch_predmety_simple(where=(
+    predmety =  self._fetch_predmety_simple(where=(
       'p.id = %s',
       (id,)
-    ))[0]
+    ))
+    if len(predmety) == 0:
+      return None
+    return predmety[0]
 
   def fetch_predmety(self, where=None):
     if where != None:
