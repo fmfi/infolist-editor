@@ -202,10 +202,24 @@ def show_infolist(id, edit, predmet_id=None):
   form = Form(schema.Infolist(), buttons=('submit',),
               appstruct=recursive_replace(infolist, None, colander.null))
   error_saving = False
+  msg_ns = type("", (), {})() # http://bit.ly/1cPX3G5
+  msg_ns.messages_type = 'danger';
+  msg_ns.has_warnings = False
+  def check_warnings():
+    try:
+      schema.warning_schema(schema.Infolist()).deserialize(form.cstruct)
+    except colander.Invalid as e:
+      form.widget.handle_error(form, e)
+      msg_ns.messages_type = 'warning'
+      msg_ns.has_warnings = True
   if request.method == 'POST':
     controls = request.form.items(multi=True)
     try:
       recursive_update(infolist, recursive_replace(form.validate(controls), colander.null, None))
+    except ValidationFailure:
+      pass
+    else:
+      check_warnings()
       try:
         nove_id = g.db.save_infolist(id, infolist, user=g.user)
         nova_skratka = None
@@ -219,16 +233,21 @@ def show_infolist(id, edit, predmet_id=None):
           flash((u'Predmet sme úspešne vytvorili s dočasným kódom {}, ' +
             u'finálny kód bude pridelený centrálne').format(nova_skratka),
             'success')
-        return redirect(url_for('show_infolist', id=nove_id, edit=False))
+        if msg_ns.has_warnings:
+          flash((u'Formulár bol uložený, ale niektoré položky ešte bude treba doplniť, alebo upraviť. ' + 
+                 u'Ak ich teraz neviete doplniť, môžete tak spraviť aj neskôr.'), 'warning')
+        return redirect(url_for('show_infolist', id=nove_id, edit=msg_ns.has_warnings))
       except:
         app.logger.exception('Vynimka pocas ukladania infolistu')
         g.db.rollback()
         error_saving = True
-    except ValidationFailure, e:
-      pass
+  else: # GET
+    check_warnings()
+    
   template = 'infolist-form.html' if edit else 'infolist.html'
   return render_template(template, form=form, data=infolist,
-    messages=form_messages(form), infolist_id=id, error_saving=error_saving,
+    messages=form_messages(form), messages_type=msg_ns.messages_type,
+    infolist_id=id, error_saving=error_saving,
     editing=edit, modifikovali=zorad_osoby(infolist['modifikovali']))
 
 @app.route('/infolist/<int:id>/fork', methods=['POST'])

@@ -150,7 +150,7 @@ def bude_v_povinnom_validator(form, value):
       raise exc3
 
 def Infolist():
-  schema = MappingSchema(validator=bude_v_povinnom_validator)
+  schema = MappingSchema(warning_validator=bude_v_povinnom_validator)
   schema.add(SchemaNode(String(),
     name='fakulta',
     title=u'Fakulta',
@@ -192,12 +192,16 @@ def Infolist():
       v ktorom sa jeho absolvovanie hodnotí. 1 kredit zodpovedá 25-30 hodinám
       práce študenta. Táto hodnota zahŕňa časovú náročnosť priamej výučby
       (počas 13 týždňov), samostatného štúdia, domácich úloh a projektov,
-      ako aj prípravy na skúšku.</p><p>Bližšie pokyny k tvorbe študijných programov:</p><ul class="help-block"><li>FMFI: <a href="https://sluzby.fmph.uniba.sk/ka/dokumenty/pravidla/pravidla-tvorby-studijnych-programov.docx">https://sluzby.fmph.uniba.sk/ka/dokumenty/pravidla/pravidla-tvorby-studijnych-programov.docx</a></li></ul>''')
+      ako aj prípravy na skúšku.</p><p>Bližšie pokyny k tvorbe študijných programov:</p><ul class="help-block"><li>FMFI: <a href="https://sluzby.fmph.uniba.sk/ka/dokumenty/pravidla/pravidla-tvorby-studijnych-programov.docx">https://sluzby.fmph.uniba.sk/ka/dokumenty/pravidla/pravidla-tvorby-studijnych-programov.docx</a></li></ul>'''),
+    missing=colander.null,
+    warn_if_missing=True
   ))
   schema.add(SchemaNode(String(),
     name='predpokladany_semester',
     title=u'Predpokladaný semester výučby',
-    widget=deform.widget.Select2Widget(values=(('', ''), ('Z', 'zimný'), ('L', 'letný')), placeholder=u'Vyberte semester')
+    widget=deform.widget.Select2Widget(values=(('', ''), ('Z', 'zimný'), ('L', 'letný')), placeholder=u'Vyberte semester'),
+    missing=colander.null,
+    warn_if_missing=True
   ))
   schema.add(SchemaNode(String(),
     name='podmienujuce_predmety',
@@ -236,7 +240,9 @@ def Infolist():
       všeobecných schopností (po absolvovaní predmetu budú študenti schopní
       spolupracovať v rámci malých tímov). <strong>Formulácia typu "oboznámiť
       študentov s ..." nie je v tomto kontexte vhodná.</strong>'''),
-    widget=deform.widget.TextAreaWidget(rows=5)
+    widget=deform.widget.TextAreaWidget(rows=5),
+    missing=colander.null,
+    warn_if_missing=True
   ))
   schema.add(SchemaNode(String(),
     name='strucna_osnova',
@@ -244,7 +250,9 @@ def Infolist():
     description=u'''Osnova predmetu určuje postupnosť obsahových tém,
       ktoré budú v rámci predmetu preberané. Text zbytočne neštrukturujte
       (ideálne vymenujte postupnosť tém v rámci jedného odstavca).''',
-    widget=deform.widget.TextAreaWidget(rows=5)
+    widget=deform.widget.TextAreaWidget(rows=5),
+    missing=colander.null,
+    warn_if_missing=True
   ))
   schema.add(OdporucanaLiteratura(
     name='odporucana_literatura',
@@ -284,3 +292,13 @@ def Infolist():
     title=u'Táto verzia je finálna a dá sa použiť do akreditačného spisu'
   ))
   return schema
+
+def warning_schema(node):
+  warning_validator = getattr(node, 'warning_validator', None)
+  if warning_validator:
+    node.validator = warning_validator
+  if getattr(node, 'warn_if_missing', False):
+    node.missing = colander.required
+  for child in node:
+    warning_schema(child)
+  return node

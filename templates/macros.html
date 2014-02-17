@@ -26,7 +26,7 @@
 {% macro render_field(field) %}
   <div class="form-group {{ field.error and 'has-error' or '' }} {{ field.widget.item_css_class or '' }}">
     {% if not (field.widget.hidden or field.widget.category == 'structural') %}
-      <label for="{{ field.oid }}" class="control-label {{ 'required' if field.required }}">{{ field.title }}</label>
+      <label for="{{ field.oid }}" class="control-label {{ 'required' if field.required or field.schema.warn_if_missing }}">{{ field.title }}</label>
     {% endif %}
     {{ render_value_and_errors(field, **kwargs) }}
     {% if not (field.widget.hidden or field.widget.category == 'structural') %}

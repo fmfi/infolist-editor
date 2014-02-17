@@ -636,7 +636,7 @@ CREATE TABLE infolist_verzia (
   modifikovane timestamp not null default now(),
   modifikoval integer references osoba(id),
   hromadna_zmena boolean not null default false,
-  pocet_kreditov integer not null,
+  pocet_kreditov integer,
   predosla_verzia integer references infolist_verzia(id),
   fakulta varchar(100) not null references organizacna_jednotka(kod),
   potrebny_jazyk varchar(10) not null references jazyk_vyucby(kod),

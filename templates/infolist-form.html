@@ -1,9 +1,18 @@
 {% extends 'infolist.html' %}
 {% block infolist %}
 <div class="body">
-  {% if form.error or messages or error_saving %}
+  {% if error_saving %}
   <div class="alert alert-danger">
-    <div class="errorMsgLbl">Formulár sa nepodarilo uložiť. {% if not error_saving %}Skontrolujte vyplnené údaje!{% endif %}</div>
+    Formulár sa nepodarilo uložiť!
+  </div>
+  {% endif %}
+  {% if form.error or messages %}
+  <div class="alert alert-{{ messages_type }}">
+    {% if messages_type == 'warning' %}
+      <div>Formulár nie je správne vyplnený, skontrolujte prosím vyplnené údaje.</div>
+    {% else %}
+      <div class="errorMsgLbl">Vo formulári sa vyskytli chyby. Skontrolujte vyplnené údaje!</div>
+    {% endif %}
     {% if messages %}
       <p>Nasledovné polia ešte treba doplniť alebo opraviť:</p>
       <ul>

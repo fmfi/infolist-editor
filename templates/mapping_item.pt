@@ -5,7 +5,7 @@
                  hidden hidden|field.widget.hidden;
                  category category|field.widget.category;
                  structural hidden or category == 'structural';
-                 required required|field.required;"
+                 required required|field.required or getattr(field.schema, 'warn_if_missing', False);"
      class="form-group ${field.error and 'has-error' or ''} ${field.widget.item_css_class or ''}"
      title="${description}"
      id="item-${oid}"
