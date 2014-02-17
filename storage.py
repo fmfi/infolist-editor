@@ -470,14 +470,21 @@ class DataStore(object):
       cur.execute('SELECT DISTINCT popis FROM infolist_verzia_nova_literatura WHERE popis LIKE %s ORDER by popis',
         (u'%{}%'.format(query),))
       return [x[0] for x in cur.fetchall()]
-  
+
   def load_predmet(self, id):
     predmety = self.fetch_predmety(where=('p.id = %s', (id,)))
     if len(predmety) == 0:
       return None
     return predmety[0]
-  
-  def search_predmet(self, query):
+
+  def _fetch_predmety_simple(self, where=None):
+    if where == None:
+      where_cond = ''
+      where_params = []
+    else:
+      where_cond, where_params = where
+      where_cond = ' AND ' + where_cond
+
     with self.cursor() as cur:
       sql = '''SELECT DISTINCT p.id, p.kod_predmetu, p.skratka, ivp.nazov_predmetu
           FROM predmet p
@@ -485,9 +492,9 @@ class DataStore(object):
           LEFT JOIN infolist i ON pi.infolist = i.id
           INNER JOIN infolist_verzia iv ON i.posledna_verzia = iv.id
           INNER JOIN infolist_verzia_preklad ivp ON iv.id = ivp.infolist_verzia
-          WHERE ivp.jazyk_prekladu = 'sk' AND p.kod_predmetu LIKE %s OR ivp.nazov_predmetu LIKE %s
-          ORDER BY p.skratka, p.id, ivp.nazov_predmetu'''
-      cur.execute(sql, (u'%{}%'.format(query),u'%{}%'.format(query)))
+          WHERE ivp.jazyk_prekladu = 'sk' {}
+          ORDER BY p.skratka, p.id, ivp.nazov_predmetu'''.format(where_cond)
+      cur.execute(sql, where_params)
       predmety = []
       for row in cur:
         if len(predmety) == 0 or predmety[-1]['id'] != row.id:
@@ -500,7 +507,19 @@ class DataStore(object):
         if row.nazov_predmetu:
           predmety[-1]['nazvy_predmetu'].append(row.nazov_predmetu)
       return predmety
-  
+
+  def search_predmet(self, query):
+    return self._fetch_predmety_simple(where=(
+      'p.kod_predmetu LIKE %s OR ivp.nazov_predmetu LIKE %s',
+      (u'%{}%'.format(query),u'%{}%'.format(query))
+    ))
+
+  def load_predmet_simple(self, id):
+    return self._fetch_predmety_simple(where=(
+      'p.id = %s',
+      (id,)
+    ))[0]
+
   def fetch_predmety(self, where=None):
     if where != None:
       where_cond = ' AND ' + where[0]

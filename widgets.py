@@ -36,14 +36,16 @@ class PodmienkaWidget(Widget):
     ]
     podm = Podmienka(cstruct)
     for id in podm.idset():
-      predmet = g.db.load_predmet(id)
+      predmet = g.db.load_predmet_simple(id)
       if not predmet:
         continue
       option = {
-        'value': predmet.id,
-        'skratka': predmet.skratka,
-        'kod': predmet.kod_predmetu,
-        'text': predmet.kod_predmetu
+        'value': predmet['id'],
+        'skratka': predmet['skratka'],
+        'kod': predmet['kod_predmetu'],
+        'typ': 'predmet',
+        'text': predmet['skratka'] + u'|'.join(predmet['nazvy_predmetu']),
+        'nazvy': predmet['nazvy_predmetu']
       }
       options.append(option)
       
