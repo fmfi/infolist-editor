@@ -80,6 +80,12 @@ def PodmienkyAbsolvovania(**kwargs):
       title=u'Minimálna hranica na {} (%)'.format(x),
       default=(90 - i * 10)
     ))
+  schema.add(SchemaNode(Bool(),
+    name='nepouzivat_stupnicu',
+    title=u'Nepoužívať stupnicu hodnotenia',
+    description=u'''Napríklad pri štátnicových predmetoch. Predmety ktoré
+      majú vyplnený nejaký druh vzdelávacej činnosti musia používať stupnicu hodnotenia.''',
+  ))
   return schema
 
 def OdporucanaLiteratura(**kwargs):
@@ -200,6 +206,16 @@ def Infolist():
     name='predpokladany_semester',
     title=u'Predpokladaný semester výučby',
     widget=deform.widget.Select2Widget(values=(('', ''), ('Z', 'zimný'), ('L', 'letný')), placeholder=u'Vyberte semester'),
+    missing=colander.null,
+    warn_if_missing=True
+  ))
+  schema.add(SchemaNode(String(),
+    name='predpokladany_stupen_studia',
+    title=u'Predpokladaný stupeň štúdia',
+    widget=deform.widget.Select2Widget(
+      values=(('', ''), ('1.', '1.'), ('2.', '2.'), ('3.', '3.')),
+      placeholder=u'Vyberte stupeň štúdia'
+    ),
     missing=colander.null,
     warn_if_missing=True
   ))

@@ -624,6 +624,7 @@ CREATE TABLE infolist_verzia (
   podm_absol_percenta_na_c integer,
   podm_absol_percenta_na_d integer,
   podm_absol_percenta_na_e integer,
+  nepouzivat_stupnicu boolean not null default false,
   hodnotenia_a_pocet integer,
   hodnotenia_b_pocet integer,
   hodnotenia_c_pocet integer,
@@ -642,6 +643,7 @@ CREATE TABLE infolist_verzia (
   potrebny_jazyk varchar(10) not null references jazyk_vyucby(kod),
   treba_zmenit_kod boolean not null,
   predpokladany_semester char(1),
+  predpokladany_stupen_studia varchar(10),
   finalna_verzia boolean not null default false,
   bude_v_povinnom boolean not null default false
 );

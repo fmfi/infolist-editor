@@ -79,7 +79,7 @@ class DataStore(object):
       podmienujuce_predmety, odporucane_predmety, vylucujuce_predmety,
       modifikovane, predosla_verzia, fakulta, potrebny_jazyk,
       treba_zmenit_kod, predpokladany_semester, finalna_verzia,
-      bude_v_povinnom
+      bude_v_povinnom, predpokladany_stupen_studia, nepouzivat_stupnicu
       FROM infolist_verzia WHERE id = %s''', (id,))
     row = cur.fetchone()
     if row == None:
@@ -91,13 +91,14 @@ class DataStore(object):
     podmienujuce_predmety, odporucane_predmety, vylucujuce_predmety,
     modifikovane, predosla_verzia, fakulta, potrebny_jazyk,
     treba_zmenit_kod, predpokladany_semester, finalna_verzia,
-    bude_v_povinnom) = row
+    bude_v_povinnom, predpokladany_stupen_studia, nepouzivat_stupnicu) = row
     
     iv = {
       'id': id,
       'pocet_kreditov': pocet_kreditov,
       'podm_absolvovania': {
         'percenta_skuska': percenta_skuska,
+        'nepouzivat_stupnicu': nepouzivat_stupnicu,
         'percenta_na': {
           'A': pct_a,
           'B': pct_b,
@@ -123,6 +124,7 @@ class DataStore(object):
       'potrebny_jazyk': potrebny_jazyk,
       'treba_zmenit_kod': treba_zmenit_kod,
       'predpokladany_semester': predpokladany_semester,
+      'predpokladany_stupen_studia': predpokladany_stupen_studia,
       'finalna_verzia': finalna_verzia,
       'bude_v_povinnom': bude_v_povinnom
     }
@@ -311,8 +313,9 @@ class DataStore(object):
           podmienujuce_predmety, odporucane_predmety, vylucujuce_predmety,
           predosla_verzia, fakulta, potrebny_jazyk,
           treba_zmenit_kod, predpokladany_semester,
-          modifikoval, finalna_verzia, bude_v_povinnom)
-        VALUES (''' + ', '.join(['%s'] * 24) + ''')
+          modifikoval, finalna_verzia, bude_v_povinnom,
+          predpokladany_stupen_studia, nepouzivat_stupnicu)
+        VALUES (''' + ', '.join(['%s'] * 26) + ''')
         RETURNING id''',
         (data['pocet_kreditov'], data['podm_absolvovania']['percenta_skuska'],
         pct['A'], pct['B'], pct['C'], pct['D'], pct['E'],
@@ -321,7 +324,9 @@ class DataStore(object):
         data['vylucujuce_predmety'], data['predosla_verzia'],
         data['fakulta'], data['potrebny_jazyk'], data['treba_zmenit_kod'],
         data['predpokladany_semester'], None if user is None else user.id,
-        data['finalna_verzia'], data['bude_v_povinnom']))
+        data['finalna_verzia'], data['bude_v_povinnom'],
+        data['predpokladany_stupen_studia'],
+        data['podm_absolvovania']['nepouzivat_stupnicu']))
       return cur.fetchone()[0]
   
   def _save_iv_suvisiace_predmety(self, iv_id, data):
