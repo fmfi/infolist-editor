@@ -126,7 +126,7 @@
           {% endif %}
           
           {% with stupnica = data.podm_absolvovania.percenta_na %}
-          {% if stupnica and stupnica.values()|any %}
+          {% if stupnica and stupnica.values()|any and not data.podm_absolvovania.nepouzivat_stupnicu %}
           <table class="table">
             <caption>Stupnica hodnotenia</caption>
             <thead>
