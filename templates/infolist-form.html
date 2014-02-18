@@ -1,4 +1,8 @@
 {% extends 'infolist.html' %}
+{% block includes_js %}
+  {{ super() }}
+  <script type="text/javascript" src="{{ url_for('static', filename='infolist-form.js') }}"></script>
+{% endblock %}
 {% block infolist %}
 <div class="body">
   {% if error_saving %}

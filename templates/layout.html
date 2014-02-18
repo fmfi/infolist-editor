@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>{% block title %}Komplexná akreditácia{% endblock %}</title>
+    {% block includes_css %}
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap.min.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='typeahead.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='select2/select2.css') }}" />
@@ -11,6 +12,8 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='selectize-bootstrap3.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='form.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='infolist.css') }}" />
+    {% endblock %}
+    {% block includes_js %}
     <script type="text/javascript" src="{{ url_for('static', filename='jquery-1.10.2.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='jquery.form-3.09.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='jquery.sortable.min.js') }}"></script>
@@ -22,6 +25,7 @@
     <script type="text/javascript" src="{{ url_for('static', filename='selectize.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='deform.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='infolist.js') }}"></script>
+    {% endblock %}
   </head>
   <body>
     {% block layout_body %}
