@@ -208,7 +208,7 @@
           {% for v in data.vyucujuci %}
             <tr>
               <td>{{ v.cele_meno }}</td>
-              <td>{% for typ in v.typy %}{{ typ|typ_vyucujuceho }}{% endfor %}</td>
+              <td>{% for typ in v.typy %}{% if not loop.first %}, {% endif %}{{ typ|typ_vyucujuceho }}{% endfor %}</td>
             </tr>
           {% endfor %}
         </table>
