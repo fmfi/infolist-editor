@@ -48,7 +48,10 @@ with psycopg2.connect(config.conn_str) as conn:
       ''',
       (args.old,))
     for iv_id, in cur:
-      print '-- Predmet {} je odkazovany z verzie infolistu {}'.format(args.old, iv_id)
+      with conn.cursor() as cur2:
+        cur2.execute('SELECT id FROM infolist WHERE posledna_verzia = %s', (iv_id,))
+        infolisty = [x[0] for x in cur2.fetchall()]
+      print '-- Predmet {} je odkazovany z verzie infolistu {} (infolist {})'.format(args.old, iv_id, ', '.join(str(x) for x in infolisty))
       with conn.cursor() as cur2:
         nahrad_v_podmienke(iv_id)
       print
