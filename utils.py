@@ -71,7 +71,7 @@ def filter_podmienka(podmienka):
         token = 'a'
       result.append(token)
     else:
-      result.append(g.db.load_predmet(int(token)))
+      result.append(g.db.load_predmet_simple(int(token)))
   return result
 
 def recursive_replace(d, value, replacement):
