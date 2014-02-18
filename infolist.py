@@ -123,6 +123,14 @@ def logout():
                         expires=1, path='/', secure=True)
   return response
 
+@app.route('/ping')
+def ping():
+  return ''
+
+@app.route('/ping.js')
+def ping_js():
+  return Response(render_template('ping.js'), mimetype='text/javascript')
+
 @app.route('/predmet/', defaults={'tab': 'vsetky'})
 @app.route('/predmet/moje', defaults={'tab': 'moje'})
 @app.route('/predmet/moje-upravy', defaults={'tab': 'moje-upravy'})
