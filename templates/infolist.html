@@ -75,19 +75,24 @@
         {% endif %}
       </div>
 
-      <div class="polozka">
-        <label>Podmieňujúce predmety</label>
-        {% for token in data.podmienujuce_predmety|podmienka %}
+      {% macro formatuj_podmienku(predmety) %}
+        {% for token in predmety|podmienka %}
           {% if token is string %}
             {{ token }}
           {% else %}
-            {{ token.skratka }}
+            <span class="podmienka-predmet">{{ token.skratka }} {{ token.nazvy_predmetu|join('/') }}</span>
           {% endif %}
         {% endfor %}
+      {% endmacro %}
+
+      <div class="polozka">
+        <label>Podmieňujúce predmety</label>
+        {{ formatuj_podmienku(data.podmienujuce_predmety) }}
       </div>
       
       <div class="polozka">
         <label>Odporúčané predmety</label>
+        {{ formatuj_podmienku(data.odporucane_predmety) }}
         {% for token in data.odporucane_predmety|podmienka %}
           {% if token is string %}
             {{ token }}
@@ -99,13 +104,7 @@
       
       <div class="polozka">
         <label>Vylučujúce predmety</label>
-        {% for token in data.vylucujuce_predmety|podmienka %}
-          {% if token is string %}
-            {{ token }}
-          {% else %}
-            {{ token.skratka }}
-          {% endif %}
-        {% endfor %}
+        {{ formatuj_podmienku(data.vylucujuce_predmety) }}
       </div>
       
       <div class="polozka">

@@ -212,3 +212,11 @@ ul.suvisiace-predmety > li {
   margin: 0;
   padding: 0;
 }
+
+span.podmienka-predmet {
+  background: #eee;
+  color: black;
+  padding: 0.2em;
+  border-radius: 2px;
+  
+}
