@@ -42,7 +42,7 @@
           formatResult: function(object, container, query, escapeMarkup) {
             var lenLimit = 30;
             var skratenaSignatura = object.signatura;
-            if (skratenaSignatura.length > lenLimit) {
+            if (skratenaSignatura && skratenaSignatura.length > lenLimit) {
               var parts = skratenaSignatura.split(', ');
               skratenaSignatura = parts[0];
               for (var i = 1; i < parts.length; i++) {
@@ -53,9 +53,12 @@
                 skratenaSignatura += ', ' + parts[i];
               }
             }
-            return "<strong>" + escapeMarkup(object.dokument) + "</strong><br/>" + 
-              escapeMarkup(object.vyd_udaje) + '<br/>Signatúra: ' +
-              escapeMarkup(skratenaSignatura);
+            var res = "<strong>" + escapeMarkup(object.dokument) + "</strong><br/>" + 
+              escapeMarkup(object.vyd_udaje);
+            if (skratenaSignatura) {
+              res = res + '<br/>Signatúra: ' + escapeMarkup(skratenaSignatura);
+            }
+            return res;
           },
           formatSelection: function(object, container, escapeMarkup) {
             return escapeMarkup(object.dokument);
