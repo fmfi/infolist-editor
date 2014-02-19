@@ -224,7 +224,14 @@ def Infolist():
     title=u'Podmieňujúce predmety',
     missing='',
     widget=widgets.PodmienkaWidget(),
-    description=u'Uvádzajú sa predmety, ktoré študent musí riadne absolvovať, aby si mohol zapísať tento predmet. Napríklad: "(1-INF-123 alebo 1-INF-234) a 1-INF-456". Kódy budú automaticky preklopené na nové priradené kódy.'
+    description=Markup(u'''Uvádzajú sa predmety, ktoré študent musí riadne absolvovať,
+      aby si mohol zapísať tento predmet. <strong>Podmieňujúce predmety by mali
+      byť splniteľné v rámci študijného programu.</strong> Nemali by ísť napr. 
+      medzi bakalárskym a magisterským štúdiom alebo medzi rôznymi študijnými
+      programami. Ak chcete vyjadriť obsahovú nadväznosť medzi bakalárskym a
+      magisterským programom, využite kolonku Odporúčané predmety.
+      Napríklad: "(1-INF-123 alebo 1-INF-234) a 1-INF-456".
+      Kódy budú automaticky preklopené na nové priradené kódy.''')
   ))
   schema.add(SchemaNode(String(),
     name='odporucane_predmety',
