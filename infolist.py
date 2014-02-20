@@ -135,6 +135,7 @@ def ping_js():
 @app.route('/predmet/moje', defaults={'tab': 'moje'})
 @app.route('/predmet/moje-upravy', defaults={'tab': 'moje-upravy'})
 @app.route('/predmet/vyucujem', defaults={'tab': 'vyucujem'})
+@app.route('/predmet/oblubene', defaults={'tab': 'oblubene'})
 @restrict()
 def predmet_index(tab):
   if tab == 'vsetky':
@@ -142,9 +143,11 @@ def predmet_index(tab):
   elif tab == 'moje':
     predmety = g.db.fetch_moje_predmety(g.user.id)
   elif tab == 'moje-upravy':
-    predmety = g.db.fetch_moje_predmety(g.user.id, uci=False)
+    predmety = g.db.fetch_moje_predmety(g.user.id, uci=False, oblubene=False)
   elif tab == 'vyucujem':
-    predmety = g.db.fetch_moje_predmety(g.user.id, upravy=False)
+    predmety = g.db.fetch_moje_predmety(g.user.id, upravy=False, oblubene=False)
+  elif tab == 'oblubene':
+    predmety = g.db.fetch_moje_predmety(g.user.id, uci=False, upravy=False)
   return render_template('predmet-index.html',
     predmety=predmety,
     tab=tab
@@ -159,6 +162,22 @@ def predmet_novy():
         u'finálny kód bude pridelený centrálne').format(skratka),
         'success')
   return redirect(url_for('show_infolist', id=None, predmet_id=id))
+
+@app.route('/predmet/<int:predmet_id>/watch', methods=['POST'])
+@restrict()
+def predmet_watch(predmet_id):
+  g.db.predmet_watch(predmet_id, g.user.id)
+  g.db.commit()
+  flash(u'Predmet bol pridaný medzi obľúbené', 'success')
+  return redirect(url_for('predmet_index', tab='oblubene'))
+
+@app.route('/predmet/<int:predmet_id>/unwatch', methods=['POST'])
+@restrict()
+def predmet_unwatch(predmet_id):
+  g.db.predmet_unwatch(predmet_id, g.user.id)
+  g.db.commit()
+  flash(u'Predmet bol odobraný z obľúbených', 'success')
+  return redirect(url_for('predmet_index', tab='oblubene'))
 
 def form_messages(form):
   if not form.error:

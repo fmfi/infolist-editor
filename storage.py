@@ -529,13 +529,20 @@ class DataStore(object):
       return None
     return predmety[0]
 
-  def fetch_predmety(self, where=None):
+  def fetch_predmety(self, where=None, osoba_id=None):
+    params = []
+    
+    if osoba_id != None:
+      params.append(osoba_id)
+      oblubeny_sql = ', exists(SELECT 1 FROM oblubene_predmety WHERE predmet = p.id AND osoba = %s) as oblubeny'
+    else:
+      oblubeny_sql = ''
+    
     if where != None:
       where_cond = ' AND ' + where[0]
-      where_params = where[1]
+      params.extend(where[1])
     else:
       where_cond = ''
-      where_params = []
     
     with self.cursor() as cur:
       sql = '''SELECT p.id as predmet_id, p.kod_predmetu, p.skratka,
@@ -544,7 +551,7 @@ class DataStore(object):
           ov.cele_meno as vytvoril_cele_meno,
           iv.modifikovane, iv.finalna_verzia, iv.obsahuje_varovania,
           ivp.nazov_predmetu,
-          o.id as osoba_id, o.cele_meno
+          o.id as osoba_id, o.cele_meno {}
           FROM predmet p
           LEFT JOIN predmet_infolist pi ON p.id = pi.predmet
           LEFT JOIN infolist i ON pi.infolist = i.id
@@ -555,17 +562,20 @@ class DataStore(object):
           LEFT JOIN infolist_verzia_modifikovali ivm ON iv.id = ivm.infolist_verzia
           LEFT JOIN osoba o ON ivm.osoba = o.id
           WHERE ivp.jazyk_prekladu = 'sk' {}
-          ORDER BY p.skratka, p.id, i.id, iv.id, o.cele_meno'''.format(where_cond)
-      cur.execute(sql, where_params)
+          ORDER BY p.skratka, p.id, i.id, iv.id, o.cele_meno'''.format(oblubeny_sql, where_cond)
+      cur.execute(sql, params)
       predmety = []
       for row in cur:
         if len(predmety) == 0 or predmety[-1]['id'] != row.predmet_id:
-          predmety.append({
+          predmet = {
             'id': row.predmet_id,
             'kod_predmetu': row.kod_predmetu,
             'skratka': row.skratka,
             'infolisty': []
-          })
+          }
+          if oblubeny_sql:
+            predmet['oblubeny'] = row.oblubeny
+          predmety.append(predmet)
         if row.infolist_id:
           infolisty = predmety[-1]['infolisty']
           if len(infolisty) == 0 or infolisty[-1]['id'] != row.infolist_id:
@@ -590,8 +600,8 @@ class DataStore(object):
             })
       return predmety
   
-  def fetch_moje_predmety(self, osoba_id, upravy=True, uci=True, vytvoril=False):
-    if not upravy and not uci:
+  def fetch_moje_predmety(self, osoba_id, upravy=True, uci=True, vytvoril=False, oblubene=True):
+    if not upravy and not uci and not oblubene:
       raise ValueError('Podla niecoho musime selectovat')
     
     il_params = []
@@ -647,7 +657,11 @@ class DataStore(object):
       conds.append('p.vytvoril = %s')
       params.append(osoba_id)
     
-    return self.fetch_predmety(where=(
+    if oblubene:
+      conds.append('p.id IN (SELECT predmet FROM oblubene_predmety WHERE osoba = %s)')
+      params.append(osoba_id)
+    
+    return self.fetch_predmety(osoba_id=osoba_id, where=(
       ' OR '.join(conds),
       params
     ))
@@ -734,3 +748,13 @@ class DataStore(object):
     with self.cursor() as cur:
       cur.execute('INSERT INTO predmet_infolist (predmet, infolist) VALUES (%s, %s)',
                   (predmet_id, infolist_id))
+  
+  def predmet_watch(self, predmet_id, osoba_id):
+    with self.cursor() as cur:
+      cur.execute('INSERT INTO oblubene_predmety (predmet, osoba) VALUES (%s, %s)',
+                  (predmet_id, osoba_id))
+  
+  def predmet_unwatch(self, predmet_id, osoba_id):
+    with self.cursor() as cur:
+      cur.execute('DELETE FROM oblubene_predmety WHERE predmet = %s AND osoba = %s',
+                  (predmet_id, osoba_id))

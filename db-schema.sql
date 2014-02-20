@@ -753,4 +753,11 @@ CREATE TABLE infolist_verzia_modifikovali (
 
 CREATE SEQUENCE predmet_novy_kod;
 
+CREATE TABLE oblubene_predmety (
+  predmet integer not null references predmet(id),
+  osoba integer not null references osoba(id),
+  primary key (predmet, osoba)
+);
+CREATE index ON oblubene_predmety(osoba);
+
 COMMIT;
