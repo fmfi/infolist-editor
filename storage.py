@@ -18,6 +18,15 @@ class User(object):
     self.priezvisko = priezvisko
     self.cele_meno = cele_meno
     self.opravnenia = {}
+  
+  def opravnenie(self, fakulta, opr):
+    v = self.opravnenia.get(fakulta)
+    if v == None:
+      return v
+    return v.get(opr)
+  
+  def moze_odomknut_infolist(self, il):
+    return self.opravnenie('FMFI', 'admin') or (il['zamkol'] == self.id)
 
 class ConditionBuilder(object):
   def __init__(self, join_with):
@@ -783,7 +792,7 @@ class DataStore(object):
         raise ValueError('Infolist je uz zamknuty')
       cur.execute('UPDATE infolist SET zamknute = now(), zamkol = %s WHERE id = %s', (user, id))
   
-  def unlock_infolist(self, id):
+  def unlock_infolist(self, id, check_user=None):
     with self.cursor() as cur:
       cur.execute('SELECT zamknute, zamkol FROM infolist WHERE id = %s FOR UPDATE', (id,))
       row = cur.fetchone()
@@ -791,6 +800,9 @@ class DataStore(object):
         raise NotFound('infolist({})'.format(id))
       if not row.zamknute:
         raise ValueError('Infolist je uz odomknuty')
+      if check_user != None:
+        if not check_user.moze_odomknut_infolist({'zamkol': row.zamkol}):
+          raise ValueError('Nema opravnenie odomknut infolist')
       cur.execute('UPDATE infolist SET zamknute = NULL, zamkol = NULL WHERE id = %s', (id,))
   
   def create_predmet(self, osoba_id=None):

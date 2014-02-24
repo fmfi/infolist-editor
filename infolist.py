@@ -311,12 +311,16 @@ def lock_infolist(id, lock):
     if lock:
       g.db.lock_infolist(id, g.user.id)
     else:
-      g.db.unlock_infolist(id)
+      g.db.unlock_infolist(id, check_user=g.user)
     g.db.commit()
   except:
     flash(u'Nepodarilo sa {} informačný list!'.format(u'zamknúť' if lock else u'odomknúť'), 'danger')
-    app.logger.exception('Vynimka pocat zamykania/odomykania infolistu')
+    app.logger.exception('Vynimka pocas zamykania/odomykania infolistu')
     g.db.rollback()
+  if lock:
+    flash(u'Informačný list bol zamknutý proti úpravám.', 'success')
+  else:
+    flash(u'Úpravy v informačnom liste boli povolené.', 'success')
   return redirect(url_for('show_infolist', id=id, edit=False))
 
 @app.route('/osoba/search')

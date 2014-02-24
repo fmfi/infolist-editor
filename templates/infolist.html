@@ -229,9 +229,9 @@
       <p>Tento informačný list je zamknutý proti úpravám pretože bol naimportovaný z AIS-u.</p>
     {% else %}
       <p>Tento informačný list je zamknutý proti úpravám používateľom: {{ (data.zamkol|osoba)[1] }}</p>
-      {% if data.zamkol == g.user.id %}
+      {% if g.user.moze_odomknut_infolist(data) %}
       <form action="{{ url_for('lock_infolist', id=infolist_id, lock=False) }}" method="POST">
-        <button type="submit" class="btn btn-default btn-block">Povoliť úpravy</button>
+        <button type="submit" class="btn {% if g.user.id != data.zamkol %}btn-warning{% else %}btn-default{% endif %} btn-block">Povoliť úpravy</button>
       </form>
       {% endif %}
     {% endif %}
