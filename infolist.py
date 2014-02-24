@@ -323,6 +323,16 @@ def lock_infolist(id, lock):
     flash(u'Úpravy v informačnom liste boli povolené.', 'success')
   return redirect(url_for('show_infolist', id=id, edit=False))
 
+@app.route('/studijny-program/')
+def studijny_program_index():
+  return 'TODO'
+
+@app.route('/studijny-program/<int:id>', defaults={'edit': False})
+@app.route('/studijny-program/<int:id>/upravit', defaults={'edit': True})
+@app.route('/studijny-program/novy', defaults={'id': None, 'edit': True})
+def studijny_program_show(id, edit):
+  return 'TODO'
+
 @app.route('/pouzivatelia')
 @restrict()
 def pouzivatelia():
