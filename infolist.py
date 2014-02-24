@@ -138,19 +138,35 @@ def ping_js():
 @app.route('/predmet/oblubene', defaults={'tab': 'oblubene'})
 @restrict()
 def predmet_index(tab):
+  def get_bool(name):
+    val = request.args.get(name, None)
+    if val != None:
+      if val == 'ano':
+        val = True
+      elif val == 'nie':
+        val = False
+      elif val == '' or val == 'vsetky':
+        val = None
+      else:
+        raise BadRequest()
+    return val
+  f = {}
+  for name in ['import_z_aisu', 'finalna_verzia', 'obsahuje_varovania', 'zamknute']:
+    f[name] = get_bool(name)
   if tab == 'vsetky':
-    predmety = g.db.fetch_predmety()
+    predmety = g.db.fetch_moje_predmety(g.user.id, **f)
   elif tab == 'moje':
-    predmety = g.db.fetch_moje_predmety(g.user.id)
+    predmety = g.db.fetch_moje_predmety(g.user.id, upravy=True, uci=True, oblubene=True, **f)
   elif tab == 'moje-upravy':
-    predmety = g.db.fetch_moje_predmety(g.user.id, uci=False, oblubene=False)
+    predmety = g.db.fetch_moje_predmety(g.user.id, upravy=True, **f)
   elif tab == 'vyucujem':
-    predmety = g.db.fetch_moje_predmety(g.user.id, upravy=False, oblubene=False)
+    predmety = g.db.fetch_moje_predmety(g.user.id, uci=True, **f)
   elif tab == 'oblubene':
-    predmety = g.db.fetch_moje_predmety(g.user.id, uci=False, upravy=False)
+    predmety = g.db.fetch_moje_predmety(g.user.id, oblubene=True, **f)
   return render_template('predmet-index.html',
     predmety=predmety,
-    tab=tab
+    tab=tab,
+    filtruj=f
   )
 
 @app.route('/predmet/novy', methods=['POST'])

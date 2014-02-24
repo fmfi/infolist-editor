@@ -220,3 +220,16 @@ span.podmienka-predmet {
   border-radius: 2px;
   
 }
+
+.filter .filter-field {
+  display: inline-block;
+  margin-right: 0.5em;
+}
+
+.filter label:after {
+  content: ": ";
+}
+
+.filter {
+  margin: 0.5em 0;
+}

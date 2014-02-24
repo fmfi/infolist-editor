@@ -20,6 +20,26 @@
   {% elif tab == 'vyucujem' %}
     <p class="help-block">Táto záložka zobrazuje predmety, v ktorých ste v nejakom informačnom liste uvedení ako vyučujúci</p>
   {% endif %}
+  <div class="filter">
+    <form method="GET">
+      {% macro filter_field(name, label) %}
+        <span class="filter-field">
+        <label for="{{ name }}">{{ label }}</label>
+        <select id="{{ name }}" name="{{ name }}" style="width: 7em;">
+          <option value="vsetky" {% if filtruj[name] == None %}selected="selected"{% endif %}>Všetky</option>
+          <option value="ano" {% if filtruj[name] == True %}selected="selected"{% endif %}>Áno</option>
+          <option value="nie" {% if filtruj[name] == False %}selected="selected"{% endif %}>Nie</option>
+        </select>
+        </span>
+      {% endmacro %}
+      {{ filter_field('import_z_aisu', 'Import z AIS-u') }}
+      {{ filter_field('zamknute', 'Uzamknuté') }}
+      {{ filter_field('obsahuje_varovania', 'Obsahuje varovania') }}
+      {{ filter_field('finalna_verzia', 'Finálna verzia') }}
+      <button type="submit" class="btn btn-default">Filtruj</button>
+    </form>
+  </div>
+  <hr />
   <ul class="predmety">
   {% for predmet in predmety %}
     <li><div title="{{ predmet.kod_predmetu }}" class="clearfix">{{ predmet.skratka }}

@@ -19,6 +19,36 @@ class User(object):
     self.cele_meno = cele_meno
     self.opravnenia = {}
 
+class ConditionBuilder(object):
+  def __init__(self, join_with):
+    self.conds = []
+    self.params = []
+    self.join_with = join_with
+    
+  def __call__(self, text, *params, **kwargs):
+    if isinstance(text, ConditionBuilder):
+      if len(params) != 0:
+        raise ValueError('No params allowed with ConditionBuilder arg')
+      params = text.params
+      text = str(text)
+    
+    positive = True
+    if 'positive' in kwargs:
+      positive = kwargs['positive']
+    if positive:
+      self.conds.append(text)
+    else:
+      self.conds.append('NOT ({})'.format(text))
+    if text.count('%s') != len(params):
+      raise ValueError('Got {} placeholders but {} parameters'.format(text.count('%s'), len(params)))
+    self.params.extend(params)
+  
+  def __str__(self):
+    return ' {} '.format(self.join_with).join('({})'.format(x) for x in self.conds)
+  
+  def __len__(self):
+    return len(self.conds)
+
 class DataStore(object):
   def __init__(self, conn):
     self.conn = conn
@@ -600,45 +630,59 @@ class DataStore(object):
             })
       return predmety
   
-  def fetch_moje_predmety(self, osoba_id, upravy=True, uci=True, vytvoril=False, oblubene=True):
-    if not upravy and not uci and not oblubene:
-      raise ValueError('Podla niecoho musime selectovat')
+  def fetch_moje_predmety(self, osoba_id=None, upravy=None, uci=None, vytvoril=None,
+      oblubene=None, obsahuje_varovania=None, import_z_aisu=None,
+      finalna_verzia=None, zamknute=None):
     
-    il_params = []
-    il_conds = []
+    def potrebujeme_osobu():
+      if osoba_id == None:
+        raise ValueError('Na tento filter treba mat osoba_id')
     
-    if upravy:
-      il_conds.append(
+    il_cond = ConditionBuilder('OR')
+    
+    if upravy != None:
+      potrebujeme_osobu()
+      il_cond(
         '''
           ri.vytvoril = %s
           OR EXISTS (
-            SELECT id
+            SELECT 1
             FROM infolist_verzia_modifikovali rivm
             WHERE rivm.infolist_verzia = ri.posledna_verzia
               AND rivm.osoba = %s
           )
-        ''')
-      il_params.append(osoba_id)
-      il_params.append(osoba_id)
+        ''', osoba_id, osoba_id, positive=upravy)
       vytvoril = True
     
-    if uci:
-      il_conds.append(
+    if uci != None:
+      potrebujeme_osobu()
+      il_cond(
         '''
           EXISTS (
-            SELECT id
+            SELECT 1
             FROM infolist_verzia_vyucujuci rivv
             WHERE rivv.infolist_verzia = ri.posledna_verzia
               AND rivv.osoba = %s
           )
-        ''')
-      il_params.append(osoba_id)
+        ''', osoba_id, positive=uci)
     
-    params = []
-    conds = []
+    il_filter = ConditionBuilder('AND')
+    if obsahuje_varovania != None:
+      il_filter('riv.obsahuje_varovania', positive=obsahuje_varovania)
     
-    if il_conds:
-      conds.append(
+    if finalna_verzia != None:
+      il_filter('riv.finalna_verzia', positive=finalna_verzia)
+    
+    if import_z_aisu != None:
+      il_filter('ri.import_z_aisu', positive=import_z_aisu)
+    
+    if zamknute != None:
+      il_filter('ri.zamknute IS NOT NULL', positive=zamknute)
+    
+    cond = ConditionBuilder('OR')
+    
+    if il_cond:
+      cond(
         '''
           EXISTS (
             SELECT ri.id
@@ -649,22 +693,40 @@ class DataStore(object):
                 {}
               )
           )
-        '''.format(' OR ' .join(il_conds))
-      )
-      params.extend(il_params)
+        '''.format(il_cond), *il_cond.params)
     
-    if vytvoril:
-      conds.append('p.vytvoril = %s')
-      params.append(osoba_id)
+    if vytvoril != None:
+      potrebujeme_osobu()
+      cond('p.vytvoril = %s', osoba_id, positive=vytvoril)
     
-    if oblubene:
-      conds.append('p.id IN (SELECT predmet FROM oblubene_predmety WHERE osoba = %s)')
-      params.append(osoba_id)
+    if oblubene != None:
+      potrebujeme_osobu()
+      cond('p.id IN (SELECT predmet FROM oblubene_predmety WHERE osoba = %s)',
+           osoba_id, positive=oblubene)
     
-    return self.fetch_predmety(osoba_id=osoba_id, where=(
-      ' OR '.join(conds),
-      params
-    ))
+    filt = ConditionBuilder('AND')
+    if cond:
+      filt(cond)
+    
+    if il_filter:
+      filt(
+        '''
+          EXISTS (
+            SELECT ri.id
+            FROM predmet_infolist rpi, infolist ri, infolist_verzia riv
+            WHERE rpi.predmet = p.id AND rpi.infolist = ri.id AND ri.posledna_verzia = riv.id
+              AND 
+              (
+                {}
+              )
+          )
+        '''.format(il_filter), *il_filter.params)
+    
+    if filt:
+      where = (str(filt), filt.params)
+    else:
+      where = None
+    return self.fetch_predmety(osoba_id=osoba_id, where=where)
   
   def load_jazyky_vyucby(self):
     if self._jazyky_vyucby == None:
