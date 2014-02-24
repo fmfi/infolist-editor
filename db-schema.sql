@@ -608,12 +608,13 @@ CREATE TABLE literatura (
 CREATE TABLE ilsp_opravnenia (
   osoba integer not null references osoba(id),
   organizacna_jednotka varchar(100) not null references organizacna_jednotka(kod),
-  je_admin boolean not null,
+  je_admin boolean not null default false,
+  je_garant boolean not null default false
   primary key (osoba, organizacna_jednotka)
 );
 
-INSERT INTO ilsp_opravnenia (osoba, organizacna_jednotka, je_admin)
-SELECT o.id, 'FMFI', true
+INSERT INTO ilsp_opravnenia (osoba, organizacna_jednotka, je_admin, je_garant)
+SELECT o.id, 'FMFI', true, false
 FROM osoba o WHERE o.login IN ('sucha14', 'vinar1');
 
 CREATE TABLE infolist_verzia (

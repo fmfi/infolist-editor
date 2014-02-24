@@ -323,6 +323,14 @@ def lock_infolist(id, lock):
     flash(u'Úpravy v informačnom liste boli povolené.', 'success')
   return redirect(url_for('show_infolist', id=id, edit=False))
 
+@app.route('/pouzivatelia')
+@restrict()
+def pouzivatelia():
+  if not g.user.moze_spravovat_pouzivatelov():
+    abort(401)
+  users = g.db.load_users()
+  return render_template('pouzivatelia.html', users=users)
+
 @app.route('/osoba/search')
 @restrict(api=True)
 def osoba_search():

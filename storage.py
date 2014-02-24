@@ -27,6 +27,9 @@ class User(object):
   
   def moze_odomknut_infolist(self, il):
     return self.opravnenie('FMFI', 'admin') or (il['zamkol'] == self.id)
+  
+  def moze_spravovat_pouzivatelov(self):
+    return self.opravnenie('FMFI', 'admin')
 
 class ConditionBuilder(object):
   def __init__(self, join_with):
@@ -765,22 +768,39 @@ class DataStore(object):
       return nove_id
   
   def load_user(self, username):
+    users = self.load_users(where=('o.login = %s', (username,)))
+    if len(users) == 0:
+      return None
+    elif len(users) > 1:
+      raise ValueError('SELECT vratil viacerych pouzivatelov... WTF')
+    return users[0]
+  
+  def load_users(self, where=None):
+    if where == None:
+      where_cond = ''
+      where_params = []
+    else:
+      where_cond = 'WHERE {}'.format(where[0])
+      where_params = where[1]
+    
     with self.cursor() as cur:
-      cur.execute('''SELECT o.id, o.login, o.meno, o.priezvisko, o.cele_meno, op.organizacna_jednotka, op.je_admin
+      cur.execute('''SELECT o.id, o.login, o.meno, o.priezvisko, o.cele_meno,
+          op.organizacna_jednotka, op.je_admin, op.je_garant
         FROM osoba o
         INNER JOIN ilsp_opravnenia op ON o.id = op.osoba
-        WHERE o.login = %s'''
-        , (username,))
-      user = None
+        {}
+        ORDER BY o.priezvisko'''.format(where_cond)
+        , where_params)
+      users = []
       for row in cur:
-        if user == None:
-          user = User(row.id, row.login, row.meno, row.priezvisko, row.cele_meno)
-        elif user.id != row.id:
-            raise ValueError('SELECT vratil viacerych pouzivatelov... WTF')
-        user.opravnenia[row.organizacna_jednotka] = {
-          'admin': row.je_admin
+        if len(users) == 0 or users[-1].id != row.id:
+          users.append(User(row.id, row.login, row.meno, row.priezvisko, row.cele_meno))
+        
+        users[-1].opravnenia[row.organizacna_jednotka] = {
+          'admin': row.je_admin,
+          'garant': row.je_garant,
         }
-      return user
+      return users
   
   def lock_infolist(self, id, user):
     with self.cursor() as cur:
