@@ -81,7 +81,8 @@
                handle: ".deformOrderbutton, .panel-heading",
                containerSelector: "#${oid}-orderable",
                itemSelector: ".deformSeqItem",
-               placeholder: '<span class="glyphicon glyphicon-arrow-right placeholder"></span>',
+               placeholder: 'sortable-placeholder',
+               scroll: true,
                onDragStart: function ($item, container, _super) {
                  var offset = $item.offset(),
                  pointer = container.rootGroup.pointer

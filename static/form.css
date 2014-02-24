@@ -37,3 +37,11 @@ form .deform-readonly-text {
 .selectize-control.multi .selectize-input > div.zatvorka {
   background-color: transparent;
 }
+
+.sortable-placeholder {
+  height: 3em;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  margin-bottom: 20px;
+}
