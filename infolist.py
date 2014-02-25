@@ -359,10 +359,10 @@ def export_infolist(id):
       podm_absol_text += u'Váha skúšky v hodnotení: {}%\n'.format(podm_absol['percenta_skuska'])
     if any(podm_absol['percenta_na'].values()) and not podm_absol['nepouzivat_stupnicu']:
       stupnica = podm_absol['percenta_na']
-      podm_absol_text += u'Na získanie hodnotenia A je potrebné získať najmenej {}%'.format(stupnica['A'])
+      podm_absol_text += u'Na získanie hodnotenia A je potrebné získať najmenej {}% bodov'.format(stupnica['A'])
       for znamka in ['B', 'C', 'D', 'E']:
         podm_absol_text += u' a ' if znamka == 'E' else u', '
-        podm_absol_text += u'na hodnotenie {} najmenej {}%'.format(znamka, stupnica[znamka])
+        podm_absol_text += u'na hodnotenie {} najmenej {}% bodov'.format(znamka, stupnica[znamka])
       podm_absol_text += u'.\n'
   podm_absol_text = podm_absol_text.rstrip()
   
