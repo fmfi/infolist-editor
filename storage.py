@@ -80,22 +80,29 @@ class DataStore(object):
   
   def load_infolist(self, id, lang='sk'):
     with self.cursor() as cur:
-      cur.execute('''SELECT posledna_verzia, import_z_aisu,
-        forknute_z, zamknute, zamkol, povodny_kod_predmetu
-        FROM infolist
-        WHERE id = %s''',
+      cur.execute('''SELECT i.posledna_verzia, i.import_z_aisu,
+        i.forknute_z, i.zamknute, i.zamkol,
+        p.kod_predmetu, p.povodny_kod,
+        p.skratka, p.povodna_skratka
+        FROM infolist i
+        LEFT JOIN predmet_infolist pi ON i.id = pi.infolist
+        LEFT JOIN predmet p ON pi.predmet = p.id
+        WHERE i.id = %s''',
         (id,))
       data = cur.fetchone()
       if data == None:
         raise NotFound('infolist({})'.format(id))
-      posledna_verzia, import_z_aisu, forknute_z, zamknute, zamkol, povodny_kod_predmetu = data
+      posledna_verzia, import_z_aisu, forknute_z, zamknute, zamkol, kod_predmetu, povodny_kod, skratka, povodna_skratka = data
       i = {
         'posledna_verzia': posledna_verzia,
         'import_z_aisu': import_z_aisu,
         'forknute_z': forknute_z,
         'zamknute': zamknute,
         'zamkol': zamkol,
-        'povodny_kod_predmetu': povodny_kod_predmetu
+        'kod_predmetu': kod_predmetu,
+        'skratka': skratka,
+        'povodny_kod_predmetu': povodny_kod,
+        'povodna_skratka': povodna_skratka
       }
     i.update(self.load_infolist_verzia(posledna_verzia, lang))
     return i
