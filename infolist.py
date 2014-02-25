@@ -322,22 +322,28 @@ def export_infolist(id):
   tdata['IL_ODPORUCANY_SEMESTER'] = 'TODO'
   tdata['IL_STUPEN_STUDIA'] = 'TODO'
 
-  podm_predmety = u''
-  for token in Podmienka(infolist['podmienujuce_predmety'])._tokens:
-    if token in Podmienka.symbols:
-      if token == 'OR':
-        podm_predmety += ' alebo '
-      elif token == 'AND':
-        podm_predmety += ' a '
+  def fmt_podm(text):
+    podm_predmety = u''
+    for token in Podmienka(text)._tokens:
+      if token in Podmienka.symbols:
+        if token == 'OR':
+          podm_predmety += ' alebo '
+        elif token == 'AND':
+          podm_predmety += ' a '
+        else:
+          podm_predmety += token
       else:
-        podm_predmety += token
-    else:
-      predmet = g.db.load_predmet_simple(int(token))
-      if len(predmet['nazvy_predmetu']) == 0:
-        nazov_predmetu = u'TODO'
-      else:
-        nazov_predmetu = predmet['nazvy_predmetu'][0]
-      podm_predmety += u'{} {}'.format(predmet['skratka'], nazov_predmetu)
+        predmet = g.db.load_predmet_simple(int(token))
+        if len(predmet['nazvy_predmetu']) == 0:
+          nazov_predmetu = u'TODO'
+        else:
+          nazov_predmetu = predmet['nazvy_predmetu'][0]
+        podm_predmety += u'{} {}'.format(predmet['skratka'], nazov_predmetu)
+    return podm_predmety
+  podm_predmety = fmt_podm(infolist['podmienujuce_predmety'])
+  if infolist['odporucane_predmety'] and len(infolist['odporucane_predmety']) > 0:
+    podm_predmety += u'\n\nOdporúčané predmety (nie je nutné ich absolvovať pred zapísaním predmetu):\n'
+    podm_predmety += fmt_podm(infolist['odporucane_predmety'])
   tdata['IL_PODMIENUJUCE_PREDMETY'] = podm_predmety
 
   podm_absol_text = u'\n'
@@ -351,13 +357,14 @@ def export_infolist(id):
       podm_absol_text += u'Skúška: {}\n'.format(podm_absol['skuska'])
     if podm_absol['percenta_skuska'] != None:
       podm_absol_text += u'Váha skúšky v hodnotení: {}%\n'.format(podm_absol['percenta_skuska'])
-    if not podm_absol['nepouzivat_stupnicu']:
+    if any(podm_absol['percenta_na'].values()) and not podm_absol['nepouzivat_stupnicu']:
       stupnica = podm_absol['percenta_na']
-      podm_absol_text += u'Na získanie hodnotenia A je potrebné získať najmenej {} bodov'.format(stupnica['A'])
+      podm_absol_text += u'Na získanie hodnotenia A je potrebné získať najmenej {}%'.format(stupnica['A'])
       for znamka in ['B', 'C', 'D', 'E']:
         podm_absol_text += u' a ' if znamka == 'E' else u', '
-        podm_absol_text += u'na hodnotenie {} najmenej {} bodov'.format(znamka, stupnica[znamka])
-      podm_absol_text += u'.'
+        podm_absol_text += u'na hodnotenie {} najmenej {}%'.format(znamka, stupnica[znamka])
+      podm_absol_text += u'.\n'
+  podm_absol_text = podm_absol_text.rstrip()
   
   tdata['IL_PODMIENKY_ABSOLVOVANIA'] = podm_absol_text
 
@@ -366,7 +373,8 @@ def export_infolist(id):
 
   literatura = u''
   for bib_id in infolist['odporucana_literatura']['zoznam']:
-    literatura += u'\n{}'.format(filter_literatura(bib_id))
+    lit = filter_literatura(bib_id)
+    literatura += u'\n{}. {}'.format(lit.dokument, lit.vyd_udaje)
   for popis in infolist['odporucana_literatura']['nove']:
     literatura += u'\n{}'.format(popis)
   tdata['IL_LITERATURA'] = literatura
