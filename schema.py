@@ -339,7 +339,12 @@ def Blok(**kwargs):
   infolist_schema = MappingSchema(name='infolist')
   infolist_schema.add(SchemaNode(Integer(),
     name='infolist',
-    title=u'Infolist'
+    title=u'Infolist',
+    widget=widgets.RemoteSelect2Widget(
+      search_url=url_for('infolist_search', _external=True),
+      item_url=url_for('infolist_get', _external=True),
+      template="infolist"
+    )
   ))
   infolist_schema.add(SchemaNode(Integer(),
     name='rocnik',

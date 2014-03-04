@@ -593,6 +593,24 @@ def predmet_search():
   query = request.args['q']
   return jsonify(predmety=g.db.search_predmet(query))
 
+@app.route('/infolist/search')
+@restrict(api=True)
+def infolist_search():
+  query = request.args['q']
+  return jsonify(infolisty=g.db.search_infolist(query, finalna=True))
+
+@app.route('/infolist/json')
+@restrict(api=True)
+def infolist_get():
+  try:
+    id = int(request.args['id'])
+  except ValueError:
+    raise BadRequest()
+  infolist = g.db.fetch_infolist(id)
+  if infolist is None:
+    abort(404)
+  return jsonify(**infolist)
+
 if __name__ == '__main__':
   import sys
 

@@ -1053,3 +1053,52 @@ class DataStore(object):
         ''',
         (lang,))
       return cur.fetchall()
+  
+  def search_infolist(self, query, finalna=False):
+    with self.cursor() as cur:
+      filt = ''
+      if finalna:
+        filt = ' AND iv.finalna_verzia'
+      sql = '''SELECT i.id, ivp.nazov_predmetu,
+          p.kod_predmetu, p.skratka
+          FROM infolist i
+          INNER JOIN infolist_verzia iv ON i.posledna_verzia = iv.id
+          LEFT JOIN infolist_verzia_preklad ivp ON i.posledna_verzia = ivp.infolist_verzia
+          LEFT JOIN predmet_infolist pi ON i.id = pi.infolist
+          LEFT JOIN predmet p ON pi.predmet = p.id
+          WHERE (ivp.jazyk_prekladu = 'sk' OR ivp.jazyk_prekladu IS NULL)
+          AND (p.kod_predmetu ILIKE %s OR ivp.nazov_predmetu ILIKE %s)
+          {}
+          ORDER BY p.skratka, p.id, ivp.nazov_predmetu'''.format(filt)
+      cur.execute(sql, (u'%{}%'.format(query),u'%{}%'.format(query)))
+      infolisty = []
+      for row in cur:
+        infolisty.append({
+          'id': row.id,
+          'kod_predmetu': row.kod_predmetu,
+          'skratka': row.skratka,
+          'nazov_predmetu': row.nazov_predmetu
+        })
+      return infolisty
+  
+  def fetch_infolist(self, id):
+    with self.cursor() as cur:
+      sql = '''SELECT i.id, ivp.nazov_predmetu,
+          p.kod_predmetu, p.skratka
+          FROM infolist i
+          INNER JOIN infolist_verzia iv ON i.posledna_verzia = iv.id
+          LEFT JOIN infolist_verzia_preklad ivp ON i.posledna_verzia = ivp.infolist_verzia
+          LEFT JOIN predmet_infolist pi ON i.id = pi.infolist
+          LEFT JOIN predmet p ON pi.predmet = p.id
+          WHERE (ivp.jazyk_prekladu = 'sk' OR ivp.jazyk_prekladu IS NULL)
+          AND i.id = %s
+          '''
+      cur.execute(sql, (id,))
+      for row in cur:
+        return {
+          'id': row.id,
+          'kod_predmetu': row.kod_predmetu,
+          'skratka': row.skratka,
+          'nazov_predmetu': row.nazov_predmetu
+        }
+      return None
