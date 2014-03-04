@@ -447,13 +447,68 @@ def lock_infolist(id, lock):
 
 @app.route('/studijny-program/')
 def studijny_program_index():
-  return 'TODO'
+  sp = g.db.fetch_studijne_programy()
+  return render_template('studprog-index.html', studijne_programy=sp)
 
 @app.route('/studijny-program/<int:id>', defaults={'edit': False})
-@app.route('/studijny-program/<int:id>/upravit', defaults={'edit': True})
-@app.route('/studijny-program/novy', defaults={'id': None, 'edit': True})
+@app.route('/studijny-program/<int:id>/upravit', defaults={'edit': True}, methods=['GET', 'POST'])
+@app.route('/studijny-program/novy', defaults={'id': None, 'edit': True}, methods=['GET', 'POST'])
 def studijny_program_show(id, edit):
-  return 'TODO'
+  if id != None:
+    studprog = g.db.load_studprog(id)
+  else:
+    studprog = {
+      'zamknute': None,
+      'zamkol': None,
+      'predosla_verzia': None,
+    }
+  if studprog['zamknute'] and edit:
+    flash(u'Študijný program je zamknutý proti úpravám', 'danger')
+    return redirect(url_for('studijny_program_show', id=id, edit=False))
+  
+  form = Form(schema.Studprog(), buttons=('submit',),
+              appstruct=recursive_replace(studprog, None, colander.null))
+  error_saving = False
+  msg_ns = type("", (), {})() # http://bit.ly/1cPX3G5
+  msg_ns.messages_type = 'danger';
+  msg_ns.has_warnings = False
+  def check_warnings():
+    try:
+      schema.warning_schema(schema.Studprog()).deserialize(form.cstruct)
+    except colander.Invalid as e:
+      form.widget.handle_error(form, e)
+      msg_ns.messages_type = 'warning'
+      msg_ns.has_warnings = True
+  
+  if request.method == 'POST':
+    controls = request.form.items(multi=True)
+    try:
+      recursive_update(studprog, recursive_replace(form.validate(controls), colander.null, None))
+    except ValidationFailure:
+      pass
+    else:
+      check_warnings()
+      studprog['obsahuje_varovania'] = msg_ns.has_warnings
+      try:
+        nove_id = g.db.save_studprog(id, studprog, user=g.user)
+        g.db.commit()
+        flash(u'Študijný program bol úspešne uložený', 'success')
+        if msg_ns.has_warnings:
+          flash((u'Formulár bol uložený, ale niektoré položky ešte bude treba doplniť, alebo upraviť. ' + 
+                 u'Ak ich teraz neviete doplniť, môžete tak spraviť aj neskôr.'), 'warning')
+        return redirect(url_for('studijny_program_show', id=nove_id, edit=msg_ns.has_warnings))
+      except:
+        app.logger.exception('Vynimka pocas ukladania studijneho programu')
+        g.db.rollback()
+        error_saving = True
+  else: # GET
+    if id is not None:
+      check_warnings()
+  
+  template = 'studprog-form.html' if edit else 'studprog.html'
+  return render_template(template, form=form, data=studprog,
+    messages=form_messages(form), messages_type=msg_ns.messages_type,
+    studprog_id=id, error_saving=error_saving, editing=edit)
 
 @app.route('/pouzivatelia')
 @restrict()

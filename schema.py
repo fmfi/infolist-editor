@@ -325,3 +325,70 @@ def warning_schema(node):
   for child in node:
     warning_schema(child)
   return node
+
+def Blok(**kwargs):
+  schema = MappingSchema(**kwargs)
+  schema.add(SchemaNode(String(),
+    name='nazov',
+    title=u'Názov bloku',
+  ))
+  schema.add(SchemaNode(String(),
+    name='podmienky',
+    title=u'Podmienky absolvovania bloku',
+  ))
+  infolist_schema = MappingSchema(name='infolist')
+  infolist_schema.add(SchemaNode(Integer(),
+    name='infolist',
+    title=u'Infolist'
+  ))
+  infolist_schema.add(SchemaNode(Integer(),
+    name='rocnik',
+    title=u'Ročník'
+  ))
+  infolist_schema.add(SchemaNode(String(),
+    name='semester',
+    title=u'Semester'
+  ))
+  infolist_schema.add(SchemaNode(String(),
+    name='pracovna_poznamka',
+    title=u'Pracovná poznámka (nezobrazuje sa)',
+    missing=u''
+  ))
+  schema.add(SchemaNode(Sequence(),
+    infolist_schema,
+    name='infolisty',
+    title=u'Informačné listy'
+  ))
+  return schema
+
+def Studprog():
+  schema = MappingSchema()
+  schema.add(SchemaNode(String(),
+    name=u'nazov',
+    title=u'Názov študijného programu'
+  ))
+  schema.add(SchemaNode(Bool(),
+    name=u'aj_konverzny_program',
+    title=u'Aj konverzný program'
+  ))
+  schema.add(SchemaNode(String(),
+    name=u'stupen_studia',
+    title=u'Stupeň štúdia'
+  ))
+  schema.add(SchemaNode(String(),
+    name=u'podmienky_absolvovania',
+    title=u'Podmienky absolvovania študijného programu'
+  ))
+  schema.add(SchemaNode(Sequence(),
+    Blok(
+      name='blok',
+      title=u'Blok'
+    ),
+    name='bloky',
+    title=u'Bloky',
+  ))
+  schema.add(SchemaNode(String(),
+    name=u'poznamka_konverzny',
+    title=u'Poznámka ku konverznému programu'
+  ))
+  return schema

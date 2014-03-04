@@ -859,3 +859,197 @@ class DataStore(object):
     with self.cursor() as cur:
       cur.execute('DELETE FROM oblubene_predmety WHERE predmet = %s AND osoba = %s',
                   (predmet_id, osoba_id))
+  
+  def load_studprog(self, id, lang='sk'):
+    with self.cursor() as cur:
+      cur.execute('''SELECT sp.skratka, sp.posledna_verzia, sp.zamknute, sp.zamkol, sp.vytvorene, sp.vytvoril
+        FROM studprog sp
+        WHERE sp.id = %s
+        ''',
+        (id,))
+      data = cur.fetchone()
+      if data is None:
+        raise NotFound('studprog({})'.format(id))
+      sp = {
+        'id': id,
+        'skratka': data.skratka,
+        'posledna_verzia': data.posledna_verzia,
+        'zamknute': data.zamknute,
+        'zamkol': data.zamkol,
+        'vytvorene': data.vytvorene,
+        'vytvoril': data.vytvoril,
+      }
+      sp.update(self.load_studprog_verzia(data.posledna_verzia, lang))
+      return sp
+  
+  def load_studprog_verzia(self, id, lang='sk'):
+    data = self._load_spv_data(id)
+    dict_rec_update(data, self._load_spv_trans(id, lang))
+    data['bloky'] = self._load_spv_bloky(id, lang)
+    return data
+  
+  def _load_spv_data(self, id):
+    with self.cursor() as cur:
+      cur.execute('''SELECT aj_konverzny_program, stupen_studia
+        FROM studprog_verzia
+        WHERE id = %s
+        ''',
+        (id,))
+      data = cur.fetchone()
+      if data is None:
+        raise NotFound('studprog_verzia({})'.format(id))
+      return {
+        'aj_konverzny_program': data.aj_konverzny_program,
+        'stupen_studia': data.stupen_studia
+      }
+  
+  def _load_spv_trans(self, id, lang='sk'):
+    with self.cursor() as cur:
+      cur.execute('''SELECT nazov, podmienky_absolvovania, poznamka_konverzny
+        FROM studprog_verzia_preklad
+        WHERE studprog_verzia = %s AND jazyk_prekladu = %s
+        ''',
+        (id, lang))
+      data = cur.fetchone()
+      if data is None:
+        raise NotFound('studprog_verzia_preklad({}, {})'.format(id, lang))
+      return {
+        'nazov': data.nazov,
+        'podmienky_absolvovania': data.podmienky_absolvovania,
+        'poznamka_konverzny': data.poznamka_konverzny
+      }
+  
+  def _load_spv_bloky(self, id, lang='sk'):
+    with self.cursor() as cur:
+      cur.execute('''SELECT spvbp.poradie_blok, spvbp.nazov, spvbp.podmienky,
+          spvbi.infolist, spvbi.semester, spvbi.rocnik, spvbi.pracovna_poznamka,
+          p.kod_predmetu, p.skratka, ivp.nazov_predmetu
+        FROM studprog_verzia_blok_preklad spvbp
+        LEFT JOIN studprog_verzia_blok_infolist spvbi ON spvbp.studprog_verzia = spvbi.studprog_verzia AND spvbp.poradie_blok = spvbi.poradie_blok
+        LEFT JOIN predmet_infolist pi ON spvbi.infolist = pi.infolist
+        LEFT JOIN predmet p ON pi.predmet = p.id
+        LEFT JOIN infolist i ON spvbi.infolist = i.id
+        LEFT JOIN infolist_verzia_preklad ivp ON i.posledna_verzia = ivp.infolist_verzia
+        WHERE spvbp.studprog_verzia = %s AND spvbp.jazyk_prekladu = %s
+        AND (ivp.jazyk_prekladu = %s OR ivp.jazyk_prekladu IS NULL)
+        ORDER BY spvbp.studprog_verzia, spvbp.poradie_blok, spvbi.rocnik, spvbi.semester desc, ivp.nazov_predmetu
+        ''',
+        (id, lang, lang))
+      bloky = []
+      for row in cur:
+        if len(bloky) == 0 or bloky[-1]['poradie_blok'] != row.poradie_blok:
+          blok = {
+            'poradie_blok': row.poradie_blok,
+            'nazov': row.nazov,
+            'podmienky': row.podmienky,
+            'infolisty': []
+          }
+          bloky.append(blok)
+        if row.infolist is not None:
+          infolist = {
+            'infolist': row.infolist,
+            'semester': row.semester,
+            'rocnik': row.rocnik,
+            'pracovna_poznamka': row.pracovna_poznamka,
+            'kod_predmetu': row.kod_predmetu,
+            'skratka_predmetu': row.skratka,
+            'nazov_predmetu': row.nazov_predmetu
+          }
+          bloky[-1]['infolisty'].append(infolist)
+      return bloky
+  
+  def save_studprog(self, id, data, user=None):
+    with self.cursor() as cur:
+      #if user.id not in data['modifikovali']:
+      #  data['modifikovali'][user.id] = {
+      #    'meno': user.meno,
+      #    'priezvisko': user.priezvisko,
+      #    'cele_meno': user.cele_meno
+      #  }
+      def select_for_update(id):
+        cur.execute('''SELECT posledna_verzia, zamknute
+          FROM studprog
+          WHERE id = %s
+          FOR UPDATE''',
+          (id,))
+      posledna_verzia = None
+      if id != None:
+        select_for_update(id)
+        row = cur.fetchone()
+        if row == None:
+          raise NotFound('studprog({})'.format(id))
+        if row.zamknute:
+          raise ValueError('Zamknuty studijny program')
+        posledna_verzia = row.posledna_verzia
+      nova_verzia = self.save_studprog_verzia(posledna_verzia, data, user=user)
+      if id != None:
+        cur.execute('''UPDATE studprog
+          SET posledna_verzia = %s
+          WHERE id = %s''',
+          (nova_verzia, id))
+      else:
+        cur.execute('''INSERT INTO studprog (posledna_verzia, vytvoril)
+          VALUES (%s, %s)
+          RETURNING id''',
+          (nova_verzia, user.id if user else None)
+        )
+        id = cur.fetchone()[0]
+      return id
+  
+  def save_studprog_verzia(self, predosla_verzia, data, lang='sk', user=None):
+    nove_id = self._save_spv_data(predosla_verzia, data, user=user)
+    self._save_spv_trans(nove_id, data, lang=lang)
+    self._save_spv_bloky(nove_id, data['bloky'], lang=lang)
+    return nove_id
+  
+  def _save_spv_data(self, predosla_verzia, data, user=None):
+    with self.cursor() as cur:
+      cur.execute('''INSERT INTO studprog_verzia (
+          aj_konverzny_program, stupen_studia
+        )
+        VALUES (%s, %s)
+        RETURNING id''',
+        (data['aj_konverzny_program'], data['stupen_studia']))
+      return cur.fetchone()[0]
+  
+  def _save_spv_trans(self, spv_id, data, lang='sk'):
+    with self.cursor() as cur:
+      cur.execute('''INSERT INTO studprog_verzia_preklad
+        (studprog_verzia, jazyk_prekladu, nazov, podmienky_absolvovania,
+         poznamka_konverzny)
+        VALUES (''' + ', '.join(['%s']*5) + ''')''',
+        (spv_id, lang, data['nazov'], data['podmienky_absolvovania'],
+         data['poznamka_konverzny']))
+  
+  def _save_spv_bloky(self, spv_id, bloky, lang='sk'):
+    with self.cursor() as cur:
+      for poradie, blok in enumerate(bloky, start=1):
+        cur.execute('''INSERT INTO studprog_verzia_blok
+          (studprog_verzia, poradie_blok)
+          VALUES (%s, %s)''',
+          (spv_id, poradie))
+        cur.execute('''INSERT INTO studprog_verzia_blok_preklad
+          (studprog_verzia, jazyk_prekladu, poradie_blok,
+          nazov, podmienky)
+          VALUES (%s, %s, %s, %s, %s)''',
+          (spv_id, lang, poradie, blok['nazov'], blok['podmienky']))
+        for infolist in blok['infolisty']:
+          cur.execute('''INSERT INTO studprog_verzia_blok_infolist
+            (studprog_verzia, poradie_blok, infolist, semester, rocnik,
+            pracovna_poznamka)
+            VALUES (%s, %s, %s, %s, %s, %s)''',
+            (spv_id, poradie, infolist['infolist'], infolist['semester'],
+             infolist['rocnik'], infolist['pracovna_poznamka']))
+  
+  def fetch_studijne_programy(self, lang='sk'):
+    with self.cursor() as cur:
+      cur.execute('''SELECT sp.id, sp.skratka, sp.zamknute, sp.zamkol, sp.vytvorene, sp.vytvoril, 
+          spv.aj_konverzny_program, spv.stupen_studia, 
+          spvp.nazov, spvp.podmienky_absolvovania, spvp.poznamka_konverzny
+        FROM studprog sp
+        INNER JOIN studprog_verzia spv ON sp.posledna_verzia = spv.id
+        LEFT JOIN studprog_verzia_preklad spvp ON spv.id = spvp.studprog_verzia AND spvp.jazyk_prekladu = %s
+        ORDER BY spvp.nazov, spv.stupen_studia
+        ''',
+        (lang,))
+      return cur.fetchall()

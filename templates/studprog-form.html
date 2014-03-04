@@ -1,0 +1,40 @@
+{% extends 'studprog.html' %}
+{% block includes_js %}
+  {{ super() }}
+  <script type="text/javascript" src="{{ url_for('static', filename='studprog-form.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('ping_js') }}"></script>
+{% endblock %}
+{% block studprog %}
+<div class="body">
+  {% if error_saving %}
+  <div class="alert alert-danger">
+    Formulár sa nepodarilo uložiť!
+  </div>
+  {% endif %}
+  {% if form.error or messages %}
+  <div class="alert alert-{{ messages_type }}">
+    {% if messages_type == 'warning' %}
+      <div>Formulár nie je správne vyplnený, skontrolujte prosím vyplnené údaje.</div>
+    {% else %}
+      <div class="errorMsgLbl">Vo formulári sa vyskytli chyby. Skontrolujte vyplnené údaje!</div>
+    {% endif %}
+    {% if messages %}
+      <p>Nasledovné polia ešte treba doplniť alebo opraviť:</p>
+      <ul>
+      {% for fieldname, fieldmsgs in messages %}
+        <li>{{ fieldname }}: {{ fieldmsgs|join('; ') }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!--<form id="{{ form.formid }}" method="{{ form.method }}" enctype="multipart/form-data" accept-charset="utf-8">
+  
+  
+  
+  <button type="submit" class="btn btn-primary">Uložiť</button>
+  </form>-->
+  {{ form.render()|safe }}
+</div>
+{% endblock %}
