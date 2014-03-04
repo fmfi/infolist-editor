@@ -19,7 +19,7 @@ from deform.exception import ValidationFailure
 import json
 import os
 import os.path
-from pkg_resources import resource_filename
+from pkg_resources import resource_filename, resource_string
 import colander
 import time
 import jinja2
@@ -28,6 +28,7 @@ from utils import filter_obdobie, filter_typ_vyucujuceho, filter_metoda_vyucby
 from utils import filter_podmienka, filter_jazyk_vyucby, filter_literatura
 from utils import filter_osoba, format_datetime, space2nbsp, nl2br
 from utils import recursive_replace, recursive_update
+from utils import render_rtf
 from markupsafe import Markup, soft_unicode
 from functools import wraps
 import psycopg2
@@ -35,6 +36,8 @@ import psycopg2
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 from psycopg2.extras import NamedTupleCursor
+from decimal import Decimal, ROUND_HALF_EVEN
+from utils import Podmienka
 
 class MyRequest(Request):
   parameter_storage_class = OrderedMultiDict
@@ -294,6 +297,125 @@ def show_infolist(id, edit, predmet_id=None):
     messages=form_messages(form), messages_type=msg_ns.messages_type,
     infolist_id=id, error_saving=error_saving,
     editing=edit, modifikovali=zorad_osoby(infolist['modifikovali']))
+
+@app.route('/infolist/<int:id>.rtf')
+def export_infolist(id):
+  infolist = g.db.load_infolist(id)
+
+  tdata = {}
+  tdata['IL_NAZOV_SKOLY'] = u'Univerzita Komenského v Bratislave'
+  tdata['IL_NAZOV_FAKULTY'] = filter_fakulta(infolist['fakulta'])
+  tdata['IL_KOD_PREDMETU'] = infolist['skratka']
+  tdata['IL_NAZOV_PREDMETU'] = infolist['nazov_predmetu']
+
+  cinnosti = u''
+  for cinn in infolist['cinnosti']:
+    cinnosti += u'\n{}, {}h/{}, {}'.format(
+      filter_druh_cinnosti(cinn['druh_cinnosti']),
+      cinn['pocet_hodin'],
+      filter_obdobie(cinn['za_obdobie']),
+      filter_metoda_vyucby(cinn['metoda_vyucby'])
+    )
+  tdata['IL_CINNOSTI'] = cinnosti
+
+  tdata['IL_POCET_KREDITOV'] = infolist['pocet_kreditov']
+  tdata['IL_ODPORUCANY_SEMESTER'] = 'TODO'
+  tdata['IL_STUPEN_STUDIA'] = 'TODO'
+
+  def fmt_podm(text):
+    podm_predmety = u''
+    for token in Podmienka(text)._tokens:
+      if token in Podmienka.symbols:
+        if token == 'OR':
+          podm_predmety += ' alebo '
+        elif token == 'AND':
+          podm_predmety += ' a '
+        else:
+          podm_predmety += token
+      else:
+        predmet = g.db.load_predmet_simple(int(token))
+        if len(predmet['nazvy_predmetu']) == 0:
+          nazov_predmetu = u'TODO'
+        else:
+          nazov_predmetu = predmet['nazvy_predmetu'][0]
+        podm_predmety += u'{} {}'.format(predmet['skratka'], nazov_predmetu)
+    return podm_predmety
+  podm_predmety = fmt_podm(infolist['podmienujuce_predmety'])
+  if infolist['odporucane_predmety'] and len(infolist['odporucane_predmety']) > 0:
+    podm_predmety += u'\n\nOdporúčané predmety (nie je nutné ich absolvovať pred zapísaním predmetu):\n'
+    podm_predmety += fmt_podm(infolist['odporucane_predmety'])
+  tdata['IL_PODMIENUJUCE_PREDMETY'] = podm_predmety
+
+  podm_absol_text = u'\n'
+  podm_absol = infolist['podm_absolvovania']
+  if podm_absol['nahrada'] != None:
+    podm_absol_text = podm_absol['nahrada']
+  else:
+    if podm_absol['priebezne'] != None:
+      podm_absol_text += u'Priebežné hodnotenie: {}\n'.format(podm_absol['priebezne'])
+    if podm_absol['skuska'] != None:
+      podm_absol_text += u'Skúška: {}\n'.format(podm_absol['skuska'])
+    if podm_absol['percenta_skuska'] != None:
+      podm_absol_text += u'Váha skúšky v hodnotení: {}%\n'.format(podm_absol['percenta_skuska'])
+    if any(podm_absol['percenta_na'].values()) and not podm_absol['nepouzivat_stupnicu']:
+      stupnica = podm_absol['percenta_na']
+      podm_absol_text += u'Na získanie hodnotenia A je potrebné získať najmenej {}% bodov'.format(stupnica['A'])
+      for znamka in ['B', 'C', 'D', 'E']:
+        podm_absol_text += u' a ' if znamka == 'E' else u', '
+        podm_absol_text += u'na hodnotenie {} najmenej {}% bodov'.format(znamka, stupnica[znamka])
+      podm_absol_text += u'.\n'
+  podm_absol_text = podm_absol_text.rstrip()
+  
+  tdata['IL_PODMIENKY_ABSOLVOVANIA'] = podm_absol_text
+
+  tdata['IL_VYSLEDKY_VZDELAVANIA'] = infolist['vysledky_vzdelavania']
+  tdata['IL_STRUCNA_OSNOVA'] = infolist['strucna_osnova']
+
+  literatura = u''
+  for bib_id in infolist['odporucana_literatura']['zoznam']:
+    lit = filter_literatura(bib_id)
+    literatura += u'\n{}. {}'.format(lit.dokument, lit.vyd_udaje)
+  for popis in infolist['odporucana_literatura']['nove']:
+    literatura += u'\n{}'.format(popis)
+  tdata['IL_LITERATURA'] = literatura
+  
+  tdata['IL_POTREBNY_JAZYK'] = filter_jazyk_vyucby(infolist['potrebny_jazyk'])
+  tdata['IL_POZNAMKY'] = u''
+  
+  mame_hodnotenia = True
+  hodn = infolist['hodnotenia_pocet']
+  for znamka in hodn:
+    if hodn[znamka] == None:
+      mame_hodnotenia = False
+      break
+  if mame_hodnotenia:
+    celk_pocet = sum(hodn.values())
+    tdata['IL_CELKOVY_POCET_STUDENTOV'] = celk_pocet
+    for znamka in hodn:
+      perc = Decimal(hodn[znamka]) / Decimal(celk_pocet) * Decimal(100)
+      perc = perc.quantize(Decimal('.01'), rounding=ROUND_HALF_EVEN)
+      tdata['IL_PERC_{}'.format(znamka.upper())] = u'{}%'.format(perc)
+  else:
+    tdata['IL_CELKOVY_POCET_STUDENTOV'] = ''
+    for znamka in ['A', 'B', 'C', 'D', 'E', 'FX']:
+      tdata['IL_PERC_{}'.format(znamka)] = ''
+  
+  vyuc_str = u''
+  for vyucujuci in infolist['vyucujuci']:
+    vyuc_str += u'\n{} - {}'.format(
+      vyucujuci['cele_meno'],
+      u', '.join(filter_typ_vyucujuceho(x) for x in vyucujuci['typy'])
+    )
+  tdata['IL_VYUCUJUCI'] = vyuc_str
+  tdata['IL_POSLEDNA_ZMENA'] = format_datetime(infolist['modifikovane'], iba_datum=True)
+  tdata['IL_SCHVALIL'] = ''
+
+  rtf_template = resource_string(__name__, 'templates/infolist.rtf')
+  rtf = render_rtf(rtf_template, tdata)
+
+  response =  Response(rtf, mimetype='application/rtf')
+  response.headers['Content-Disposition'] = 'attachment; filename=infolist-{}.rtf'.format(id)
+  return response
 
 @app.route('/infolist/<int:id>/fork', methods=['POST'])
 @restrict()

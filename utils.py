@@ -2,6 +2,8 @@
 import re
 from flask import g
 from jinja2 import evalcontextfilter, Markup, escape
+import colander
+from markupsafe import soft_unicode
 
 class Podmienka(object):
   symbols = ('(', ')', 'OR', 'AND')
@@ -117,3 +119,37 @@ def nl2br(eval_ctx, value):
     if eval_ctx.autoescape:
         result = Markup(result)
     return result
+
+def escape_rtf(val):
+  if val == colander.null or val == None:
+    val = u''
+  val = soft_unicode(val)
+  r = ''
+  prevc = None
+  for c in val:
+    if (c == '\n' and prevc != '\r') or (c == '\r' and prevc != '\n'):
+      r += '\line '
+    elif (c == '\n' and prevc == '\r') or (c == '\r' and prevc == '\n'):
+      pass
+    elif c in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ':
+      r += c
+    else:
+      r += '\u{}?'.format(ord(c))
+    prevc = c
+  return r
+
+def render_rtf(rtf_template, substitutions):
+  replacements = []
+  for key, value in substitutions.iteritems():
+    replacements.append((key, escape_rtf(value)))
+  return multiple_replace(rtf_template, *replacements)
+
+# http://stackoverflow.com/a/15221068
+def multiple_replacer(*key_values):
+    replace_dict = dict(key_values)
+    replacement_function = lambda match: replace_dict[match.group(0)]
+    pattern = re.compile("|".join([re.escape(k) for k, v in key_values]), re.M)
+    return lambda string: pattern.sub(replacement_function, string)
+
+def multiple_replace(string, *key_values):
+    return multiple_replacer(*key_values)(string)
