@@ -352,7 +352,8 @@ def Blok(**kwargs):
   ))
   infolist_schema.add(SchemaNode(String(),
     name='semester',
-    title=u'Semester'
+    title=u'Semester',
+    widget=deform.widget.Select2Widget(values=(('', ''), ('Z', 'zimný'), ('L', 'letný')), placeholder=u'Vyberte semester'),
   ))
   infolist_schema.add(SchemaNode(String(),
     name='pracovna_poznamka',
