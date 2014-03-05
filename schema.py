@@ -395,7 +395,8 @@ def Studprog():
   ))
   schema.add(SchemaNode(String(),
     name=u'podmienky_absolvovania',
-    title=u'Podmienky absolvovania študijného programu'
+    title=u'Podmienky absolvovania študijného programu',
+    widget=deform.widget.TextAreaWidget(rows=5),
   ))
   schema.add(SchemaNode(Sequence(),
     Blok(
