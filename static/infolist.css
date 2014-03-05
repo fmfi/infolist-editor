@@ -26,6 +26,34 @@
   margin: 0 1em;
 }
 
+.content-100 .left {
+  width: 79.9%;
+  float: left;
+}
+
+.content-100 .right {
+  width: 20%;
+  float: right;
+}
+
+@media screen and (max-width: 50em) {
+  .content-100 .left, .content-100 .right {
+    float: none;
+    width: 100%;
+  }
+  
+  .content-100 .right {
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 1em;
+  }
+  
+  .content-100 .right .meta {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
 .infolist-nb {
   background: #eee;
   border-bottom: 1px solid #ddd;
@@ -262,4 +290,10 @@ span.podmienka-predmet {
 .studprog .body h3 {
   margin: 0;
   font-size: 20px;
+}
+
+@media screen and (max-width: 40em) {
+  .studprog-readonly .col-vyucujuci {
+    display: none;
+  }
 }

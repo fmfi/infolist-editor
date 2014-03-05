@@ -32,7 +32,7 @@
           <thead>
             <tr>
               <th>Informačný list</th>
-              <th>Vyučujúci</th>
+              <th class="col-vyucujuci">Vyučujúci</th>
               <th>Semester</th>
               <th>Rozsah</th>
               <th>Počet kreditov</th>
@@ -45,7 +45,7 @@
                     {{ infolist.skratka_predmetu }} {{ infolist.nazov_predmetu }}
                     </a>
                 </td>
-                <td>{{ infolist.vyucujuci|join(', ', attribute='kratke_meno') }}</td>
+                <td class="col-vyucujuci">{{ infolist.vyucujuci|join(', ', attribute='kratke_meno') }}</td>
                 <td>{{ infolist.rocnik }}{{ infolist.semester }}</td>
                 <td>{{ infolist.rozsah|join(' + ') }}</td>
                 <td>{{ infolist.pocet_kreditov }}</td>
@@ -67,7 +67,17 @@
     {% endblock %}
   </div>
   </div><div class="right">
-  
+    {% if not editing %}
+      <div class="meta">
+      {% if not data.zamknute %}
+        <a href="{{ url_for('studijny_program_show', id=studprog_id, edit=True) }}"
+          class="btn btn-block btn-primary">Upraviť</a>
+        
+      {% else %}
+        <p>Tento študijný program je zamknutý proti úpravám používateľom: {{ (data.zamkol|osoba)[1] }}</p>
+      {% endif %}
+      </div>
+    {% endif %}
   </div>
   <div class="clearfix"></div>
 </div>
