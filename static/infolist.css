@@ -94,22 +94,25 @@
   padding-left: 0;
 }
 
-.infolist-readonly .polozka {
+.infolist-readonly .polozka{
   padding-left: 1em;
   padding-right: 1em;
 }
 
-.infolist-readonly .polozka+.polozka {
+.infolist-readonly .polozka+.polozka,
+.studprog-readonly .polozka+.polozka{
   border-top: 1px solid #ddd;
   padding-top: 0.5em;
   margin-top: 0.5em;
 }
 
-.infolist-readonly label {
+.infolist-readonly label,
+.studprog-readonly label{
   padding-right: 0.5em;
 }
 
-.infolist-readonly label:after {
+.infolist-readonly label:after,
+.studprog-readonly label:after{
   content: ":"
 }
 
@@ -232,4 +235,31 @@ span.podmienka-predmet {
 
 .filter {
   margin: 0.5em 0;
+}
+
+.studprog {
+  border: 1px solid #ddd;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.studprog .header {
+  border-bottom: 1px solid #ddd;
+  padding: 1em;
+}
+
+.studprog .header h2 {
+  margin: 0;
+}
+
+.studprog .body {
+  padding: 1em;
+}
+
+.studprog .body+.body {
+  border-top: 1px solid #ddd;
+}
+
+.studprog .body h3 {
+  margin: 0;
+  font-size: 20px;
 }

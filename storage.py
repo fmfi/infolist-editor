@@ -10,6 +10,13 @@ def dict_rec_update(d1, d2):
       d1[key] = d2[key]
   return d1
 
+def kratke_meno(meno, priezvisko):
+  ret = u''
+  if meno is not None and len(meno) > 0:
+    ret += u'{}. '.format(meno[0])
+  ret += priezvisko
+  return ret
+
 class User(object):
   def __init__(self, id, login, meno, priezvisko, cele_meno):
     self.id = id
@@ -205,7 +212,7 @@ class DataStore(object):
   
   def _load_iv_vyucujuci(self, cur, id):
     cur.execute('''SELECT ivv.osoba,
-      o.cele_meno, ivvt.typ_vyucujuceho
+      o.cele_meno, o.meno, o.priezvisko, ivvt.typ_vyucujuceho
       FROM osoba o, infolist_verzia_vyucujuci ivv
       LEFT JOIN infolist_verzia_vyucujuci_typ ivvt
       ON ivv.infolist_verzia = ivvt.infolist_verzia AND ivv.osoba = ivvt.osoba
@@ -214,10 +221,13 @@ class DataStore(object):
       (id,))
     ivv = []
     vyucujuci = None
-    for osoba, cele_meno, typ_vyucujuceho in cur:
+    for osoba, cele_meno, meno, priezvisko, typ_vyucujuceho in cur:
       if vyucujuci == None or vyucujuci['osoba'] != osoba:
         vyucujuci = {'osoba': osoba,
                      'cele_meno': cele_meno,
+                     'meno': meno,
+                     'priezvisko': priezvisko,
+                     'kratke_meno': kratke_meno(meno, priezvisko),
                      'typy': set()}
         ivv.append(vyucujuci)
       vyucujuci['typy'].add(typ_vyucujuceho)
@@ -923,12 +933,13 @@ class DataStore(object):
     with self.cursor() as cur:
       cur.execute('''SELECT spvbp.poradie_blok, spvbp.nazov, spvbp.podmienky,
           spvbi.infolist, spvbi.semester, spvbi.rocnik, spvbi.pracovna_poznamka,
-          p.kod_predmetu, p.skratka, ivp.nazov_predmetu
+          p.kod_predmetu, p.skratka, ivp.nazov_predmetu, i.posledna_verzia as infolist_verzia, iv.pocet_kreditov
         FROM studprog_verzia_blok_preklad spvbp
         LEFT JOIN studprog_verzia_blok_infolist spvbi ON spvbp.studprog_verzia = spvbi.studprog_verzia AND spvbp.poradie_blok = spvbi.poradie_blok
         LEFT JOIN predmet_infolist pi ON spvbi.infolist = pi.infolist
         LEFT JOIN predmet p ON pi.predmet = p.id
         LEFT JOIN infolist i ON spvbi.infolist = i.id
+        LEFT JOIN infolist_verzia iv ON i.posledna_verzia = iv.id
         LEFT JOIN infolist_verzia_preklad ivp ON i.posledna_verzia = ivp.infolist_verzia
         WHERE spvbp.studprog_verzia = %s AND spvbp.jazyk_prekladu = %s
         AND (ivp.jazyk_prekladu = %s OR ivp.jazyk_prekladu IS NULL)
@@ -948,13 +959,18 @@ class DataStore(object):
         if row.infolist is not None:
           infolist = {
             'infolist': row.infolist,
+            'posledna_verzia': row.infolist_verzia,
             'semester': row.semester,
             'rocnik': row.rocnik,
             'pracovna_poznamka': row.pracovna_poznamka,
             'kod_predmetu': row.kod_predmetu,
             'skratka_predmetu': row.skratka,
-            'nazov_predmetu': row.nazov_predmetu
+            'nazov_predmetu': row.nazov_predmetu,
+            'pocet_kreditov': row.pocet_kreditov,
           }
+          with self.cursor() as cur2:
+            infolist['vyucujuci'] = self._load_iv_vyucujuci(cur2, row.infolist_verzia)
+            infolist['cinnosti'] = self._load_iv_cinnosti(cur2, row.infolist_verzia)
           bloky[-1]['infolisty'].append(infolist)
       return bloky
   

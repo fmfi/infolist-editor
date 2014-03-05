@@ -7,10 +7,63 @@
   <div class="left">
   <div class="studprog{% if not editing %} studprog-readonly{% endif %}">
     <div class="header">
-      <h2>{{ data.nazov }}</h2>
+      <h2>{{ data.nazov }}
+      {% if data.aj_konverzny_program %}
+        <br />{{ data.nazov }} (konverzný program)
+      {% endif %}
+      </h2>
     </div>
     {% block studprog %}
-
+      <div class="body">
+        <div class="polozka">
+          <label class="pull-left">Stupeň štúdia</label>
+          <p>{{ data.stupen_studia }}</p>
+        </div>
+        <div class="polozka">
+          <label>Podmienky absolvovania študijného programu</label>
+          {{ data.podmienky_absolvovania|nl2br }}
+        </div>
+      </div>
+      {% for blok in data.bloky %}
+      <div class="body">
+        <h3>{{ blok.nazov }}</h3>
+        {{ blok.podmienky|nl2br }}
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Informačný list</th>
+              <th>Vyučujúci</th>
+              <th>Semester</th>
+              <th>Rozsah</th>
+              <th>Počet kreditov</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for infolist in blok.infolisty %}
+              <tr>
+                <td><a href="{{ url_for('show_infolist', id=infolist.infolist, edit=False) }}">
+                    {{ infolist.skratka_predmetu }} {{ infolist.nazov_predmetu }}
+                    </a>
+                </td>
+                <td>{{ infolist.vyucujuci|join(', ', attribute='kratke_meno') }}</td>
+                <td>{{ infolist.rocnik }}{{ infolist.semester }}</td>
+                <td>{{ infolist.rozsah|join(' + ') }}</td>
+                <td>{{ infolist.pocet_kreditov }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endfor %}
+      {% if data.aj_konverzny_program %}
+      <div class="body">
+        <div class="polozka">
+          <label>Poznámka ku konverznému programu</label>
+          {{ data.poznamka_konverzny|nl2br }}
+        </div>
+      </div>
+      {% endif %}
+      
     {% endblock %}
   </div>
   </div><div class="right">

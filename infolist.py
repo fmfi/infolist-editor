@@ -505,6 +505,18 @@ def studijny_program_show(id, edit):
     if id is not None:
       check_warnings()
   
+  poradie_cinnosti = [x[0] for x in g.db.load_druhy_cinnosti()]
+  
+  def sort_key_cinnosti(cinn):
+    try:
+      return (0, poradie_cinnosti.index(cinn['druh_cinnosti']))
+    except ValueError:
+      return (1, cinn['druh_cinnosti'])
+  
+  for blok in studprog['bloky']:
+    for infolist in blok['infolisty']:
+      infolist['rozsah'] = ['{}{}{}'.format(x['pocet_hodin'], '/s' if x['za_obdobie'] == 'S' else '', x['druh_cinnosti']) for x in sorted(infolist['cinnosti'], key=sort_key_cinnosti)]
+  
   template = 'studprog-form.html' if edit else 'studprog.html'
   return render_template(template, form=form, data=studprog,
     messages=form_messages(form), messages_type=msg_ns.messages_type,
