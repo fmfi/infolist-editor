@@ -29,12 +29,22 @@
   </div>
   {% endif %}
 
-  <!--<form id="{{ form.formid }}" method="{{ form.method }}" enctype="multipart/form-data" accept-charset="utf-8">
+  <form id="{{ form.formid }}" method="{{ form.method }}" enctype="multipart/form-data" accept-charset="utf-8">
   
-  
+    <div class="form-group">
+      <label class="control-label">Kód študijného programu</label>
+      <div class="form-control-static">{{ data.skratka }}</div>
+    </div>
+
+    {{ render_field(form.nazov) }}
+    {{ render_field(form.aj_konverzny_program) }}
+    {{ render_field(form.garant) }}
+    {{ render_field(form.stupen_studia) }}
+    {{ render_field(form.podmienky_absolvovania) }}
+    {{ render_field(form.bloky) }}
+    {{ render_field(form.poznamka_konverzny) }}
   
   <button type="submit" class="btn btn-primary">Uložiť</button>
-  </form>-->
-  {{ form.render()|safe }}
+  </form>
 </div>
 {% endblock %}

@@ -7,9 +7,9 @@
   <div class="left">
   <div class="studprog{% if not editing %} studprog-readonly{% endif %}">
     <div class="header">
-      <h2>{{ data.nazov }}
+      <h2>{{ data.skratka or '' }} {{ data.nazov }}
       {% if data.aj_konverzny_program %}
-        <br />{{ data.nazov }} (konverzný program)
+        <br />{{ data.skratka or '' }} {{ data.nazov }} (konverzný program)
       {% endif %}
       </h2>
     </div>
