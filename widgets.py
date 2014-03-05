@@ -58,3 +58,18 @@ class PodmienkaWidget(Widget):
     if pstruct in (null, self.null_value):
         return null
     return pstruct
+
+class BlokInfolistWidget(Widget):
+  template = 'blok_infolist'
+  null_value = []
+  
+  def serialize(self, field, cstruct, **kw):
+    if cstruct in (null, None):
+      cstruct = self.null_value
+    kw['il_load'] = g.db.load_infolist
+    kw['values'] = json.dumps(cstruct)
+    tmpl_values = self.get_template_values(field, cstruct, kw)
+    return field.renderer(self.template, **tmpl_values)
+    
+  def deserialize(self, field, pstruct):
+    return pstruct

@@ -363,7 +363,8 @@ def Blok(**kwargs):
   schema.add(SchemaNode(Sequence(),
     infolist_schema,
     name='infolisty',
-    title=u'Informačné listy'
+    title=u'Informačné listy',
+    widget=widgets.BlokInfolistWidget()
   ))
   return schema
 

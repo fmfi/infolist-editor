@@ -29,6 +29,7 @@ from utils import filter_podmienka, filter_jazyk_vyucby, filter_literatura
 from utils import filter_osoba, format_datetime, space2nbsp, nl2br
 from utils import recursive_replace, recursive_update
 from utils import render_rtf
+import utils
 from markupsafe import Markup, soft_unicode
 from functools import wraps
 import psycopg2
@@ -505,17 +506,11 @@ def studijny_program_show(id, edit):
     if id is not None:
       check_warnings()
   
-  poradie_cinnosti = [x[0] for x in g.db.load_druhy_cinnosti()]
-  
-  def sort_key_cinnosti(cinn):
-    try:
-      return (0, poradie_cinnosti.index(cinn['druh_cinnosti']))
-    except ValueError:
-      return (1, cinn['druh_cinnosti'])
+  vyrob_rozsah = utils.rozsah()
   
   for blok in studprog['bloky']:
     for infolist in blok['infolisty']:
-      infolist['rozsah'] = ['{}{}{}'.format(x['pocet_hodin'], '/s' if x['za_obdobie'] == 'S' else '', x['druh_cinnosti']) for x in sorted(infolist['cinnosti'], key=sort_key_cinnosti)]
+      infolist['rozsah'] = vyrob_rozsah(infolist['cinnosti'])
   
   template = 'studprog-form.html' if edit else 'studprog.html'
   return render_template(template, form=form, data=studprog,
@@ -621,6 +616,9 @@ def infolist_get():
   infolist = g.db.fetch_infolist(id)
   if infolist is None:
     abort(404)
+  for v in infolist['vyucujuci']:
+    v['typy'] = list(v['typy'])
+  infolist['rozsah'] = utils.rozsah()(infolist['cinnosti'])
   return jsonify(**infolist)
 
 if __name__ == '__main__':

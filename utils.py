@@ -144,6 +144,20 @@ def render_rtf(rtf_template, substitutions):
     replacements.append((key, escape_rtf(value)))
   return multiple_replace(rtf_template, *replacements)
 
+def rozsah():
+  poradie_cinnosti = [x[0] for x in g.db.load_druhy_cinnosti()]
+  
+  def sort_key_cinnosti(cinn):
+    try:
+      return (0, poradie_cinnosti.index(cinn['druh_cinnosti']))
+    except ValueError:
+      return (1, cinn['druh_cinnosti'])
+  
+  def worker(cinnosti):
+    return ['{}{}{}'.format(x['pocet_hodin'], '/s' if x['za_obdobie'] == 'S' else '', x['druh_cinnosti']) for x in sorted(cinnosti, key=sort_key_cinnosti)]
+  
+  return worker
+
 # http://stackoverflow.com/a/15221068
 def multiple_replacer(*key_values):
     replace_dict = dict(key_values)

@@ -1,0 +1,37 @@
+<div tal:define="
+     name name|field.name;
+     style field.widget.style;
+     oid oid|field.oid;
+     css_class css_class|field.widget.css_class;"
+    id="${oid}"
+    data-values="${values}">
+
+  <input type="hidden" name="__start__"
+         value="${field.name}:sequence" />
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Informačný list</th>
+        <th class="col-vyucujuci">Vyučujúci</th>
+        <th>Semester</th>
+        <th>Rozsah</th>
+        <th>Počet kreditov</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+    </tbody>
+  </table>
+  <input type="hidden" name="__end__" value="${field.name}:sequence"/>
+
+  <script type="text/javascript">
+    deform.addCallback(
+      '${field.oid}',
+      function(oid) {
+        $('#' + oid).blokInfolist();
+      }
+    );
+  </script>
+
+</div>
+

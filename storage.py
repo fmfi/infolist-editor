@@ -1099,7 +1099,7 @@ class DataStore(object):
   
   def fetch_infolist(self, id):
     with self.cursor() as cur:
-      sql = '''SELECT i.id, ivp.nazov_predmetu,
+      sql = '''SELECT i.id, iv.id as infolist_verzia, iv.pocet_kreditov, ivp.nazov_predmetu,
           p.kod_predmetu, p.skratka
           FROM infolist i
           INNER JOIN infolist_verzia iv ON i.posledna_verzia = iv.id
@@ -1111,10 +1111,18 @@ class DataStore(object):
           '''
       cur.execute(sql, (id,))
       for row in cur:
-        return {
+        infolist = {
           'id': row.id,
           'kod_predmetu': row.kod_predmetu,
           'skratka': row.skratka,
-          'nazov_predmetu': row.nazov_predmetu
+          'nazov_predmetu': row.nazov_predmetu,
+          'pocet_kreditov': row.pocet_kreditov,
         }
+        with self.cursor() as cur2:
+            infolist['vyucujuci'] = self._load_iv_vyucujuci(cur2, row.infolist_verzia)
+            infolist['cinnosti'] = self._load_iv_cinnosti(cur2, row.infolist_verzia)
+        return infolist
       return None
+    
+    
+          
