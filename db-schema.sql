@@ -798,7 +798,7 @@ CREATE TABLE studprog_verzia_blok_infolist (
   infolist integer not null references infolist(id),
   semester char(1) not null,
   rocnik integer not null,
-  pracovna_poznamka text not null,
+  poznamka text not null,
   primary key (studprog_verzia, poradie_blok, infolist),
   foreign key (studprog_verzia, poradie_blok) references studprog_verzia_blok(studprog_verzia, poradie_blok)
 );
