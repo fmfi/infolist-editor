@@ -409,6 +409,9 @@ def Studprog():
   ))
   schema.add(SchemaNode(String(),
     name=u'poznamka_konverzny',
-    title=u'Poznámka ku konverznému programu'
+    title=u'Poznámka ku konverznému programu',
+    missing=u'',
+    default=u'TODO default hodnota',
+    widget=deform.widget.TextAreaWidget(rows=5),
   ))
   return schema
