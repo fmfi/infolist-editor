@@ -390,6 +390,8 @@ def export_infolist(id):
       break
   if mame_hodnotenia:
     celk_pocet = sum(hodn.values())
+    mame_hodnotenia = (celk_pocet > 0)
+  if mame_hodnotenia:
     tdata['IL_CELKOVY_POCET_STUDENTOV'] = celk_pocet
     for znamka in hodn:
       perc = Decimal(hodn[znamka]) / Decimal(celk_pocet) * Decimal(100)
