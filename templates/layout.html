@@ -34,7 +34,10 @@
       <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
         <ul class="nav navbar-nav">
           {% if g.user %}
-          <li><a href="{{ url_for('predmet_index', tab='moje') }}">Zoznam predmetov</a></li>
+          <li><a href="{{ url_for('predmet_index', tab='moje') }}">Predmety</a></li>
+          {% if g.user.vidi_studijne_programy() %}
+            <li><a href="{{ url_for('studijny_program_index') }}">Študijné programy</a></li>
+          {% endif %}
           {% if g.user.moze_spravovat_pouzivatelov() %}
             <li><a href="{{ url_for('pouzivatelia') }}">Používatelia</a></li>
           {% endif %}

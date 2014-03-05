@@ -449,6 +449,8 @@ def lock_infolist(id, lock):
 
 @app.route('/studijny-program/')
 def studijny_program_index():
+  if not g.user.vidi_studijne_programy():
+    abort(401)
   sp = g.db.fetch_studijne_programy()
   return render_template('studprog-index.html', studijne_programy=sp)
 
@@ -456,9 +458,13 @@ def studijny_program_index():
 @app.route('/studijny-program/<int:id>/upravit', defaults={'edit': True}, methods=['GET', 'POST'])
 @app.route('/studijny-program/novy', defaults={'id': None, 'edit': True}, methods=['GET', 'POST'])
 def studijny_program_show(id, edit):
+  if not g.user.vidi_studijne_programy():
+    abort(401)
   if id != None:
     studprog = g.db.load_studprog(id)
   else:
+    if not g.user.moze_vytvarat_studijne_programy():
+      abort(401)
     studprog = {
       'zamknute': None,
       'zamkol': None,

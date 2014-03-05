@@ -37,6 +37,12 @@ class User(object):
   
   def moze_spravovat_pouzivatelov(self):
     return self.opravnenie('FMFI', 'admin')
+  
+  def vidi_studijne_programy(self):
+    return self.opravnenie('FMFI', 'garant') or self.opravnenie('FMFI', 'admin')
+  
+  def moze_vytvarat_studijne_programy(self):
+    return self.opravnenie('FMFI', 'admin')
 
 class ConditionBuilder(object):
   def __init__(self, join_with):

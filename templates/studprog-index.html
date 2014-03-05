@@ -11,10 +11,12 @@
   {% endfor %}
   </ul>
   
+  {% if g.user.moze_vytvarat_studijne_programy() %}
   <p>
   <a href="{{ url_for('studijny_program_show', id=None, edit=True) }}"
     class="btn btn-primary">Vytvoriť úplne nový študijný program</a>
   </p>
+  {% endif %}
   
 </div>
 {% endblock %}
