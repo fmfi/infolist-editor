@@ -900,7 +900,7 @@ class DataStore(object):
   
   def _load_spv_data(self, id):
     with self.cursor() as cur:
-      cur.execute('''SELECT aj_konverzny_program, stupen_studia
+      cur.execute('''SELECT aj_konverzny_program, stupen_studia, garant
         FROM studprog_verzia
         WHERE id = %s
         ''',
@@ -910,7 +910,8 @@ class DataStore(object):
         raise NotFound('studprog_verzia({})'.format(id))
       return {
         'aj_konverzny_program': data.aj_konverzny_program,
-        'stupen_studia': data.stupen_studia
+        'stupen_studia': data.stupen_studia,
+        'garant': data.garant
       }
   
   def _load_spv_trans(self, id, lang='sk'):
@@ -1021,11 +1022,12 @@ class DataStore(object):
   def _save_spv_data(self, predosla_verzia, data, user=None):
     with self.cursor() as cur:
       cur.execute('''INSERT INTO studprog_verzia (
-          aj_konverzny_program, stupen_studia
+          aj_konverzny_program, stupen_studia, garant
         )
-        VALUES (%s, %s)
+        VALUES (%s, %s, %s)
         RETURNING id''',
-        (data['aj_konverzny_program'], data['stupen_studia']))
+        (data['aj_konverzny_program'], data['stupen_studia'],
+         data['garant']))
       return cur.fetchone()[0]
   
   def _save_spv_trans(self, spv_id, data, lang='sk'):

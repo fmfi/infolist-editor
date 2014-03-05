@@ -379,6 +379,15 @@ def Studprog():
     name=u'aj_konverzny_program',
     title=u'Aj konverzný program'
   ))
+  schema.add(SchemaNode(Integer(),
+    name=u'garant',
+    title=u'Garant študijného programu',
+    widget=widgets.RemoteSelect2Widget(
+      search_url=url_for('osoba_search', _external=True),
+      item_url=url_for('osoba_get', _external=True),
+      template="osoba"
+    )
+  ))
   schema.add(SchemaNode(String(),
     name=u'stupen_studia',
     title=u'Stupeň štúdia'

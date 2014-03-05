@@ -764,7 +764,8 @@ CREATE index ON oblubene_predmety(osoba);
 CREATE TABLE studprog_verzia (
   id serial primary key,
   aj_konverzny_program boolean not null default false,
-  stupen_studia varchar(10) not null
+  stupen_studia varchar(10) not null,
+  garant integer not null references osoba(id)
 );
 
 CREATE TABLE studprog_verzia_preklad (

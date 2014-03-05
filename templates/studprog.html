@@ -16,6 +16,10 @@
     {% block studprog %}
       <div class="body">
         <div class="polozka">
+          <label class="pull-left">Garant</label>
+          <p>{{ (data.garant|osoba).cele_meno }}</p>
+        </div>
+        <div class="polozka">
           <label class="pull-left">Stupeň štúdia</label>
           <p>{{ data.stupen_studia }}</p>
         </div>
