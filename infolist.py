@@ -29,6 +29,7 @@ from utils import filter_podmienka, filter_jazyk_vyucby, filter_literatura
 from utils import filter_osoba, format_datetime, space2nbsp, nl2br
 from utils import recursive_replace, recursive_update
 from utils import render_rtf
+import utils
 from markupsafe import Markup, soft_unicode
 from functools import wraps
 import psycopg2
@@ -73,6 +74,7 @@ app.jinja_env.filters['any'] = any
 app.jinja_env.filters['datetime'] = format_datetime
 app.jinja_env.filters['space2nbsp'] = space2nbsp
 app.jinja_env.filters['nl2br'] = nl2br
+app.jinja_env.filters['stupen_studia'] = utils.filter_stupen_studia
 
 def restrict(api=False):
   def decorator(f):
@@ -447,6 +449,94 @@ def lock_infolist(id, lock):
     flash(u'Úpravy v informačnom liste boli povolené.', 'success')
   return redirect(url_for('show_infolist', id=id, edit=False))
 
+@app.route('/studijny-program/')
+def studijny_program_index():
+  if not g.user.vidi_studijne_programy():
+    abort(401)
+  sp = g.db.fetch_studijne_programy()
+  return render_template('studprog-index.html', studijne_programy=sp)
+
+@app.route('/studijny-program/<int:id>', defaults={'edit': False})
+@app.route('/studijny-program/<int:id>/upravit', defaults={'edit': True}, methods=['GET', 'POST'])
+@app.route('/studijny-program/novy', defaults={'id': None, 'edit': True}, methods=['GET', 'POST'])
+def studijny_program_show(id, edit):
+  if not g.user.vidi_studijne_programy():
+    abort(401)
+  if id != None:
+    studprog = g.db.load_studprog(id)
+  else:
+    if not g.user.moze_vytvarat_studijne_programy():
+      abort(401)
+    studprog = {
+      'zamknute': None,
+      'zamkol': None,
+      'predosla_verzia': None,
+      'bloky': []
+    }
+  if studprog['zamknute'] and edit:
+    flash(u'Študijný program je zamknutý proti úpravám', 'danger')
+    return redirect(url_for('studijny_program_show', id=id, edit=False))
+  
+  form = Form(schema.Studprog(), buttons=('submit',),
+              appstruct=recursive_replace(studprog, None, colander.null))
+  error_saving = False
+  msg_ns = type("", (), {})() # http://bit.ly/1cPX3G5
+  msg_ns.messages_type = 'danger';
+  msg_ns.has_warnings = False
+  def check_warnings():
+    try:
+      schema.warning_schema(schema.Studprog()).deserialize(form.cstruct)
+    except colander.Invalid as e:
+      form.widget.handle_error(form, e)
+      msg_ns.messages_type = 'warning'
+      msg_ns.has_warnings = True
+  
+  if request.method == 'POST':
+    controls = request.form.items(multi=True)
+    try:
+      recursive_update(studprog, recursive_replace(form.validate(controls), colander.null, None))
+    except ValidationFailure:
+      pass
+    else:
+      check_warnings()
+      studprog['obsahuje_varovania'] = msg_ns.has_warnings
+      try:
+        nove_id = g.db.save_studprog(id, studprog, user=g.user)
+        g.db.commit()
+        flash(u'Študijný program bol úspešne uložený', 'success')
+        if msg_ns.has_warnings:
+          flash((u'Formulár bol uložený, ale niektoré položky ešte bude treba doplniť, alebo upraviť. ' + 
+                 u'Ak ich teraz neviete doplniť, môžete tak spraviť aj neskôr.'), 'warning')
+        return redirect(url_for('studijny_program_show', id=nove_id, edit=msg_ns.has_warnings))
+      except:
+        app.logger.exception('Vynimka pocas ukladania studijneho programu')
+        g.db.rollback()
+        error_saving = True
+  else: # GET
+    if id is not None:
+      check_warnings()
+  
+  vyrob_rozsah = utils.rozsah()
+  
+  for blok in studprog['bloky']:
+    blok['poznamky'] = []
+    for infolist in blok['infolisty']:
+      if 'cinnosti' in infolist:
+        infolist['rozsah'] = vyrob_rozsah(infolist['cinnosti'])
+      if infolist['poznamka']:
+        try:
+          infolist['poznamka_cislo'] = blok['poznamky'].index(infolist['poznamka'])
+        except ValueError:
+          infolist['poznamka_cislo'] = len(blok['poznamky'])
+          blok['poznamky'].append(infolist['poznamka'])
+      else:
+        infolist['poznamka_cislo'] = None
+  
+  template = 'studprog-form.html' if edit else 'studprog.html'
+  return render_template(template, form=form, data=studprog,
+    messages=form_messages(form), messages_type=msg_ns.messages_type,
+    studprog_id=id, error_saving=error_saving, editing=edit)
+
 @app.route('/pouzivatelia')
 @restrict()
 def pouzivatelia():
@@ -529,6 +619,35 @@ def literatura_get():
 def predmet_search():
   query = request.args['q']
   return jsonify(predmety=g.db.search_predmet(query))
+
+@app.route('/infolist/search')
+@restrict(api=True)
+def infolist_search():
+  query = request.args['q']
+  infolisty = g.db.search_infolist(query, finalna=True)
+  vyrob_rozsah = utils.rozsah()
+  for infolist in infolisty:
+    for v in infolist['vyucujuci']:
+      v['typy'] = list(v['typy'])
+    infolist['rozsah'] = vyrob_rozsah(infolist['cinnosti'])
+    infolist['modifikovane'] = format_datetime(infolist['modifikovane'])
+  return jsonify(infolisty=infolisty)
+
+@app.route('/infolist/json')
+@restrict(api=True)
+def infolist_get():
+  try:
+    id = int(request.args['id'])
+  except ValueError:
+    raise BadRequest()
+  infolist = g.db.fetch_infolist(id)
+  if infolist is None:
+    abort(404)
+  for v in infolist['vyucujuci']:
+    v['typy'] = list(v['typy'])
+  infolist['rozsah'] = utils.rozsah()(infolist['cinnosti'])
+  infolist['modifikovane'] = format_datetime(infolist['modifikovane'])
+  return jsonify(**infolist)
 
 if __name__ == '__main__':
   import sys

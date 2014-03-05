@@ -1,0 +1,99 @@
+{% extends 'layout.html' %}
+{% from 'macros.html' import render_field, render_checkbox, flashes %}
+{% block title %}Študijný program{% endblock %}
+{% block content %}
+<div class="content-100">
+  {{ flashes() }}
+  <div class="left">
+  <div class="studprog{% if not editing %} studprog-readonly{% endif %}">
+    <div class="header">
+      <h2>{{ data.skratka or '' }} {{ data.nazov }}
+      {% if data.aj_konverzny_program %}
+        <br />{{ data.skratka or '' }} {{ data.nazov }} (konverzný program)
+      {% endif %}
+      </h2>
+    </div>
+    {% block studprog %}
+      <div class="body">
+        <div class="polozka">
+          <label class="pull-left">Garant</label>
+          <p>{{ (data.garant|osoba).cele_meno }}</p>
+        </div>
+        <div class="polozka">
+          <label class="pull-left">Stupeň štúdia</label>
+          <p>{{ data.stupen_studia|stupen_studia }}</p>
+        </div>
+        <div class="polozka">
+          <label>Podmienky absolvovania študijného programu</label>
+          {{ data.podmienky_absolvovania|nl2br }}
+        </div>
+      </div>
+      {% for blok in data.bloky %}
+      <div class="body">
+        <h3>{{ blok.nazov }}</h3>
+        {{ blok.podmienky|nl2br }}
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Informačný list</th>
+              <th class="col-vyucujuci">Vyučujúci</th>
+              <th>Semester</th>
+              <th>Rozsah</th>
+              <th>Počet kreditov</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for infolist in blok.infolisty %}
+              <tr>
+                <td><a href="{{ url_for('show_infolist', id=infolist.infolist, edit=False) }}">
+                    {{ infolist.skratka_predmetu }} {{ infolist.nazov_predmetu }}
+                    </a>
+                    {% if infolist.poznamka_cislo != None %}
+                      <sup>{{ infolist.poznamka_cislo + 1 }}</sup>
+                    {% endif %}
+                </td>
+                <td class="col-vyucujuci">{{ infolist.vyucujuci|join(', ', attribute='kratke_meno') }}</td>
+                <td>{{ infolist.rocnik }}{{ infolist.semester }}</td>
+                <td>{{ infolist.rozsah|join(' + ') }}</td>
+                <td>{{ infolist.pocet_kreditov }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% if blok.poznamky %}
+          <p>Poznámky:</p>
+          <ol>
+            {% for poznamka in blok.poznamky %}
+              <li>{{ poznamka }}</li>
+            {% endfor %}
+          </ol>
+        {% endif %}
+      </div>
+      {% endfor %}
+      {% if data.aj_konverzny_program %}
+      <div class="body">
+        <div class="polozka">
+          <label>Poznámka ku konverznému programu</label>
+          {{ data.poznamka_konverzny|nl2br }}
+        </div>
+      </div>
+      {% endif %}
+      
+    {% endblock %}
+  </div>
+  </div><div class="right">
+    {% if not editing %}
+      <div class="meta">
+      {% if not data.zamknute %}
+        <a href="{{ url_for('studijny_program_show', id=studprog_id, edit=True) }}"
+          class="btn btn-block btn-primary">Upraviť</a>
+        
+      {% else %}
+        <p>Tento študijný program je zamknutý proti úpravám používateľom: {{ (data.zamkol|osoba)[1] }}</p>
+      {% endif %}
+      </div>
+    {% endif %}
+  </div>
+  <div class="clearfix"></div>
+</div>
+{% endblock %}

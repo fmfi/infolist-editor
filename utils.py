@@ -76,6 +76,16 @@ def filter_podmienka(podmienka):
       result.append(g.db.load_predmet_simple(int(token)))
   return result
 
+def filter_stupen_studia(stupen):
+  stupne = {
+    '1.': u'1. - bakalárske štúdium',
+    '2.': u'2. - magisterské štúdium',
+    '3.': u'3. - doktorandské štúdium',
+  }
+  if stupen in stupne:
+    return stupne[stupen]
+  return stupen
+
 def recursive_replace(d, value, replacement):
   if isinstance(d, dict):
     return {key: recursive_replace(d[key], value, replacement) for key in d}
@@ -143,6 +153,20 @@ def render_rtf(rtf_template, substitutions):
   for key, value in substitutions.iteritems():
     replacements.append((key, escape_rtf(value)))
   return multiple_replace(rtf_template, *replacements)
+
+def rozsah():
+  poradie_cinnosti = [x[0] for x in g.db.load_druhy_cinnosti()]
+  
+  def sort_key_cinnosti(cinn):
+    try:
+      return (0, poradie_cinnosti.index(cinn['druh_cinnosti']))
+    except ValueError:
+      return (1, cinn['druh_cinnosti'])
+  
+  def worker(cinnosti):
+    return ['{}{}{}'.format(x['pocet_hodin'], '/s' if x['za_obdobie'] == 'S' else '', x['druh_cinnosti']) for x in sorted(cinnosti, key=sort_key_cinnosti)]
+  
+  return worker
 
 # http://stackoverflow.com/a/15221068
 def multiple_replacer(*key_values):

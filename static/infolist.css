@@ -26,6 +26,34 @@
   margin: 0 1em;
 }
 
+.content-100 .left {
+  width: 79.9%;
+  float: left;
+}
+
+.content-100 .right {
+  width: 20%;
+  float: right;
+}
+
+@media screen and (max-width: 50em) {
+  .content-100 .left, .content-100 .right {
+    float: none;
+    width: 100%;
+  }
+  
+  .content-100 .right {
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 1em;
+  }
+  
+  .content-100 .right .meta {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
 .infolist-nb {
   background: #eee;
   border-bottom: 1px solid #ddd;
@@ -94,22 +122,25 @@
   padding-left: 0;
 }
 
-.infolist-readonly .polozka {
+.infolist-readonly .polozka{
   padding-left: 1em;
   padding-right: 1em;
 }
 
-.infolist-readonly .polozka+.polozka {
+.infolist-readonly .polozka+.polozka,
+.studprog-readonly .polozka+.polozka{
   border-top: 1px solid #ddd;
   padding-top: 0.5em;
   margin-top: 0.5em;
 }
 
-.infolist-readonly label {
+.infolist-readonly label,
+.studprog-readonly label{
   padding-right: 0.5em;
 }
 
-.infolist-readonly label:after {
+.infolist-readonly label:after,
+.studprog-readonly label:after{
   content: ":"
 }
 
@@ -150,54 +181,51 @@ ul.predmety > li > ul > li a {
 }
 
 
-ul.predmety ul.inline-label {
+ul.inline-label {
   display: inline;
   margin: 0;
   padding: 0;
 }
 
-ul.predmety ul.inline-label li {
-  display: inline;
-  margin: 0;
-  padding: 0.1em;
-}
-
-ul.predmety ul.inline-label li.finalna-verzia,
-ul.predmety ul.inline-label li.uzamknute,
-ul.predmety ul.inline-label li.obsahuje-varovania,
-ul.predmety ul.inline-label li.import-z-aisu,
-ul.predmety ul.inline-label li.posledna-zmena,
-ul.predmety ul.inline-label li.vytvoril {
+ul.inline-label li {
   display: inline-block;
   border-radius: 2px;
   border: 1px solid rgba(0, 0, 0, 0.1);
   padding: 0.1em 0.3em;
+  margin: 0;
+  margin-right: 1px;
+  background: #eee;
+  color: black;
 }
 
-ul.predmety ul.inline-label li.finalna-verzia {
+ul.inline-label li.finalna-verzia {
   background: #5c5;
   color: white;
 }
 
-ul.predmety ul.inline-label li.uzamknute {
+ul.inline-label li.uzamknute {
   background: #fc7;
   color: black;
 }
 
-ul.predmety ul.inline-label li.obsahuje-varovania {
+ul.inline-label li.obsahuje-varovania {
   background: #f77;
   color: white;
 }
 
-ul.predmety ul.inline-label li.import-z-aisu {
+ul.inline-label li.import-z-aisu {
   background: #77c;
   color: white;
 }
 
-ul.predmety ul.inline-label li.posledna-zmena,
-ul.predmety ul.inline-label li.vytvoril {
+ul.inline-label li.posledna-zmena,
+ul.inline-label li.vytvoril {
   background: #eee;
   color: black;
+}
+
+ul.inline-label li.upravovali {
+  display: inline;
 }
 
 ul.suvisiace-predmety {
@@ -232,4 +260,69 @@ span.podmienka-predmet {
 
 .filter {
   margin: 0.5em 0;
+}
+
+.studprog {
+  border: 1px solid #ddd;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.studprog .header {
+  border-bottom: 1px solid #ddd;
+  padding: 1em;
+}
+
+.studprog .header h2 {
+  margin: 0;
+}
+
+.studprog .body {
+  padding: 1em;
+}
+
+.studprog .body+.body {
+  border-top: 1px solid #ddd;
+}
+
+.studprog .body h3 {
+  margin: 0;
+  font-size: 20px;
+}
+
+@media screen and (max-width: 40em) {
+  .studprog-readonly .col-vyucujuci {
+    display: none;
+  }
+}
+
+.seq-item-content {
+  margin: 0 20px 0 10px;
+}
+
+.seq-item-buttons {
+  float: right;
+  width: 20px;
+  padding-right: 5px;
+}
+
+.seq-orderable .seq-item-content {
+  margin: 0 45px 0 10px;
+}
+
+.seq-orderable .seq-item-buttons {
+  width: 45px;
+}
+
+.large-select2 {
+  width: 100%;
+}
+
+.large-select2 .select2-choice {
+  height: auto;
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
+.large-select2 .select2-choice > .select2-chosen {
+  white-space: normal;
 }

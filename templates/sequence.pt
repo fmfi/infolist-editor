@@ -42,8 +42,8 @@
         </p>
       </div>
 
-      <div class="deformSeqContainer"
-           id="${oid}-orderable">
+      <div id="${oid}-orderable"
+           tal:attributes="class 'deformSeqContainer' + (' seq-orderable' if orderable else '');">
         <div tal:define="subfields [ x[1] for x in subfields ]"
              tal:repeat="subfield subfields"
              tal:replace="structure subfield.render_template(item_tmpl, 

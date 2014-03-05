@@ -325,3 +325,93 @@ def warning_schema(node):
   for child in node:
     warning_schema(child)
   return node
+
+def Blok(**kwargs):
+  schema = MappingSchema(**kwargs)
+  schema.add(SchemaNode(String(),
+    name='nazov',
+    title=u'Názov bloku',
+  ))
+  schema.add(SchemaNode(String(),
+    name='podmienky',
+    title=u'Podmienky absolvovania bloku',
+  ))
+  infolist_schema = MappingSchema(name='infolist')
+  infolist_schema.add(SchemaNode(Integer(),
+    name='infolist',
+    title=u'Infolist',
+    widget=widgets.RemoteSelect2Widget(
+      search_url=url_for('infolist_search', _external=True),
+      item_url=url_for('infolist_get', _external=True),
+      template="infolist"
+    )
+  ))
+  infolist_schema.add(SchemaNode(Integer(),
+    name='rocnik',
+    title=u'Ročník'
+  ))
+  infolist_schema.add(SchemaNode(String(),
+    name='semester',
+    title=u'Semester',
+    widget=deform.widget.Select2Widget(values=(('', ''), ('Z', 'zimný'), ('L', 'letný')), placeholder=u'Vyberte semester'),
+  ))
+  infolist_schema.add(SchemaNode(String(),
+    name='poznamka',
+    title=u'Poznámka',
+    missing=''
+  ))
+  schema.add(SchemaNode(Sequence(),
+    infolist_schema,
+    name='infolisty',
+    title=u'Informačné listy',
+    #widget=widgets.BlokInfolistWidget(),
+    a=None
+  ))
+  return schema
+
+def Studprog():
+  schema = MappingSchema()
+  schema.add(SchemaNode(String(),
+    name=u'nazov',
+    title=u'Názov študijného programu'
+  ))
+  schema.add(SchemaNode(Bool(),
+    name=u'aj_konverzny_program',
+    title=u'Aj konverzný program'
+  ))
+  schema.add(SchemaNode(Integer(),
+    name=u'garant',
+    title=u'Garant študijného programu',
+    widget=widgets.RemoteSelect2Widget(
+      search_url=url_for('osoba_search', _external=True),
+      item_url=url_for('osoba_get', _external=True),
+      template="osoba"
+    )
+  ))
+  schema.add(SchemaNode(String(),
+    name=u'stupen_studia',
+    title=u'Stupeň štúdia',
+    widget=deform.widget.Select2Widget(values=(('', ''), ('1.', '1. - bakalárske štúdium'), ('2.', '2. - magisterské štúdium'), ('3.', '3. - doktorandské štúdium')), placeholder=u'Vyberte stupeň štúdia'),
+  ))
+  schema.add(SchemaNode(String(),
+    name=u'podmienky_absolvovania',
+    title=u'Podmienky absolvovania študijného programu',
+    widget=deform.widget.TextAreaWidget(rows=5),
+  ))
+  schema.add(SchemaNode(Sequence(),
+    Blok(
+      name='blok',
+      title=u'Blok'
+    ),
+    name='bloky',
+    title=u'Bloky',
+    widget=deform.widget.SequenceWidget(orderable=True),
+  ))
+  schema.add(SchemaNode(String(),
+    name=u'poznamka_konverzny',
+    title=u'Poznámka ku konverznému programu',
+    missing=u'',
+    default=u'TODO default hodnota',
+    widget=deform.widget.TextAreaWidget(rows=5),
+  ))
+  return schema

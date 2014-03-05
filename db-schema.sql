@@ -761,4 +761,56 @@ CREATE TABLE oblubene_predmety (
 );
 CREATE index ON oblubene_predmety(osoba);
 
+CREATE TABLE studprog_verzia (
+  id serial primary key,
+  aj_konverzny_program boolean not null default false,
+  stupen_studia varchar(10) not null,
+  garant integer not null references osoba(id)
+);
+
+CREATE TABLE studprog_verzia_preklad (
+  studprog_verzia integer not null references studprog_verzia(id),
+  jazyk_prekladu varchar(2) not null,
+  nazov varchar(300),
+  podmienky_absolvovania text not null,
+  poznamka_konverzny text not null,
+  primary key (studprog_verzia, jazyk_prekladu)
+);
+
+CREATE TABLE studprog_verzia_blok (
+  studprog_verzia integer not null references studprog_verzia(id),
+  poradie_blok integer not null,
+  primary key (studprog_verzia, poradie_blok)
+);
+
+CREATE TABLE studprog_verzia_blok_preklad (
+  studprog_verzia integer not null,
+  jazyk_prekladu varchar(2) not null,
+  poradie_blok integer not null,
+  nazov varchar(300) not null,
+  podmienky text not null,
+  foreign key (studprog_verzia, poradie_blok) references studprog_verzia_blok(studprog_verzia, poradie_blok)
+);
+
+CREATE TABLE studprog_verzia_blok_infolist (
+  studprog_verzia integer not null,
+  poradie_blok integer not null,
+  infolist integer not null references infolist(id),
+  semester char(1) not null,
+  rocnik integer not null,
+  poznamka text not null,
+  primary key (studprog_verzia, poradie_blok, infolist),
+  foreign key (studprog_verzia, poradie_blok) references studprog_verzia_blok(studprog_verzia, poradie_blok)
+);
+
+CREATE TABLE studprog (
+  id serial not null primary key,
+  skratka varchar(200) unique,
+  posledna_verzia integer not null references studprog_verzia(id),
+  zamknute timestamp,
+  zamkol integer references osoba(id),
+  vytvorene timestamp not null default now(),
+  vytvoril integer references osoba(id)
+);
+
 COMMIT;

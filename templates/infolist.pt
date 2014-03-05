@@ -1,0 +1,74 @@
+<div tal:define="
+     name name|field.name;
+     style field.widget.style;
+     oid oid|field.oid;
+     css_class css_class|field.widget.css_class;"
+     tal:omit-tag="">
+
+  <input type="hidden" tal:attributes="
+          name name;
+          value cstruct;
+          id oid;
+          class string: form-control ${css_class or ''};
+          data-placeholder field.widget.placeholder|None;">
+
+  <script type="text/javascript">
+    deform.addCallback(
+      '${field.oid}',
+      function(oid) {
+        function formatEntry(data, e) {
+          var r =  '<strong>' + e(data.skratka || '') + ' ' + e(data.nazov_predmetu || '');
+          r += '</strong><br /><ul class="inline-label">';
+          if (data.finalna_verzia) {
+            r += '<li class="finalna-verzia">finálna verzia</li>';
+          }
+          if (data.obsahuje_varovania) {
+            r += '<li class="obsahuje-varovania">obsahuje varovania</li>';
+          }
+          if (data.zamkol) {
+            r += '<li class="uzamknute">uzamknuté (' + e(data.zamkol) + ')</li>';
+          }
+          if (data.vytvoril) {
+            r += '<li class="vytvoril">vytvoril: ' + e(data.vytvoril) + '</li>';
+          }
+          r += '<li class="posledna-zmena">posledná zmena: ' + e(data.modifikovane) + '</li>';
+          r += '<li class="pocet-kreditov">počet kreditov: ' + e(data.pocet_kreditov) + '</li>';
+          r += '<li class="rozsah">rozsah: ' + e(data.rozsah.join(' + ')) + '</li>';
+          return r;
+        }
+        $('#' + oid).select2({
+          containerCssClass: 'form-control',
+          placeholder: "Vyhľadajte informačný list",
+          minimumInputLength: 2,
+          ajax: {
+            url: "${search_url}",
+            data: function (term, page) {
+              return {
+                q: term
+              }
+            },
+            results: function (data, page) {
+              return {results: data.infolisty}
+            }
+          },
+          initSelection: function(element, callback) {
+            var id=$(element).val();
+            if (id !== "") {
+              $.ajax("${item_url}", {
+                data: {id: id}
+              }).done(function(data) { callback(data); });
+            }
+          },
+          formatResult: function(object, container, query, escapeMarkup) {
+            return formatEntry(object, escapeMarkup);
+          },
+          formatSelection: function(object, container, escapeMarkup) {
+            return formatEntry(object, escapeMarkup);
+          },
+          containerCssClass: 'large-select2',
+        });
+      }
+    );
+  </script>
+</div>
+
