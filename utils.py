@@ -76,6 +76,16 @@ def filter_podmienka(podmienka):
       result.append(g.db.load_predmet_simple(int(token)))
   return result
 
+def filter_stupen_studia(stupen):
+  stupne = {
+    '1.': u'1. - bakalárske štúdium',
+    '2.': u'2. - magisterské štúdium',
+    '3.': u'3. - doktorandské štúdium',
+  }
+  if stupen in stupne:
+    return stupne[stupen]
+  return stupen
+
 def recursive_replace(d, value, replacement):
   if isinstance(d, dict):
     return {key: recursive_replace(d[key], value, replacement) for key in d}

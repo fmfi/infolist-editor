@@ -74,6 +74,7 @@ app.jinja_env.filters['any'] = any
 app.jinja_env.filters['datetime'] = format_datetime
 app.jinja_env.filters['space2nbsp'] = space2nbsp
 app.jinja_env.filters['nl2br'] = nl2br
+app.jinja_env.filters['stupen_studia'] = utils.filter_stupen_studia
 
 def restrict(api=False):
   def decorator(f):

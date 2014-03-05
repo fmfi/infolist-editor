@@ -390,7 +390,8 @@ def Studprog():
   ))
   schema.add(SchemaNode(String(),
     name=u'stupen_studia',
-    title=u'Stupeň štúdia'
+    title=u'Stupeň štúdia',
+    widget=deform.widget.Select2Widget(values=(('', ''), ('1.', '1. - bakalárske štúdium'), ('2.', '2. - magisterské štúdium'), ('3.', '3. - doktorandské štúdium')), placeholder=u'Vyberte stupeň štúdia'),
   ))
   schema.add(SchemaNode(String(),
     name=u'podmienky_absolvovania',
