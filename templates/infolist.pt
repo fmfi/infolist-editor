@@ -16,6 +16,26 @@
     deform.addCallback(
       '${field.oid}',
       function(oid) {
+        function formatEntry(data, e) {
+          var r =  '<strong>' + e(data.skratka || '') + ' ' + e(data.nazov_predmetu || '');
+          r += '</strong><br /><ul class="inline-label">';
+          if (data.finalna_verzia) {
+            r += '<li class="finalna-verzia">finálna verzia</li>';
+          }
+          if (data.obsahuje_varovania) {
+            r += '<li class="obsahuje-varovania">obsahuje varovania</li>';
+          }
+          if (data.zamkol) {
+            r += '<li class="uzamknute">uzamknuté (' + e(data.zamkol) + ')</li>';
+          }
+          if (data.vytvoril) {
+            r += '<li class="vytvoril">vytvoril: ' + e(data.vytvoril) + '</li>';
+          }
+          r += '<li class="posledna-zmena">posledná zmena: ' + e(data.modifikovane) + '</li>';
+          r += '<li class="pocet-kreditov">počet kreditov: ' + e(data.pocet_kreditov) + '</li>';
+          r += '<li class="rozsah">rozsah: ' + e(data.rozsah.join(' + ')) + '</li>';
+          return r;
+        }
         $('#' + oid).select2({
           containerCssClass: 'form-control',
           placeholder: "Vyhľadajte informačný list",
@@ -28,10 +48,7 @@
               }
             },
             results: function (data, page) {
-              var infolisty = $.map(data.infolisty, function(val) {
-                return {id: val.id, text: val.skratka + " " + val.nazov_predmetu}
-              });
-              return {results: infolisty}
+              return {results: data.infolisty}
             }
           },
           initSelection: function(element, callback) {
@@ -39,9 +56,16 @@
             if (id !== "") {
               $.ajax("${item_url}", {
                 data: {id: id}
-              }).done(function(data) { callback({id: data.id, text: data.skratka + " " + data.nazov_predmetu}); });
+              }).done(function(data) { callback(data); });
             }
-          }
+          },
+          formatResult: function(object, container, query, escapeMarkup) {
+            return formatEntry(object, escapeMarkup);
+          },
+          formatSelection: function(object, container, escapeMarkup) {
+            return formatEntry(object, escapeMarkup);
+          },
+          containerCssClass: 'large-select2',
         });
       }
     );

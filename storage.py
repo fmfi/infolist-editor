@@ -1073,45 +1073,43 @@ class DataStore(object):
       return cur.fetchall()
   
   def search_infolist(self, query, finalna=False):
-    with self.cursor() as cur:
-      filt = ''
-      if finalna:
-        filt = ' AND iv.finalna_verzia'
-      sql = '''SELECT i.id, ivp.nazov_predmetu,
-          p.kod_predmetu, p.skratka
-          FROM infolist i
-          INNER JOIN infolist_verzia iv ON i.posledna_verzia = iv.id
-          LEFT JOIN infolist_verzia_preklad ivp ON i.posledna_verzia = ivp.infolist_verzia
-          LEFT JOIN predmet_infolist pi ON i.id = pi.infolist
-          LEFT JOIN predmet p ON pi.predmet = p.id
-          WHERE (ivp.jazyk_prekladu = 'sk' OR ivp.jazyk_prekladu IS NULL)
-          AND (p.kod_predmetu ILIKE %s OR ivp.nazov_predmetu ILIKE %s)
-          {}
-          ORDER BY p.skratka, p.id, ivp.nazov_predmetu'''.format(filt)
-      cur.execute(sql, (u'%{}%'.format(query),u'%{}%'.format(query)))
-      infolisty = []
-      for row in cur:
-        infolisty.append({
-          'id': row.id,
-          'kod_predmetu': row.kod_predmetu,
-          'skratka': row.skratka,
-          'nazov_predmetu': row.nazov_predmetu
-        })
-      return infolisty
+    cond = ConditionBuilder('AND')
+    like = ConditionBuilder('OR')
+    like('p.kod_predmetu ILIKE %s', u'%{}%'.format(query))
+    like('ivp.nazov_predmetu ILIKE %s', u'%{}%'.format(query))
+    cond(like)
+    if finalna:
+        cond('iv.finalna_verzia')
+    return self.fetch_infolisty(cond)
   
-  def fetch_infolist(self, id):
+  def fetch_infolisty(self, cond=None):
     with self.cursor() as cur:
-      sql = '''SELECT i.id, iv.id as infolist_verzia, iv.pocet_kreditov, ivp.nazov_predmetu,
+      if cond:
+        where = ' AND ({})'.format(cond)
+        where_params = cond.params
+      else:
+        where = ''
+        where_params = []
+      
+      sql = '''SELECT i.id,
+          iv.id as infolist_verzia, iv.pocet_kreditov,
+          iv.modifikovane, iv.finalna_verzia, iv.obsahuje_varovania,
+          oz.cele_meno as zamkol_cele_meno,
+          ov.cele_meno as vytvoril_cele_meno,
+          ivp.nazov_predmetu,
           p.kod_predmetu, p.skratka
           FROM infolist i
+          LEFT JOIN osoba oz ON i.zamkol = oz.id
+          LEFT JOIN osoba ov ON i.vytvoril = ov.id
           INNER JOIN infolist_verzia iv ON i.posledna_verzia = iv.id
           LEFT JOIN infolist_verzia_preklad ivp ON i.posledna_verzia = ivp.infolist_verzia
           LEFT JOIN predmet_infolist pi ON i.id = pi.infolist
           LEFT JOIN predmet p ON pi.predmet = p.id
           WHERE (ivp.jazyk_prekladu = 'sk' OR ivp.jazyk_prekladu IS NULL)
-          AND i.id = %s
-          '''
-      cur.execute(sql, (id,))
+          {}
+          ORDER BY p.skratka, p.id, ivp.nazov_predmetu'''.format(where)
+      cur.execute(sql, where_params)
+      infolisty = []
       for row in cur:
         infolist = {
           'id': row.id,
@@ -1119,12 +1117,22 @@ class DataStore(object):
           'skratka': row.skratka,
           'nazov_predmetu': row.nazov_predmetu,
           'pocet_kreditov': row.pocet_kreditov,
+          'modifikovane': row.modifikovane,
+          'finalna_verzia': row.finalna_verzia,
+          'obsahuje_varovania': row.obsahuje_varovania,
+          'zamkol': row.zamkol_cele_meno,
+          'vytvoril': row.vytvoril_cele_meno,
         }
         with self.cursor() as cur2:
-            infolist['vyucujuci'] = self._load_iv_vyucujuci(cur2, row.infolist_verzia)
-            infolist['cinnosti'] = self._load_iv_cinnosti(cur2, row.infolist_verzia)
-        return infolist
+          infolist['vyucujuci'] = self._load_iv_vyucujuci(cur2, row.infolist_verzia)
+          infolist['cinnosti'] = self._load_iv_cinnosti(cur2, row.infolist_verzia)
+        infolisty.append(infolist)
+      return infolisty
+  
+  def fetch_infolist(self, id):
+    cond = ConditionBuilder('AND')
+    cond('i.id = %s', id)
+    infolisty = self.fetch_infolisty(cond)
+    if len(infolisty) == 0:
       return None
-    
-    
-          
+    return infolisty[0]

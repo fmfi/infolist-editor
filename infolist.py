@@ -616,7 +616,14 @@ def predmet_search():
 @restrict(api=True)
 def infolist_search():
   query = request.args['q']
-  return jsonify(infolisty=g.db.search_infolist(query, finalna=True))
+  infolisty = g.db.search_infolist(query, finalna=True)
+  vyrob_rozsah = utils.rozsah()
+  for infolist in infolisty:
+    for v in infolist['vyucujuci']:
+      v['typy'] = list(v['typy'])
+    infolist['rozsah'] = vyrob_rozsah(infolist['cinnosti'])
+    infolist['modifikovane'] = format_datetime(infolist['modifikovane'])
+  return jsonify(infolisty=infolisty)
 
 @app.route('/infolist/json')
 @restrict(api=True)
@@ -631,6 +638,7 @@ def infolist_get():
   for v in infolist['vyucujuci']:
     v['typy'] = list(v['typy'])
   infolist['rozsah'] = utils.rozsah()(infolist['cinnosti'])
+  infolist['modifikovane'] = format_datetime(infolist['modifikovane'])
   return jsonify(**infolist)
 
 if __name__ == '__main__':

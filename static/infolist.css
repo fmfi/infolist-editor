@@ -181,54 +181,51 @@ ul.predmety > li > ul > li a {
 }
 
 
-ul.predmety ul.inline-label {
+ul.inline-label {
   display: inline;
   margin: 0;
   padding: 0;
 }
 
-ul.predmety ul.inline-label li {
-  display: inline;
-  margin: 0;
-  padding: 0.1em;
-}
-
-ul.predmety ul.inline-label li.finalna-verzia,
-ul.predmety ul.inline-label li.uzamknute,
-ul.predmety ul.inline-label li.obsahuje-varovania,
-ul.predmety ul.inline-label li.import-z-aisu,
-ul.predmety ul.inline-label li.posledna-zmena,
-ul.predmety ul.inline-label li.vytvoril {
+ul.inline-label li {
   display: inline-block;
   border-radius: 2px;
   border: 1px solid rgba(0, 0, 0, 0.1);
   padding: 0.1em 0.3em;
+  margin: 0;
+  margin-right: 1px;
+  background: #eee;
+  color: black;
 }
 
-ul.predmety ul.inline-label li.finalna-verzia {
+ul.inline-label li.finalna-verzia {
   background: #5c5;
   color: white;
 }
 
-ul.predmety ul.inline-label li.uzamknute {
+ul.inline-label li.uzamknute {
   background: #fc7;
   color: black;
 }
 
-ul.predmety ul.inline-label li.obsahuje-varovania {
+ul.inline-label li.obsahuje-varovania {
   background: #f77;
   color: white;
 }
 
-ul.predmety ul.inline-label li.import-z-aisu {
+ul.inline-label li.import-z-aisu {
   background: #77c;
   color: white;
 }
 
-ul.predmety ul.inline-label li.posledna-zmena,
-ul.predmety ul.inline-label li.vytvoril {
+ul.inline-label li.posledna-zmena,
+ul.inline-label li.vytvoril {
   background: #eee;
   color: black;
+}
+
+ul.inline-label li.upravovali {
+  display: inline;
 }
 
 ul.suvisiace-predmety {
@@ -314,4 +311,18 @@ span.podmienka-predmet {
 
 .seq-orderable .seq-item-buttons {
   width: 45px;
+}
+
+.large-select2 {
+  width: 100%;
+}
+
+.large-select2 .select2-choice {
+  height: auto;
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
+.large-select2 .select2-choice > .select2-chosen {
+  white-space: normal;
 }
