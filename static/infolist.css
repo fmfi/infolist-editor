@@ -297,3 +297,21 @@ span.podmienka-predmet {
     display: none;
   }
 }
+
+.seq-item-content {
+  margin: 0 20px 0 10px;
+}
+
+.seq-item-buttons {
+  float: right;
+  width: 20px;
+  padding-right: 5px;
+}
+
+.seq-orderable .seq-item-content {
+  margin: 0 45px 0 10px;
+}
+
+.seq-orderable .seq-item-buttons {
+  width: 45px;
+}
