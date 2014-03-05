@@ -364,7 +364,8 @@ def Blok(**kwargs):
     infolist_schema,
     name='infolisty',
     title=u'Informačné listy',
-    widget=widgets.BlokInfolistWidget()
+    #widget=widgets.BlokInfolistWidget(),
+    a=None
   ))
   return schema
 
@@ -393,6 +394,7 @@ def Studprog():
     ),
     name='bloky',
     title=u'Bloky',
+    widget=deform.widget.SequenceWidget(orderable=True),
   ))
   schema.add(SchemaNode(String(),
     name=u'poznamka_konverzny',
