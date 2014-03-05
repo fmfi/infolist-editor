@@ -511,7 +511,8 @@ def studijny_program_show(id, edit):
   
   for blok in studprog['bloky']:
     for infolist in blok['infolisty']:
-      infolist['rozsah'] = vyrob_rozsah(infolist['cinnosti'])
+      if 'cinnosti' in infolist:
+        infolist['rozsah'] = vyrob_rozsah(infolist['cinnosti'])
   
   template = 'studprog-form.html' if edit else 'studprog.html'
   return render_template(template, form=form, data=studprog,
