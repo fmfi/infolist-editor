@@ -331,6 +331,7 @@ def Blok(**kwargs):
   schema.add(SchemaNode(String(),
     name='nazov',
     title=u'Názov bloku',
+    description=u'Napr. S1: Astrológia',
   ))
   schema.add(SchemaNode(String(),
     name='typ',
@@ -340,11 +341,16 @@ def Blok(**kwargs):
   schema.add(SchemaNode(String(),
     name='podmienky',
     title=u'Podmienky absolvovania bloku',
+    description=u'Napr. "výber aspoň 27 kreditov", "všetky predmety z bloku", "výber 1 predmetu" a pod.',
   ))
   infolist_schema = MappingSchema(name='infolist')
   infolist_schema.add(SchemaNode(Integer(),
     name='infolist',
     title=u'Infolist',
+    description=u'''Ak nenájdete vami požadovaný predmet v zozname, môže to byť 
+    z dôvodu, že predmet nebol označený ako finálna verzia. Vyhľadajte v editore
+    infolistov príslušný informačný list, skontrolujte jeho rozpracovanosť a 
+    označte ho ako finálna verzia.''',
     widget=widgets.RemoteSelect2Widget(
       search_url=url_for('infolist_search', _external=True),
       item_url=url_for('infolist_get', _external=True),
@@ -401,6 +407,10 @@ def Studprog():
   schema.add(SchemaNode(String(),
     name=u'podmienky_absolvovania',
     title=u'Podmienky absolvovania študijného programu',
+    description=u'''Napr. Pre úspešné absolvovanie študijného programu musí
+      študent okrem povinných predmetov absolvovať jeden celý špecializačný blok
+      povinne voliteľných predmetov S1-S10 a zo všetkých povinne voliteľných
+      predmetov musí z ostatných blokov absolvovať aspoň 15 kreditov.''',
     widget=deform.widget.TextAreaWidget(rows=5),
   ))
   schema.add(SchemaNode(Sequence(),
@@ -415,8 +425,18 @@ def Studprog():
   schema.add(SchemaNode(String(),
     name=u'poznamka_konverzny',
     title=u'Poznámka ku konverznému programu',
+    description=u'Táto poznámka sa zobrazuje len v prípade, že je zaškrtnuté políčko "aj konverzný program"',
     missing=u'',
-    default=u'TODO default hodnota',
+    default=u'''Konverzný študijný program je určený pre absolventov bakalárskeho
+      štúdia, na ktoré tento program nenadväzuje, resp. rozsah a kvalita ich
+      vedomostí nenapĺňa dostatočne predpoklady pre úspešné dvojročné magisterské
+      štúdium. Študent navyše oproti uvedenému absolvuje úvodný ročník, v ktorom
+      absolvuje predmety z bakalárskeho štúdia, ktoré sú potrebné ako prerekvizita
+      k úspešnému absolvovaniu magisterského štúdia. Tieto predmety určuje
+      individuálne garant študijného programu na základe dokladov o absolvovanom
+      bakalárskom štúdiu a na základe výsledkov prijímacích skúšok.
+      Po absolvovaní úvodného ročníka budú študenti pokračovať podľa
+      štandardného odporúčaného študijného plánu.'''.replace('\n      ', ' '),
     widget=deform.widget.TextAreaWidget(rows=5),
   ))
   return schema
