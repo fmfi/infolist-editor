@@ -478,8 +478,8 @@ class DataStore(object):
         podm['nahrada'], data['vysledky_vzdelavania'], data['strucna_osnova']))
   
   def search_osoba(self, query):
-    if len(query) < 2:
-      raise NotFound()
+    if len(query.strip()) < 2:
+      return []
     
     conds = []
     params = []
@@ -525,8 +525,8 @@ class DataStore(object):
     return self._fakulty
   
   def search_literatura(self, query):
-    if len(query) < 2:
-      raise NotFound()
+    if len(query.strip()) < 2:
+      return []
     
     conds = []
     params = []
