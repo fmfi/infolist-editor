@@ -937,7 +937,7 @@ class DataStore(object):
   def _load_spv_data(self, id):
     with self.cursor() as cur:
       cur.execute('''SELECT aj_konverzny_program, stupen_studia, garant,
-          modifikovane, modifikoval
+          modifikovane, modifikoval, obsahuje_varovania
         FROM studprog_verzia
         WHERE id = %s
         ''',
@@ -951,6 +951,7 @@ class DataStore(object):
         'garant': data.garant,
         'modifikoval': data.modifikoval,
         'modifikovane': data.modifikovane,
+        'obsahuje_varovania': data.obsahuje_varovania,
       }
   
   def _load_spv_trans(self, id, lang='sk'):
@@ -1087,12 +1088,12 @@ class DataStore(object):
     with self.cursor() as cur:
       cur.execute('''INSERT INTO studprog_verzia (
           aj_konverzny_program, stupen_studia, garant,
-          modifikoval
+          modifikoval, obsahuje_varovania
         )
-        VALUES (%s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s)
         RETURNING id''',
         (data['aj_konverzny_program'], data['stupen_studia'],
-         data['garant'], user.id if user else None))
+         data['garant'], user.id if user else None, data['obsahuje_varovania']))
       return cur.fetchone()[0]
   
   def _save_spv_trans(self, spv_id, data, lang='sk'):
@@ -1134,7 +1135,7 @@ class DataStore(object):
   def fetch_studijne_programy(self, lang='sk'):
     with self.cursor() as cur:
       cur.execute('''SELECT sp.id, sp.skratka, sp.zamknute, sp.zamkol, sp.vytvorene, sp.vytvoril, 
-          spv.aj_konverzny_program, spv.stupen_studia, spv.modifikovane, spv.modifikoval,
+          spv.aj_konverzny_program, spv.stupen_studia, spv.modifikovane, spv.modifikoval, spv.obsahuje_varovania,
           spvp.nazov, spvp.podmienky_absolvovania, spvp.poznamka_konverzny,
           ov.cele_meno as vytvoril_cele_meno
         FROM studprog sp
