@@ -9,7 +9,102 @@ class Podmienka(object):
   symbols = ('(', ')', 'OR', 'AND')
   
   def __init__(self, text):
-    self._tokens = text.split()
+    self._tokens = []
+    self._predmety = {}
+    rawtok = self._tokenize(text)
+    if len(rawtok) == 0:
+      self._tokens = []
+    else:
+      self._tokens = Podmienka._parse_expr_in(rawtok)
+  
+  @classmethod
+  def _parse_expr(cls, tokens):
+    if len(tokens) == 0:
+      raise ValueError('Expecting expression')
+    
+    if tokens[0] == '(':
+      ret = [tokens.pop(0)]
+      ret.extend(cls._parse_expr_in(tokens))
+      if not tokens or tokens[0] != ')':
+        raise ValueError('Expecting )')
+      ret.append(tokens.pop(0))
+      return ret
+    elif re.match('^[0-9]+$', tokens[0]):
+      return [int(tokens.pop(0))]
+    else:
+      raise ValueError('Expecting ID or (')
+  
+  @classmethod
+  def _parse_expr_in(cls, tokens):
+    ret = cls._parse_expr(tokens)
+    
+    if not tokens or tokens[0] == ')':
+      return ret
+    
+    if tokens[0].upper() not in ['OR', 'AND']:
+      raise ValueError('Expecting AND or OR')
+    
+    typ = tokens.pop(0).upper()
+    ret.append(typ)
+    
+    while True:
+      ret.extend(cls._parse_expr(tokens))
+      
+      if not tokens or tokens[0] == ')':
+        return ret
+      
+      if tokens[0].upper() != typ:
+        raise ValueError('Expecting ' + typ)
+      
+      ret.append(tokens.pop(0).upper())
+  
+  @staticmethod
+  def _tokenize(text):
+    tokens = []
+    last = None
+    for c in text:
+      if c in '()':
+        tokens.append(c)
+        last = c
+      elif c in '0123456789':
+        if last == 'num':
+          tokens[-1] += c
+        else:
+          tokens.append(c)
+        last = 'num'
+      elif (c >= 'a' and c <= 'z') or (c >= 'A' and c <= 'Z'):
+        if last == 'alpha':
+          tokens[-1] += c
+        else:
+          tokens.append(c)
+        last = 'alpha'
+      elif c in ' \t\n\r\v':
+        last = 'space'
+      else:
+        raise ValueError(u'Invalid token character: ' + c)
+    return tokens
+  
+  def _load_predmety(self):
+    to_load = self.idset().difference(set(self._predmety))
+    if not to_load:
+      return self._predmety
+    for p in to_load:
+      data = g.db.load_predmet_simple(p)
+      if data == None:
+        raise ValueError('Predmet {} neexistuje v databaze'.format(p))
+      self._predmety[p] = data
+    return self._predmety
+  
+  @property
+  def tokens(self):
+    ret = []
+    pred = self._load_predmety()
+    for tok in self._tokens:
+      if tok in self.symbols:
+        ret.append(tok)
+      else:
+        ret.append(pred[tok])
+    return ret
   
   def idset(self):
     ret = set()
@@ -17,6 +112,33 @@ class Podmienka(object):
       if token not in self.symbols:
         ret.add(int(token))
     return ret
+  
+  def __unicode__(self):
+    ret = u''
+    for token in self.tokens:
+      if token in Podmienka.symbols:
+        if token == 'OR':
+          ret += ' alebo '
+        elif token == 'AND':
+          ret += ' a '
+        else:
+          ret += token
+      else:
+        if len(token['nazvy_predmetu']) == 0:
+          nazov_predmetu = u'TODO'
+        else:
+          nazov_predmetu = token['nazvy_predmetu'][0]
+        ret += u'{} {}'.format(token['skratka'], nazov_predmetu)
+    return ret
+  
+  def __str__(self):
+    return unicode(self).encode('UTF-8')
+  
+  def serialize(self):
+    return ' '.join(str(x) for x in self._tokens)
+  
+  def __len__(self):
+    return len(self._tokens)
 
 def kod2skratka(kod):
   return re.match(r'^[^/]+/(.+)/[^/]+$', kod).group(1)
@@ -68,19 +190,6 @@ def filter_literatura(id):
 
 def filter_osoba(id):
   return g.db.load_osoba(id)
-
-def filter_podmienka(podmienka):
-  result = []
-  for token in Podmienka(podmienka)._tokens:
-    if token in Podmienka.symbols:
-      if token == 'OR':
-        token = 'alebo'
-      elif token == 'AND':
-        token = 'a'
-      result.append(token)
-    else:
-      result.append(g.db.load_predmet_simple(int(token)))
-  return result
 
 def filter_stupen_studia(stupen):
   stupne = {

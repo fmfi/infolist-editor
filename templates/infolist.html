@@ -76,9 +76,15 @@
       </div>
 
       {% macro formatuj_podmienku(predmety) %}
-        {% for token in predmety|podmienka %}
+        {% for token in predmety.tokens %}
           {% if token is string %}
-            {{ token }}
+            {% if token == 'OR' %}
+              alebo
+            {% elif token == 'AND' %}
+              a
+            {% else %}
+              {{ token }}
+            {% endif %}
           {% else %}
             <span class="podmienka-predmet">{{ token.skratka }} {{ token.nazvy_predmetu|join('/') }}</span>
           {% endif %}
@@ -93,13 +99,6 @@
       <div class="polozka">
         <label>Odporúčané predmety</label>
         {{ formatuj_podmienku(data.odporucane_predmety) }}
-        {% for token in data.odporucane_predmety|podmienka %}
-          {% if token is string %}
-            {{ token }}
-          {% else %}
-            {{ token.skratka }}
-          {% endif %}
-        {% endfor %}
       </div>
       
       <div class="polozka">

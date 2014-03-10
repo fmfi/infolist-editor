@@ -25,7 +25,7 @@ import time
 import jinja2
 from utils import kod2skratka, filter_fakulta, filter_druh_cinnosti
 from utils import filter_obdobie, filter_typ_vyucujuceho, filter_metoda_vyucby
-from utils import filter_podmienka, filter_jazyk_vyucby, filter_literatura
+from utils import filter_jazyk_vyucby, filter_literatura
 from utils import filter_osoba, format_datetime, space2nbsp, nl2br
 from utils import recursive_replace, recursive_update
 from utils import render_rtf, filter_typ_bloku
@@ -67,7 +67,6 @@ app.jinja_env.filters['obdobie'] = filter_obdobie
 app.jinja_env.filters['typ_vyucujuceho'] = filter_typ_vyucujuceho
 app.jinja_env.filters['typ_bloku'] = filter_typ_bloku
 app.jinja_env.filters['metoda_vyucby'] = filter_metoda_vyucby
-app.jinja_env.filters['podmienka'] = filter_podmienka
 app.jinja_env.filters['jazyk_vyucby'] = filter_jazyk_vyucby
 app.jinja_env.filters['literatura'] = filter_literatura
 app.jinja_env.filters['osoba'] = filter_osoba
@@ -333,28 +332,10 @@ def export_infolist(id):
   tdata['IL_ODPORUCANY_SEMESTER'] = 'TODO'
   tdata['IL_STUPEN_STUDIA'] = 'TODO'
 
-  def fmt_podm(text):
-    podm_predmety = u''
-    for token in Podmienka(text)._tokens:
-      if token in Podmienka.symbols:
-        if token == 'OR':
-          podm_predmety += ' alebo '
-        elif token == 'AND':
-          podm_predmety += ' a '
-        else:
-          podm_predmety += token
-      else:
-        predmet = g.db.load_predmet_simple(int(token))
-        if len(predmet['nazvy_predmetu']) == 0:
-          nazov_predmetu = u'TODO'
-        else:
-          nazov_predmetu = predmet['nazvy_predmetu'][0]
-        podm_predmety += u'{} {}'.format(predmet['skratka'], nazov_predmetu)
-    return podm_predmety
-  podm_predmety = fmt_podm(infolist['podmienujuce_predmety'])
-  if infolist['odporucane_predmety'] and len(infolist['odporucane_predmety']) > 0:
+  podm_predmety = unicode(infolist['podmienujuce_predmety'])
+  if infolist['odporucane_predmety']:
     podm_predmety += u'\n\nOdporúčané predmety (nie je nutné ich absolvovať pred zapísaním predmetu):\n'
-    podm_predmety += fmt_podm(infolist['odporucane_predmety'])
+    podm_predmety += unicode(infolist['odporucane_predmety'])
   tdata['IL_PODMIENUJUCE_PREDMETY'] = podm_predmety
 
   podm_absol_text = u'\n'

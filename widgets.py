@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from deform.widget import Widget
-from colander import null
+from colander import null, Invalid
 import json
 from utils import Podmienka
 from flask import g, url_for
@@ -21,6 +21,27 @@ class RemoteSelect2Widget(Widget):
         return null
     return pstruct
 
+class PodmienkaTyp(object):
+  def serialize(self, node, appstruct):
+    if appstruct is null:
+      return null
+    if not isinstance(appstruct, Podmienka):
+      raise Invalid(node, '%r nie je podmienka' % appstruct)
+    return appstruct.serialize()
+  
+  def deserialize(self, node, cstruct):
+    if cstruct is null:
+      return null
+    if not isinstance(cstruct, basestring):
+      raise Invalid(node, '%r is not a string' % cstruct)
+    try:
+      return Podmienka(cstruct)
+    except ValueError, e:
+      raise Invalid(node, e.message)
+  
+  def cstruct_children(self, node, cstruct):
+    return []
+
 class PodmienkaWidget(Widget):
   null_value = ''
   template = 'podmienka'
@@ -34,8 +55,9 @@ class PodmienkaWidget(Widget):
       {'typ': 'zatvorka', 'value': '(', 'text': '('},
       {'typ': 'zatvorka', 'value': ')', 'text': ')'}
     ]
-    podm = Podmienka(cstruct)
-    for id in podm.idset():
+    
+    podm = Podmienka._tokenize(cstruct)
+    for id in set(int(x) for x in podm if x not in Podmienka.symbols):
       predmet = g.db.load_predmet_simple(id)
       if not predmet:
         continue

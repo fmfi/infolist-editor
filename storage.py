@@ -192,9 +192,9 @@ class DataStore(object):
         'E': hodn_e,
         'Fx': hodn_fx
       },
-      'podmienujuce_predmety': podmienujuce_predmety,
-      'odporucane_predmety': odporucane_predmety,
-      'vylucujuce_predmety': vylucujuce_predmety,
+      'podmienujuce_predmety': Podmienka(podmienujuce_predmety),
+      'odporucane_predmety': Podmienka(odporucane_predmety),
+      'vylucujuce_predmety': Podmienka(vylucujuce_predmety),
       'modifikovane': modifikovane,
       'predosla_verzia': predosla_verzia,
       'fakulta': fakulta,
@@ -404,8 +404,8 @@ class DataStore(object):
         pct['A'], pct['B'], pct['C'], pct['D'], pct['E'],
         data['podm_absolvovania']['percenta_zapocet'],
         hodn['A'], hodn['B'], hodn['C'], hodn['D'], hodn['E'], hodn['Fx'],
-        data['podmienujuce_predmety'], data['odporucane_predmety'],
-        data['vylucujuce_predmety'], data['predosla_verzia'],
+        data['podmienujuce_predmety'].serialize(), data['odporucane_predmety'].serialize(),
+        data['vylucujuce_predmety'].serialize(), data['predosla_verzia'],
         data['fakulta'], data['potrebny_jazyk'], data['treba_zmenit_kod'],
         data['predpokladany_semester'], None if user is None else user.id,
         data['finalna_verzia'], data['bude_v_povinnom'],
@@ -416,9 +416,9 @@ class DataStore(object):
   
   def _save_iv_suvisiace_predmety(self, iv_id, data):
     suvisiace_predmety = set()
-    suvisiace_predmety.update(Podmienka(data['podmienujuce_predmety']).idset())
-    suvisiace_predmety.update(Podmienka(data['odporucane_predmety']).idset())
-    suvisiace_predmety.update(Podmienka(data['vylucujuce_predmety']).idset())
+    suvisiace_predmety.update(data['podmienujuce_predmety'].idset())
+    suvisiace_predmety.update(data['odporucane_predmety'].idset())
+    suvisiace_predmety.update(data['vylucujuce_predmety'].idset())
     with self.cursor() as cur:
       for predmet in suvisiace_predmety:
         cur.execute('''INSERT INTO infolist_verzia_suvisiace_predmety (infolist_verzia, predmet)

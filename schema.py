@@ -5,7 +5,7 @@ import deform
 from chameleon.utils import Markup
 import widgets
 from flask import url_for, g
-from utils import je_profesor_alebo_docent
+from utils import je_profesor_alebo_docent, Podmienka
 
 def VzdelavaciaCinnost(**kwargs):
   schema = MappingSchema(**kwargs)
@@ -225,10 +225,10 @@ def Infolist():
     missing=colander.null,
     warn_if_missing=True
   ))
-  schema.add(SchemaNode(String(),
+  schema.add(SchemaNode(widgets.PodmienkaTyp(),
     name='podmienujuce_predmety',
     title=u'Podmieňujúce predmety',
-    missing='',
+    missing=Podmienka(''),
     widget=widgets.PodmienkaWidget(),
     description=Markup(u'''Uvádzajú sa predmety, ktoré študent musí riadne absolvovať,
       aby si mohol zapísať tento predmet. <strong>Podmieňujúce predmety by mali
@@ -239,17 +239,17 @@ def Infolist():
       Napríklad: "(1-INF-123 alebo 1-INF-234) a 1-INF-456".
       Kódy budú automaticky preklopené na nové priradené kódy.''')
   ))
-  schema.add(SchemaNode(String(),
+  schema.add(SchemaNode(widgets.PodmienkaTyp(),
     name='odporucane_predmety',
     title=u'Odporúčané predmety',
-    missing='',
+    missing=Podmienka(''),
     widget=widgets.PodmienkaWidget(),
     description=u'Napríklad: "(1-INF-123 alebo 1-INF-234) a 1-INF-456". Kódy budú automaticky preklopené na nové priradené kódy.'
   ))
-  schema.add(SchemaNode(String(),
+  schema.add(SchemaNode(widgets.PodmienkaTyp(),
     name='vylucujuce_predmety',
     title=u'Vylučujúce predmety',
-    missing='',
+    missing=Podmienka(''),
     widget=widgets.PodmienkaWidget(),
     description=u'Napríklad: "1-INF-123 alebo 1-INF-456". Kódy budú automaticky preklopené na nové priradené kódy.'
   ))
