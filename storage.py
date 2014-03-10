@@ -1053,9 +1053,9 @@ class DataStore(object):
     with self.cursor() as cur:
       for poradie, blok in enumerate(bloky, start=1):
         cur.execute('''INSERT INTO studprog_verzia_blok
-          (studprog_verzia, poradie_blok)
-          VALUES (%s, %s)''',
-          (spv_id, poradie))
+          (studprog_verzia, poradie_blok, typ)
+          VALUES (%s, %s, %s)''',
+          (spv_id, poradie, blok['typ']))
         cur.execute('''INSERT INTO studprog_verzia_blok_preklad
           (studprog_verzia, jazyk_prekladu, poradie_blok,
           nazov, podmienky)
