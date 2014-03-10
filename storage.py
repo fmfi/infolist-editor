@@ -931,11 +931,13 @@ class DataStore(object):
     data = self._load_spv_data(id)
     dict_rec_update(data, self._load_spv_trans(id, lang))
     data['bloky'] = self._load_spv_bloky(id, lang)
+    data['modifikovali'] = self._load_spv_modifikovali(id)
     return data
   
   def _load_spv_data(self, id):
     with self.cursor() as cur:
-      cur.execute('''SELECT aj_konverzny_program, stupen_studia, garant
+      cur.execute('''SELECT aj_konverzny_program, stupen_studia, garant,
+          modifikovane, modifikoval
         FROM studprog_verzia
         WHERE id = %s
         ''',
@@ -946,7 +948,9 @@ class DataStore(object):
       return {
         'aj_konverzny_program': data.aj_konverzny_program,
         'stupen_studia': data.stupen_studia,
-        'garant': data.garant
+        'garant': data.garant,
+        'modifikoval': data.modifikoval,
+        'modifikovane': data.modifikovane,
       }
   
   def _load_spv_trans(self, id, lang='sk'):
@@ -1013,15 +1017,31 @@ class DataStore(object):
             infolist['cinnosti'] = self._load_iv_cinnosti(cur2, row.infolist_verzia)
           bloky[-1]['infolisty'].append(infolist)
       return bloky
-  
-  def save_studprog(self, id, data, user=None):
+
+  def _load_spv_modifikovali(self, id):
     with self.cursor() as cur:
-      #if user.id not in data['modifikovali']:
-      #  data['modifikovali'][user.id] = {
-      #    'meno': user.meno,
-      #    'priezvisko': user.priezvisko,
-      #    'cele_meno': user.cele_meno
-      #  }
+      cur.execute('''SELECT o.id, o.cele_meno, o.meno, o.priezvisko
+        FROM studprog_verzia_modifikovali spvm
+        INNER JOIN osoba o ON spvm.osoba = o.id
+        WHERE studprog_verzia = %s''',
+        (id,))
+      osoby = {}
+      for row in cur:
+        osoby[row.id] = {
+          'cele_meno': row.cele_meno,
+          'meno': row.meno,
+          'priezvisko': row.priezvisko,
+        }
+      return osoby
+
+  def save_studprog(self, id, data, user):
+    with self.cursor() as cur:
+      if user.id not in data['modifikovali']:
+        data['modifikovali'][user.id] = {
+          'meno': user.meno,
+          'priezvisko': user.priezvisko,
+          'cele_meno': user.cele_meno
+        }
       def select_for_update(id):
         cur.execute('''SELECT posledna_verzia, zamknute
           FROM studprog
@@ -1060,17 +1080,19 @@ class DataStore(object):
     nove_id = self._save_spv_data(predosla_verzia, data, user=user)
     self._save_spv_trans(nove_id, data, lang=lang)
     self._save_spv_bloky(nove_id, data['bloky'], lang=lang)
+    self._save_spv_modifikovali(nove_id, data['modifikovali'])
     return nove_id
   
   def _save_spv_data(self, predosla_verzia, data, user=None):
     with self.cursor() as cur:
       cur.execute('''INSERT INTO studprog_verzia (
-          aj_konverzny_program, stupen_studia, garant
+          aj_konverzny_program, stupen_studia, garant,
+          modifikoval
         )
-        VALUES (%s, %s, %s)
+        VALUES (%s, %s, %s, %s)
         RETURNING id''',
         (data['aj_konverzny_program'], data['stupen_studia'],
-         data['garant']))
+         data['garant'], user.id if user else None))
       return cur.fetchone()[0]
   
   def _save_spv_trans(self, spv_id, data, lang='sk'):
@@ -1102,14 +1124,23 @@ class DataStore(object):
             (spv_id, poradie, infolist['infolist'], infolist['semester'],
              infolist['rocnik'], infolist['poznamka'], infolist['predmet_jadra']))
   
+  def _save_spv_modifikovali(self, spv_id, modifikovali):
+    with self.cursor() as cur:
+      for osoba in modifikovali:
+        cur.execute('''INSERT INTO studprog_verzia_modifikovali
+          (studprog_verzia, osoba) VALUES (%s, %s)''',
+          (spv_id, osoba))
+  
   def fetch_studijne_programy(self, lang='sk'):
     with self.cursor() as cur:
       cur.execute('''SELECT sp.id, sp.skratka, sp.zamknute, sp.zamkol, sp.vytvorene, sp.vytvoril, 
-          spv.aj_konverzny_program, spv.stupen_studia, 
-          spvp.nazov, spvp.podmienky_absolvovania, spvp.poznamka_konverzny
+          spv.aj_konverzny_program, spv.stupen_studia, spv.modifikovane, spv.modifikoval,
+          spvp.nazov, spvp.podmienky_absolvovania, spvp.poznamka_konverzny,
+          ov.cele_meno as vytvoril_cele_meno
         FROM studprog sp
         INNER JOIN studprog_verzia spv ON sp.posledna_verzia = spv.id
         LEFT JOIN studprog_verzia_preklad spvp ON spv.id = spvp.studprog_verzia AND spvp.jazyk_prekladu = %s
+        LEFT JOIN osoba ov ON sp.vytvoril = ov.id
         ORDER BY spvp.nazov, spv.stupen_studia
         ''',
         (lang,))

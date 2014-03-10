@@ -541,7 +541,8 @@ def studijny_program_show(id, edit):
   template = 'studprog-form.html' if edit else 'studprog.html'
   return render_template(template, form=form, data=studprog,
     messages=form_messages(form), messages_type=msg_ns.messages_type,
-    studprog_id=id, error_saving=error_saving, editing=edit)
+    studprog_id=id, error_saving=error_saving, editing=edit,
+    modifikovali=zorad_osoby(studprog['modifikovali']))
 
 @app.route('/studprog/<int:id>/lock', methods=['POST'], defaults={'lock': True})
 @app.route('/studprog/<int:id>/unlock', methods=['POST'], defaults={'lock': False})

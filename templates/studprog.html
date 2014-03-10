@@ -102,6 +102,22 @@
       {% endif %}
       </div>
     {% endif %}
+    {% if data.modifikovane or modifikovali %}
+    <div class="meta">
+      {% if data.modifikovane %}
+      <p>Čas zmeny: {{ data.modifikovane|datetime }}</p>
+      {% endif %}
+
+      {% if modifikovali %}
+      <p>Tento študijný program doteraz upravili:</p>
+      <ul class="zoznam-osob">
+        {% for osoba in modifikovali %}
+          <li>{{ osoba.cele_meno }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+    {% endif %}
   </div>
   <div class="clearfix"></div>
 </div>

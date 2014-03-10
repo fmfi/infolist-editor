@@ -7,7 +7,26 @@
   <h1>Zoznam študijných programov</h1>
   <ul class="studijne-programy">
   {% for studprog in studijne_programy %}
-    <li><a href="{{ url_for('studijny_program_show', id=studprog.id, edit=False) }}">{{ studprog.nazov }} ({{ studprog.stupen_studia }})</a></li>
+    <li><a href="{{ url_for('studijny_program_show', id=studprog.id, edit=False) }}">{{ studprog.nazov }} ({{ studprog.stupen_studia }})</a>
+      <ul class="inline-label">
+        {% if studprog.obsahuje_varovania %}
+        <li class="obsahuje-varovania">obsahuje varovania</li>
+        {% endif %}
+        {% if studprog.zamknute %}
+          <li class="uzamknute">uzamknuté{% if studprog.zamkol %} ({{ (studprog.zamkol|osoba).cele_meno|space2nbsp }}){% endif %}</li>
+        {% endif %}
+        <li class="posledna-zmena">posledná zmena: {{ studprog.modifikovane|datetime|space2nbsp }}</li>
+        {% if studprog.modifikovali and not
+              (studprog.modifikovali|length == 1 and studprog.modifikovali[0].id == studprog.vytvoril) %}
+        <li class="upravovali">upravovali:
+          {% for osoba in studprog.modifikovali %}
+            {%- if not loop.first %}; {% endif %}
+            {{ osoba.cele_meno|space2nbsp }}
+          {% endfor %}
+        </li>
+        {% endif %}
+      </ul>
+    </li>
   {% endfor %}
   </ul>
   

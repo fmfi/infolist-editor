@@ -765,7 +765,9 @@ CREATE TABLE studprog_verzia (
   id serial primary key,
   aj_konverzny_program boolean not null default false,
   stupen_studia varchar(10) not null,
-  garant integer not null references osoba(id)
+  garant integer not null references osoba(id),
+  modifikovane timestamp not null default now(),
+  modifikoval integer references osoba(id),
 );
 
 CREATE TABLE studprog_verzia_preklad (
@@ -803,6 +805,12 @@ CREATE TABLE studprog_verzia_blok_infolist (
   predmet_jadra boolean not null,
   primary key (studprog_verzia, poradie_blok, infolist),
   foreign key (studprog_verzia, poradie_blok) references studprog_verzia_blok(studprog_verzia, poradie_blok)
+);
+
+CREATE TABLE studprog_verzia_modifikovali (
+  studprog_verzia integer not null references studprog_verzia(id),
+  osoba integer not null references osoba(id),
+  primary key (studprog_verzia, osoba)
 );
 
 CREATE TABLE studprog (
