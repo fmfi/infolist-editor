@@ -43,6 +43,9 @@ class User(object):
   
   def moze_vytvarat_studijne_programy(self):
     return self.opravnenie('FMFI', 'admin')
+  
+  def moze_menit_kody_sp(self):
+    return self.opravnenie('FMFI', 'admin')
 
 class ConditionBuilder(object):
   def __init__(self, join_with):
@@ -1011,15 +1014,19 @@ class DataStore(object):
         posledna_verzia = row.posledna_verzia
       nova_verzia = self.save_studprog_verzia(posledna_verzia, data, user=user)
       if id != None:
-        cur.execute('''UPDATE studprog
-          SET posledna_verzia = %s
-          WHERE id = %s''',
-          (nova_verzia, id))
+        sql = 'UPDATE studprog SET posledna_verzia = %s'
+        params = [nova_verzia]
+        if 'skratka' in data:
+          sql += ', skratka = %s'
+          params.append(data['skratka'])
+        sql += ' WHERE id = %s'
+        params.append(id)
+        cur.execute(sql, params)
       else:
-        cur.execute('''INSERT INTO studprog (posledna_verzia, vytvoril)
-          VALUES (%s, %s)
+        cur.execute('''INSERT INTO studprog (posledna_verzia, vytvoril, skratka)
+          VALUES (%s, %s, %s)
           RETURNING id''',
-          (nova_verzia, user.id if user else None)
+          (nova_verzia, user.id if user else None, data.get('skratka'))
         )
         id = cur.fetchone()[0]
       return id

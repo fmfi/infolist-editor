@@ -386,6 +386,11 @@ def Blok(**kwargs):
 
 def Studprog():
   schema = MappingSchema()
+  if (g.user.moze_menit_kody_sp()):
+    schema.add(SchemaNode(String(),
+      name=u'skratka',
+      title=u'Kód študijného programu'
+    ))
   schema.add(SchemaNode(String(),
     name=u'nazov',
     title=u'Názov študijného programu'

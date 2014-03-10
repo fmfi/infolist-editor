@@ -31,10 +31,14 @@
 
   <form id="{{ form.formid }}" method="{{ form.method }}" enctype="multipart/form-data" accept-charset="utf-8">
   
-    <div class="form-group">
-      <label class="control-label">Kód študijného programu</label>
-      <div class="form-control-static">{{ data.skratka }}</div>
-    </div>
+    {% if g.user.moze_menit_kody_sp() %}
+      {{ render_field(form.skratka) }}
+    {% else %}
+      <div class="form-group">
+        <label class="control-label">Kód študijného programu</label>
+        <div class="form-control-static">{{ data.skratka }}</div>
+      </div>
+    {% endif %}
 
     {{ render_field(form.nazov) }}
     {{ render_field(form.aj_konverzny_program) }}
