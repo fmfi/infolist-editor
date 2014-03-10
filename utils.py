@@ -57,6 +57,12 @@ def filter_jazyk_vyucby(search_kod):
       return popis
   return None
 
+def filter_typ_bloku(search_kod):
+  for kod, popis in g.db.load_typy_bloku():
+    if search_kod == kod:
+      return popis
+  return None
+
 def filter_literatura(id):
   return g.db.load_literatura(id)
 

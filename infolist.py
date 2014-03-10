@@ -28,7 +28,7 @@ from utils import filter_obdobie, filter_typ_vyucujuceho, filter_metoda_vyucby
 from utils import filter_podmienka, filter_jazyk_vyucby, filter_literatura
 from utils import filter_osoba, format_datetime, space2nbsp, nl2br
 from utils import recursive_replace, recursive_update
-from utils import render_rtf
+from utils import render_rtf, filter_typ_bloku
 import utils
 from markupsafe import Markup, soft_unicode
 from functools import wraps
@@ -65,6 +65,7 @@ app.jinja_env.filters['fakulta'] = filter_fakulta
 app.jinja_env.filters['druh_cinnosti'] = filter_druh_cinnosti
 app.jinja_env.filters['obdobie'] = filter_obdobie
 app.jinja_env.filters['typ_vyucujuceho'] = filter_typ_vyucujuceho
+app.jinja_env.filters['typ_bloku'] = filter_typ_bloku
 app.jinja_env.filters['metoda_vyucby'] = filter_metoda_vyucby
 app.jinja_env.filters['podmienka'] = filter_podmienka
 app.jinja_env.filters['jazyk_vyucby'] = filter_jazyk_vyucby

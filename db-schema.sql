@@ -780,6 +780,7 @@ CREATE TABLE studprog_verzia_preklad (
 CREATE TABLE studprog_verzia_blok (
   studprog_verzia integer not null references studprog_verzia(id),
   poradie_blok integer not null,
+  typ char(1) not null,
   primary key (studprog_verzia, poradie_blok)
 );
 

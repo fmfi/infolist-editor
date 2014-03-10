@@ -81,6 +81,7 @@ class DataStore(object):
     self._druhy_cinnosti = None
     self._fakulty = None
     self._jazyky_vyucby = None
+    self._typy_bloku = [('A', u'A: povinné predmety'), ('B', u'B: povinne voliteľné predmety'), ('C', u'C: výberové predmety')]
   
   def cursor(self):
     return self.conn.cursor()
@@ -938,17 +939,19 @@ class DataStore(object):
   
   def _load_spv_bloky(self, id, lang='sk'):
     with self.cursor() as cur:
-      cur.execute('''SELECT spvbp.poradie_blok, spvbp.nazov, spvbp.podmienky,
+      cur.execute('''SELECT spvb.poradie_blok, spvb.typ, spvbp.nazov, spvbp.podmienky,
           spvbi.infolist, spvbi.semester, spvbi.rocnik, spvbi.poznamka,
           p.kod_predmetu, p.skratka, ivp.nazov_predmetu, i.posledna_verzia as infolist_verzia, iv.pocet_kreditov
-        FROM studprog_verzia_blok_preklad spvbp
-        LEFT JOIN studprog_verzia_blok_infolist spvbi ON spvbp.studprog_verzia = spvbi.studprog_verzia AND spvbp.poradie_blok = spvbi.poradie_blok
+        FROM studprog_verzia_blok spvb
+        LEFT JOIN studprog_verzia_blok_preklad spvbp ON spvbp.studprog_verzia = spvb.studprog_verzia AND spvbp.poradie_blok = spvb.poradie_blok
+        LEFT JOIN studprog_verzia_blok_infolist spvbi ON spvbi.studprog_verzia = spvb.studprog_verzia AND spvbi.poradie_blok = spvb.poradie_blok
         LEFT JOIN predmet_infolist pi ON spvbi.infolist = pi.infolist
         LEFT JOIN predmet p ON pi.predmet = p.id
         LEFT JOIN infolist i ON spvbi.infolist = i.id
         LEFT JOIN infolist_verzia iv ON i.posledna_verzia = iv.id
         LEFT JOIN infolist_verzia_preklad ivp ON i.posledna_verzia = ivp.infolist_verzia
-        WHERE spvbp.studprog_verzia = %s AND spvbp.jazyk_prekladu = %s
+        WHERE spvb.studprog_verzia = %s
+        AND (spvbp.jazyk_prekladu = %s OR spvbp.jazyk_prekladu IS NULL)
         AND (ivp.jazyk_prekladu = %s OR ivp.jazyk_prekladu IS NULL)
         ORDER BY spvbp.studprog_verzia, spvbp.poradie_blok, spvbi.rocnik, spvbi.semester desc, ivp.nazov_predmetu
         ''',
@@ -960,6 +963,7 @@ class DataStore(object):
             'poradie_blok': row.poradie_blok,
             'nazov': row.nazov,
             'podmienky': row.podmienky,
+            'typ': row.typ,
             'infolisty': []
           }
           bloky.append(blok)
@@ -1142,3 +1146,6 @@ class DataStore(object):
     if len(infolisty) == 0:
       return None
     return infolisty[0]
+  
+  def load_typy_bloku(self):
+    return self._typy_bloku

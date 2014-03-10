@@ -333,6 +333,11 @@ def Blok(**kwargs):
     title=u'Názov bloku',
   ))
   schema.add(SchemaNode(String(),
+    name='typ',
+    title=u'Typ bloku',
+    widget=deform.widget.Select2Widget(values=[('', '')] + g.db.load_typy_bloku(), placeholder=u'Vyberte typ bloku'),
+  ))
+  schema.add(SchemaNode(String(),
     name='podmienky',
     title=u'Podmienky absolvovania bloku',
   ))

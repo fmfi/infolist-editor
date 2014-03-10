@@ -30,7 +30,7 @@
       </div>
       {% for blok in data.bloky %}
       <div class="body">
-        <h3>{{ blok.nazov }}</h3>
+        <h3>{{ blok.nazov }} <small>({{ blok.typ|typ_bloku }})</small></h3>
         {{ blok.podmienky|nl2br }}
         <table class="table">
           <thead>
