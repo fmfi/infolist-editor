@@ -46,6 +46,9 @@ class User(object):
   
   def moze_menit_kody_sp(self):
     return self.opravnenie('FMFI', 'admin')
+  
+  def moze_odomknut_studprog(self, sp):
+    return self.opravnenie('FMFI', 'admin') or (self.vidi_studijne_programy() and sp['zamkol'] == self.id)
 
 class ConditionBuilder(object):
   def __init__(self, join_with):
@@ -830,27 +833,49 @@ class DataStore(object):
       return users
   
   def lock_infolist(self, id, user):
+    self._lock('infolist', id, user)
+
+  def lock_studprog(self, id, user):
+    self._lock('studprog', id, user)
+
+  def _lock(self, table, id, user):
     with self.cursor() as cur:
-      cur.execute('SELECT zamknute, zamkol FROM infolist WHERE id = %s FOR UPDATE', (id,))
+      cur.execute('SELECT zamknute, zamkol FROM {} WHERE id = %s FOR UPDATE'.format(table), (id,))
       row = cur.fetchone()
       if row == None:
-        raise NotFound('infolist({})'.format(id))
+        raise NotFound('{}({})'.format(table, id))
       if row.zamknute:
-        raise ValueError('Infolist je uz zamknuty')
-      cur.execute('UPDATE infolist SET zamknute = now(), zamkol = %s WHERE id = %s', (user, id))
+        raise ValueError('{} {} je uz zamknuty'.format(table, id))
+      cur.execute('UPDATE {} SET zamknute = now(), zamkol = %s WHERE id = %s'.format(table), (user, id))
   
   def unlock_infolist(self, id, check_user=None):
+    if check_user:
+      def check(zamkol):
+        return check_user.moze_odomknut_infolist({'zamkol': zamkol})
+    else:
+      check = None
+    self._unlock('infolist', id, check)
+  
+  def unlock_studprog(self, id, check_user=None):
+    if check_user:
+      def check(zamkol):
+        return check_user.moze_odomknut_studprog({'zamkol': zamkol})
+    else:
+      check = None
+    self._unlock('studprog', id, check)
+
+  def _unlock(self, table, id, check=None):
     with self.cursor() as cur:
-      cur.execute('SELECT zamknute, zamkol FROM infolist WHERE id = %s FOR UPDATE', (id,))
+      cur.execute('SELECT zamknute, zamkol FROM {} WHERE id = %s FOR UPDATE'.format(table), (id,))
       row = cur.fetchone()
       if row == None:
-        raise NotFound('infolist({})'.format(id))
+        raise NotFound('{}({})'.format(table, id))
       if not row.zamknute:
-        raise ValueError('Infolist je uz odomknuty')
-      if check_user != None:
-        if not check_user.moze_odomknut_infolist({'zamkol': row.zamkol}):
-          raise ValueError('Nema opravnenie odomknut infolist')
-      cur.execute('UPDATE infolist SET zamknute = NULL, zamkol = NULL WHERE id = %s', (id,))
+        raise ValueError('{} {} je uz odomknuty'.format(table, id))
+      if check != None:
+        if not check(row.zamkol):
+          raise ValueError('Nema opravnenie odomknut {} {}'.format(table, id))
+      cur.execute('UPDATE {} SET zamknute = NULL, zamkol = NULL WHERE id = %s'.format(table), (id,))
   
   def create_predmet(self, osoba_id=None):
     with self.cursor() as cur:

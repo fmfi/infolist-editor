@@ -475,8 +475,10 @@ def studijny_program_show(id, edit):
       'bloky': []
     }
   if studprog['zamknute'] and edit:
-    flash(u'Študijný program je zamknutý proti úpravám', 'danger')
-    return redirect(url_for('studijny_program_show', id=id, edit=False))
+    flash(u'Študijný program je zamknutý proti úpravám používateľom {}'
+      .format(filter_osoba(studprog['zamkol']).cele_meno), 'danger')
+    if request.method != 'POST':
+      return redirect(url_for('studijny_program_show', id=id, edit=False))
   
   form = Form(schema.Studprog(), buttons=('submit',),
               appstruct=recursive_replace(studprog, None, colander.null))
@@ -501,18 +503,21 @@ def studijny_program_show(id, edit):
     else:
       check_warnings()
       studprog['obsahuje_varovania'] = msg_ns.has_warnings
-      try:
-        nove_id = g.db.save_studprog(id, studprog, user=g.user)
-        g.db.commit()
-        flash(u'Študijný program bol úspešne uložený', 'success')
-        if msg_ns.has_warnings:
-          flash((u'Formulár bol uložený, ale niektoré položky ešte bude treba doplniť, alebo upraviť. ' + 
-                 u'Ak ich teraz neviete doplniť, môžete tak spraviť aj neskôr.'), 'warning')
-        return redirect(url_for('studijny_program_show', id=nove_id, edit=msg_ns.has_warnings))
-      except:
-        app.logger.exception('Vynimka pocas ukladania studijneho programu')
-        g.db.rollback()
+      if studprog['zamknute']:
         error_saving = True
+      else:
+        try:
+          nove_id = g.db.save_studprog(id, studprog, user=g.user)
+          g.db.commit()
+          flash(u'Študijný program bol úspešne uložený', 'success')
+          if msg_ns.has_warnings:
+            flash((u'Formulár bol uložený, ale niektoré položky ešte bude treba doplniť, alebo upraviť. ' + 
+                  u'Ak ich teraz neviete doplniť, môžete tak spraviť aj neskôr.'), 'warning')
+          return redirect(url_for('studijny_program_show', id=nove_id, edit=msg_ns.has_warnings))
+        except:
+          app.logger.exception('Vynimka pocas ukladania studijneho programu')
+          g.db.rollback()
+          error_saving = True
   else: # GET
     if id is not None:
       check_warnings()
@@ -537,6 +542,26 @@ def studijny_program_show(id, edit):
   return render_template(template, form=form, data=studprog,
     messages=form_messages(form), messages_type=msg_ns.messages_type,
     studprog_id=id, error_saving=error_saving, editing=edit)
+
+@app.route('/studprog/<int:id>/lock', methods=['POST'], defaults={'lock': True})
+@app.route('/studprog/<int:id>/unlock', methods=['POST'], defaults={'lock': False})
+@restrict()
+def lock_studprog(id, lock):
+  try:
+    if lock:
+      g.db.lock_studprog(id, g.user.id)
+    else:
+      g.db.unlock_studprog(id, check_user=g.user)
+    g.db.commit()
+  except:
+    flash(u'Nepodarilo sa {} študijný program list!'.format(u'zamknúť' if lock else u'odomknúť'), 'danger')
+    app.logger.exception('Vynimka pocas zamykania/odomykania studprogu')
+    g.db.rollback()
+  if lock:
+    flash(u'Študijný program bol zamknutý proti úpravám.', 'success')
+  else:
+    flash(u'Úpravy v študijnom programe boli povolené.', 'success')
+  return redirect(url_for('studijny_program_show', id=id, edit=False))
 
 @app.route('/pouzivatelia')
 @restrict()
