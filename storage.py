@@ -49,6 +49,9 @@ class User(object):
   
   def moze_odomknut_studprog(self, sp):
     return self.opravnenie('FMFI', 'admin') or (self.vidi_studijne_programy() and sp['zamkol'] == self.id)
+  
+  def vidi_stav_vyplnania(self):
+    return self.vidi_studijne_programy()
 
 class ConditionBuilder(object):
   def __init__(self, join_with):
@@ -1222,7 +1225,9 @@ class DataStore(object):
   
   def find_sp_warnings(self, limit_sp=None):
     with self.cursor() as cur:
-      sql = '''SELECT sq.* FROM (SELECT sp.id, i.id as infolist_id,
+      sql = '''SELECT sq.* FROM (SELECT sp.id, sp.skratka,
+          spvp.nazov,
+          i.id as infolist_id,
           p.id as predmet_id, p.skratka as skratka_predmetu,
           ivp.nazov_predmetu,
           (NOT iv.finalna_verzia) as w_finalna,
@@ -1263,6 +1268,8 @@ class DataStore(object):
         if len(sp) == 0 or row.id != sp[-1]['id']:
           sp.append({
             'id': row.id,
+            'skratka': row.skratka,
+            'nazov': row.nazov,
             'messages': []
           })
         def add_infolist_warning(typ):

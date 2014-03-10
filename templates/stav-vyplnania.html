@@ -1,0 +1,31 @@
+{% extends 'layout.html' %}
+{% from 'macros.html' import flashes %}
+{% block title %}Stav vypĺňania dát{% endblock %}
+{% block content %}
+<div class="content-100">
+  {{ flashes() }}
+  <h1>Aktuálny stav vypĺňania dát</h1>
+  
+  {% if sp_warnings %}
+  <div class="alert alert-warning">
+    <p>Nasledovné kontroly konzistencie študijných programov skončili s varovaním:</p>
+    <ul>
+    {% for sp in sp_warnings %}
+      <li><a href="{{ url_for('studijny_program_show', id=sp.id, edit=False) }}">{{ sp.skratka }} {{ sp.nazov }}</a>
+        <ul>
+          {% for warn in sp.messages %}
+            {% include 'studprog-warning-item.html' %}
+          {% endfor %}
+        </ul>
+      </li>
+    {% endfor %}
+    </ul>
+  </div>
+  {% else %}
+  <div class="alert alert-success">
+    <p>Kontrola konzistencie študijných programov nehlási žiadne varovania</p>
+  </div>
+  {% endif %}
+  
+</div>
+{% endblock %}

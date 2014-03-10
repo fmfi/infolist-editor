@@ -579,6 +579,15 @@ def lock_studprog(id, lock):
     flash(u'Úpravy v študijnom programe boli povolené.', 'success')
   return redirect(url_for('studijny_program_show', id=id, edit=False))
 
+@app.route('/stav-vyplnania')
+@restrict()
+def stav_vyplnania():
+  if not g.user.vidi_stav_vyplnania():
+    abort(401)
+  sp_warnings = g.db.find_sp_warnings()
+  return render_template('stav-vyplnania.html',
+    sp_warnings=sp_warnings)
+
 @app.route('/pouzivatelia')
 @restrict()
 def pouzivatelia():

@@ -38,6 +38,9 @@
           {% if g.user.vidi_studijne_programy() %}
             <li><a href="{{ url_for('studijny_program_index') }}">Študijné programy</a></li>
           {% endif %}
+          {% if g.user.vidi_stav_vyplnania() %}
+            <li><a href="{{ url_for('stav_vyplnania') }}">Stav vypĺňania</a></li>
+          {% endif %}
           {% if g.user.moze_spravovat_pouzivatelov() %}
             <li><a href="{{ url_for('pouzivatelia') }}">Používatelia</a></li>
           {% endif %}
