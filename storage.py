@@ -143,6 +143,7 @@ class DataStore(object):
       podm_absol_percenta_skuska, podm_absol_percenta_na_a,
       podm_absol_percenta_na_b, podm_absol_percenta_na_c,
       podm_absol_percenta_na_d, podm_absol_percenta_na_e,
+      podm_absol_percenta_zapocet,
       hodnotenia_a_pocet, hodnotenia_b_pocet, hodnotenia_c_pocet,
       hodnotenia_d_pocet, hodnotenia_e_pocet, hodnotenia_fx_pocet,
       podmienujuce_predmety, odporucane_predmety, vylucujuce_predmety,
@@ -157,6 +158,7 @@ class DataStore(object):
     
     (pocet_kreditov, percenta_skuska,
     pct_a, pct_b, pct_c, pct_d, pct_e,
+    percenta_zapocet,
     hodn_a, hodn_b, hodn_c, hodn_d, hodn_e, hodn_fx,
     podmienujuce_predmety, odporucane_predmety, vylucujuce_predmety,
     modifikovane, predosla_verzia, fakulta, potrebny_jazyk,
@@ -169,6 +171,7 @@ class DataStore(object):
       'pocet_kreditov': pocet_kreditov,
       'podm_absolvovania': {
         'percenta_skuska': percenta_skuska,
+        'percenta_zapocet': percenta_zapocet,
         'nepouzivat_stupnicu': nepouzivat_stupnicu,
         'percenta_na': {
           'A': pct_a,
@@ -383,6 +386,7 @@ class DataStore(object):
           podm_absol_percenta_skuska, podm_absol_percenta_na_a,
           podm_absol_percenta_na_b, podm_absol_percenta_na_c,
           podm_absol_percenta_na_d, podm_absol_percenta_na_e,
+          podm_absol_percenta_zapocet,
           hodnotenia_a_pocet, hodnotenia_b_pocet, hodnotenia_c_pocet,
           hodnotenia_d_pocet, hodnotenia_e_pocet, hodnotenia_fx_pocet,
           podmienujuce_predmety, odporucane_predmety, vylucujuce_predmety,
@@ -391,10 +395,11 @@ class DataStore(object):
           modifikoval, finalna_verzia, bude_v_povinnom,
           predpokladany_stupen_studia, nepouzivat_stupnicu,
           obsahuje_varovania)
-        VALUES (''' + ', '.join(['%s'] * 27) + ''')
+        VALUES (''' + ', '.join(['%s'] * 28) + ''')
         RETURNING id''',
         (data['pocet_kreditov'], data['podm_absolvovania']['percenta_skuska'],
         pct['A'], pct['B'], pct['C'], pct['D'], pct['E'],
+        data['podm_absolvovania']['percenta_zapocet'],
         hodn['A'], hodn['B'], hodn['C'], hodn['D'], hodn['E'], hodn['Fx'],
         data['podmienujuce_predmety'], data['odporucane_predmety'],
         data['vylucujuce_predmety'], data['predosla_verzia'],

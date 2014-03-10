@@ -356,6 +356,8 @@ def export_infolist(id):
   else:
     if podm_absol['priebezne'] != None:
       podm_absol_text += u'Priebežné hodnotenie: {}\n'.format(podm_absol['priebezne'])
+    if podm_absol['percenta_zapocet'] != None:
+      podm_absol_text += u'Na pripustenie ku skúške je potrebných aspoň {}% bodov z priebežného hodnotenia.\n'.format(podm_absol['percenta_zapocet'])
     if podm_absol['skuska'] != None:
       podm_absol_text += u'Skúška: {}\n'.format(podm_absol['skuska'])
     if podm_absol['percenta_skuska'] != None:

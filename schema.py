@@ -57,6 +57,12 @@ def PodmienkyAbsolvovania(**kwargs):
     description=u'Napríklad: domáce úlohy, písomka',
     missing=''
   ))
+  schema.add(SchemaNode(Integer(),
+    name='percenta_zapocet',
+    title=u'Percentá na pripustenie ku skúške',
+    description=u'Zobrazí vetu "Na pripustenie ku skúške je potrebných aspoň X% bodov z priebežného hodnotenia." Ak túto vetu nechcete zobraziť, ponechajte pole prázdne.',
+    missing=colander.null,
+  ))
   schema.add(SchemaNode(String(),
     name='skuska',
     title=u'Forma skúšky',

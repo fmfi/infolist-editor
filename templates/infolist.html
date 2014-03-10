@@ -116,6 +116,10 @@
           <p>Priebežné hodnotenie: {{ data.podm_absolvovania.priebezne }}</p>
           {% endif %}
 
+          {% if data.podm_absolvovania.percenta_zapocet %}
+          <p>Na pripustenie ku skúške je potrebných aspoň {{ data.podm_absolvovania.percenta_zapocet }}% bodov z priebežného hodnotenia.</p>
+          {% endif %}
+
           {% if data.podm_absolvovania.skuska %}
           <p>Skúška: {{ data.podm_absolvovania.skuska }}</p>
           {% endif %}
