@@ -800,6 +800,7 @@ CREATE TABLE studprog_verzia_blok_infolist (
   semester char(1) not null,
   rocnik integer not null,
   poznamka text not null,
+  predmet_jadra boolean not null,
   primary key (studprog_verzia, poradie_blok, infolist),
   foreign key (studprog_verzia, poradie_blok) references studprog_verzia_blok(studprog_verzia, poradie_blok)
 );

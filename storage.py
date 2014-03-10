@@ -940,7 +940,7 @@ class DataStore(object):
   def _load_spv_bloky(self, id, lang='sk'):
     with self.cursor() as cur:
       cur.execute('''SELECT spvb.poradie_blok, spvb.typ, spvbp.nazov, spvbp.podmienky,
-          spvbi.infolist, spvbi.semester, spvbi.rocnik, spvbi.poznamka,
+          spvbi.infolist, spvbi.semester, spvbi.rocnik, spvbi.poznamka, spvbi.predmet_jadra,
           p.kod_predmetu, p.skratka, ivp.nazov_predmetu, i.posledna_verzia as infolist_verzia, iv.pocet_kreditov
         FROM studprog_verzia_blok spvb
         LEFT JOIN studprog_verzia_blok_preklad spvbp ON spvbp.studprog_verzia = spvb.studprog_verzia AND spvbp.poradie_blok = spvb.poradie_blok
@@ -978,6 +978,7 @@ class DataStore(object):
             'skratka_predmetu': row.skratka,
             'nazov_predmetu': row.nazov_predmetu,
             'pocet_kreditov': row.pocet_kreditov,
+            'predmet_jadra': row.predmet_jadra,
           }
           with self.cursor() as cur2:
             infolist['vyucujuci'] = self._load_iv_vyucujuci(cur2, row.infolist_verzia)
@@ -1064,10 +1065,10 @@ class DataStore(object):
         for infolist in blok['infolisty']:
           cur.execute('''INSERT INTO studprog_verzia_blok_infolist
             (studprog_verzia, poradie_blok, infolist, semester, rocnik,
-            poznamka)
-            VALUES (%s, %s, %s, %s, %s, %s)''',
+            poznamka, predmet_jadra)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)''',
             (spv_id, poradie, infolist['infolist'], infolist['semester'],
-             infolist['rocnik'], infolist['poznamka']))
+             infolist['rocnik'], infolist['poznamka'], infolist['predmet_jadra']))
   
   def fetch_studijne_programy(self, lang='sk'):
     with self.cursor() as cur:

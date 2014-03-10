@@ -357,6 +357,10 @@ def Blok(**kwargs):
       template="infolist"
     )
   ))
+  infolist_schema.add(SchemaNode(Bool(),
+    name='predmet_jadra',
+    title=u'Predmet je v jadre študijného programu',
+  ))
   infolist_schema.add(SchemaNode(Integer(),
     name='rocnik',
     title=u'Ročník'

@@ -36,6 +36,7 @@
           <thead>
             <tr>
               <th>Informačný list</th>
+              <th>Jadro</th>
               <th class="col-vyucujuci">Vyučujúci</th>
               <th>Semester</th>
               <th>Rozsah</th>
@@ -52,6 +53,7 @@
                       <sup>{{ infolist.poznamka_cislo + 1 }}</sup>
                     {% endif %}
                 </td>
+                <td>{{ 'áno' if infolist.predmet_jadra else 'nie' }}</td>
                 <td class="col-vyucujuci">{{ infolist.vyucujuci|join(', ', attribute='kratke_meno') }}</td>
                 <td>{{ infolist.rocnik }}{{ infolist.semester }}</td>
                 <td>{{ infolist.rozsah|join(' + ') }}</td>
