@@ -1219,3 +1219,66 @@ class DataStore(object):
   
   def load_typy_bloku(self):
     return self._typy_bloku
+  
+  def find_sp_warnings(self, limit_sp=None):
+    with self.cursor() as cur:
+      sql = '''SELECT sq.* FROM (SELECT sp.id, i.id as infolist_id,
+          p.id as predmet_id, p.skratka as skratka_predmetu,
+          ivp.nazov_predmetu,
+          (NOT iv.finalna_verzia) as w_finalna,
+          (spv.stupen_studia <> iv.predpokladany_stupen_studia) as w_stupen_studia,
+          (spvbi.semester <> iv.predpokladany_semester) as w_semester,
+          (EXISTS (
+            SELECT 1 
+            FROM predmet_infolist pi2,
+              infolist i2, infolist_verzia iv2
+            WHERE pi.predmet = pi2.predmet
+            AND pi2.infolist <> pi.infolist AND pi2.infolist = i2.id AND
+            i2.posledna_verzia = iv2.id AND iv2.finalna_verzia)) as w_finalna2
+        FROM studprog sp
+        INNER JOIN studprog_verzia spv ON sp.posledna_verzia = spv.id
+        INNER JOIN studprog_verzia_blok_infolist spvbi ON spv.id = spvbi.studprog_verzia
+        INNER JOIN infolist i ON spvbi.infolist = i.id
+        INNER JOIN infolist_verzia iv ON i.posledna_verzia = iv.id
+        LEFT JOIN studprog_verzia_preklad spvp ON spvp.studprog_verzia = spv.id
+        LEFT JOIN infolist_verzia_preklad ivp ON ivp.infolist_verzia = iv.id
+        LEFT JOIN predmet_infolist pi ON pi.infolist = i.id
+        LEFT JOIN predmet p ON pi.predmet = p.id
+        WHERE (spvp.jazyk_prekladu = 'sk' OR spvp.jazyk_prekladu IS NULL)
+        AND (ivp.jazyk_prekladu = 'sk' OR ivp.jazyk_prekladu IS NULL)
+        {}
+        ) AS sq
+        WHERE (w_finalna OR w_stupen_studia OR w_semester OR w_finalna2)
+        ORDER BY id, infolist_id
+      '''
+      if limit_sp is not None:
+        sql = sql.format(' AND sp.id = %s')
+        params = [limit_sp]
+      else:
+        sql = sql.format('')
+        params = []
+      cur.execute(sql, params)
+      sp = []
+      for row in cur:
+        if len(sp) == 0 or row.id != sp[-1]['id']:
+          sp.append({
+            'id': row.id,
+            'messages': []
+          })
+        def add_infolist_warning(typ):
+          sp[-1]['messages'].append({
+            'typ': typ,
+            'infolist': row.infolist_id,
+            'nazov_predmetu': row.nazov_predmetu,
+            'skratka_predmetu': row.skratka_predmetu,
+            'predmet_id': row.predmet_id,
+          })
+        if row.w_finalna:
+          add_infolist_warning('finalna')
+        if row.w_finalna2:
+          add_infolist_warning('finalna2')
+        if row.w_semester:
+          add_infolist_warning('semester')
+        if row.w_stupen_studia:
+          add_infolist_warning('stupen_studia')
+      return sp

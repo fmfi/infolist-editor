@@ -175,6 +175,14 @@ def predmet_index(tab):
     filtruj=f
   )
 
+@app.route('/predmet/<int:id>')
+@restrict()
+def show_predmet(id):
+  predmet = g.db.load_predmet(id)
+  if predmet is None:
+    abort(404)
+  return render_template('predmet.html', predmet=predmet)
+
 @app.route('/predmet/novy', methods=['POST'])
 @restrict()
 def predmet_novy():
@@ -488,6 +496,7 @@ def studijny_program_show(id, edit):
   msg_ns = type("", (), {})() # http://bit.ly/1cPX3G5
   msg_ns.messages_type = 'danger';
   msg_ns.has_warnings = False
+  msg_ns.add_warnings = {}
   def check_warnings():
     try:
       schema.warning_schema(schema.Studprog()).deserialize(form.cstruct)
@@ -495,6 +504,9 @@ def studijny_program_show(id, edit):
       form.widget.handle_error(form, e)
       msg_ns.messages_type = 'warning'
       msg_ns.has_warnings = True
+    for warning in g.db.find_sp_warnings(limit_sp=id):
+      msg_ns.add_warnings = warning['messages']
+      print repr(warning)
   
   if request.method == 'POST':
     controls = request.form.items(multi=True)
@@ -543,6 +555,7 @@ def studijny_program_show(id, edit):
   template = 'studprog-form.html' if edit else 'studprog.html'
   return render_template(template, form=form, data=studprog,
     messages=form_messages(form), messages_type=msg_ns.messages_type,
+    add_warnings=msg_ns.add_warnings,
     studprog_id=id, error_saving=error_saving, editing=edit,
     modifikovali=zorad_osoby(studprog['modifikovali']))
 

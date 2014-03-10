@@ -13,6 +13,16 @@
       {% endif %}
       </h2>
     </div>
+    {% if add_warnings %}
+      <div class="alert alert-warning">
+        <p>Nasledovné kontroly konzistencie skončili s varovaním:</p>
+        <ul>
+          {% for warn in add_warnings %}
+            {% include 'studprog-warning-item.html' %}
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
     {% block studprog %}
       <div class="body">
         <div class="polozka">

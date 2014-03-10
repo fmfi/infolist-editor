@@ -1,0 +1,32 @@
+<div title="{{ predmet.kod_predmetu }}" class="clearfix">{{ predmet.skratka }}
+  <span class="pull-right">
+    {% if not predmet.oblubeny %}
+    <form method="POST" action="{{ url_for('predmet_watch', predmet_id=predmet.id) }}"><button class="btn btn-default btn-xs">Pridať do obľúbených</button></form>
+    {% else %}
+    <form method="POST" action="{{ url_for('predmet_unwatch', predmet_id=predmet.id) }}"><button class="btn btn-default btn-xs">Odstrániť z obľúbených</button></form>
+    {% endif %}
+  </span>
+</div>
+<ul>
+  {% for infolist in predmet.infolisty %}
+    <li><a href="{{ url_for('show_infolist', id=infolist.id, edit=False) }}">{{ infolist.nazov_predmetu }}</a>
+      <ul class="inline-label">
+        {% if infolist.finalna_verzia %}
+        <li class="finalna-verzia">finálna verzia</li>
+        {% endif %}
+        {% if infolist.obsahuje_varovania %}
+        <li class="obsahuje-varovania">obsahuje varovania</li>
+        {% endif %}
+        {% if infolist.import_z_aisu %}
+          <li class="import-z-aisu">import z AIS-u</li>
+        {% elif infolist.zamknute %}
+          <li class="uzamknute">uzamknuté{% if infolist.zamkol %} ({{ (infolist.zamkol|osoba).cele_meno|space2nbsp }}){% endif %}</li>
+        {% endif %}
+        {% if infolist.vytvoril %}
+          <li class="vytvoril">vytvoril: {{ infolist.vytvoril_cele_meno }}</li>
+        {% endif %}
+        <li class="posledna-zmena">posledná zmena: {{ infolist.modifikovane|datetime(iba_datum=infolist.import_z_aisu)|space2nbsp }}</li>
+      </ul>
+    </li>
+  {% endfor %}
+</ul>

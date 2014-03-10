@@ -1,0 +1,11 @@
+{% extends 'layout.html' %}
+{% from 'macros.html' import flashes %}
+{% block title %}{{ predmet.skratka }}{% endblock %}
+{% block content %}
+<div class="content-100">
+  {{ flashes() }}
+  <ul class="predmety"><li>
+    {% include 'predmet-item.html' %}
+  </li></ul>
+</div>
+{% endblock %}
