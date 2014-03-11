@@ -218,6 +218,11 @@ ul.inline-label li.import-z-aisu {
   color: white;
 }
 
+ul.inline-label li.aj-konverzny-program {
+  background: #c7c;
+  color: white;
+}
+
 ul.inline-label li.posledna-zmena,
 ul.inline-label li.vytvoril {
   background: #eee;

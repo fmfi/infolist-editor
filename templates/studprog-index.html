@@ -9,6 +9,9 @@
   {% for studprog in studijne_programy %}
     <li><a href="{{ url_for('studijny_program_show', id=studprog.id, edit=False) }}">{{ studprog.skratka or '' }} {{ studprog.nazov }} ({{ studprog.stupen_studia }})</a>
       <ul class="inline-label">
+        {% if studprog.aj_konverzny_program %}
+        <li class="aj-konverzny-program">aj konverzný program</li>
+        {% endif %}
         {% if studprog.finalna_verzia %}
         <li class="finalna-verzia">finálna verzia</li>
         {% endif %}
