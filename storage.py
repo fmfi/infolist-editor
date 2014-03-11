@@ -47,8 +47,11 @@ class User(object):
   def moze_menit_kody_sp(self):
     return self.opravnenie('FMFI', 'admin')
   
+  def moze_menit_studprog(self):
+    return self.opravnenie('FMFI', 'admin') or self.opravnenie('FMFI', 'garant')
+  
   def moze_odomknut_studprog(self, sp):
-    return self.opravnenie('FMFI', 'admin') or (self.vidi_studijne_programy() and sp['zamkol'] == self.id)
+    return self.opravnenie('FMFI', 'admin') or (self.moze_menit_studprog() and sp['zamkol'] == self.id)
   
   def vidi_stav_vyplnania(self):
     return self.vidi_studijne_programy()

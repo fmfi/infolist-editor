@@ -94,8 +94,9 @@
     {% endblock %}
   </div>
   </div><div class="right">
-    {% if not editing %}
+    {% if not editing and (g.user.moze_menit_studprog() or data.obsahuje_varovania) %}
       <div class="meta">
+      {% if g.user.moze_menit_studprog() %}
       {% if not data.zamknute %}
         <a href="{{ url_for('studijny_program_show', id=studprog_id, edit=True) }}"
           class="btn btn-block btn-primary">Upraviť</a>
@@ -109,6 +110,7 @@
           <button type="submit" class="btn {% if g.user.id != data.zamkol %}btn-warning{% else %}btn-default{% endif %} btn-block">Povoliť úpravy</button>
         </form>
         {% endif %}
+      {% endif %}
       {% endif %}
       {% if data.obsahuje_varovania %}
         <div class="alert alert-warning">

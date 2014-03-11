@@ -472,6 +472,9 @@ def studijny_program_show(id, edit):
     if request.method != 'POST':
       return redirect(url_for('studijny_program_show', id=id, edit=False))
   
+  if edit and not g.user.moze_menit_studprog():
+    abort(401)
+  
   form = Form(schema.Studprog(), buttons=('submit',),
               appstruct=recursive_replace(studprog, None, colander.null))
   error_saving = False
@@ -547,6 +550,8 @@ def studijny_program_show(id, edit):
 def lock_studprog(id, lock):
   try:
     if lock:
+      if not g.user.moze_menit_studprog():
+        abort(401)
       g.db.lock_studprog(id, g.user.id)
     else:
       g.db.unlock_studprog(id, check_user=g.user)
