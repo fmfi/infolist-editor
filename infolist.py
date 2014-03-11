@@ -463,7 +463,8 @@ def studijny_program_show(id, edit):
       'zamknute': None,
       'zamkol': None,
       'predosla_verzia': None,
-      'bloky': []
+      'bloky': [],
+      'modifikovali': {},
     }
   if studprog['zamknute'] and edit:
     flash(u'Študijný program je zamknutý proti úpravám používateľom {}'
