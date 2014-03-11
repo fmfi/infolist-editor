@@ -254,7 +254,7 @@ def show_infolist(id, edit, predmet_id=None):
       'podm_absolvovania': {'nahrada': ''},
       'fakulta': 'FMFI'
     }
-  if infolist['zamknute'] and edit:
+  if infolist['zamknute'] and edit and request.method != 'POST':
     flash(u'Informačný list je zamknutý proti úpravám, vytvorte si vlastnú kópiu', 'danger')
     return redirect(url_for('show_infolist', id=id, edit=False))
   form = Form(schema.Infolist(), buttons=('submit',),
@@ -287,7 +287,10 @@ def show_infolist(id, edit, predmet_id=None):
             predmet_id, nova_skratka = g.db.create_predmet(g.user.id)
           g.db.predmet_add_infolist(predmet_id, nove_id)
         g.db.commit()
-        flash(u'Informačný list bol úspešne uložený', 'success')
+        if id is not None and nove_id != id:
+          flash(u'Informačný list medzičasom niekto zamkol, vaše zmeny sme uložili do novej kópie', 'warning')
+        else:
+          flash(u'Informačný list bol úspešne uložený', 'success')
         if nova_skratka:
           flash((u'Predmet sme úspešne vytvorili s dočasným kódom {}, ' +
             u'finálny kód bude pridelený centrálne').format(nova_skratka),
