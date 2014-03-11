@@ -87,13 +87,14 @@ class ConditionBuilder(object):
     return len(self.conds)
 
 class DataStore(object):
-  def __init__(self, conn):
+  def __init__(self, conn, podmienka_class=Podmienka):
     self.conn = conn
     self._typy_vyucujuceho = None
     self._druhy_cinnosti = None
     self._fakulty = None
     self._jazyky_vyucby = None
     self._typy_bloku = [('A', u'A: povinné predmety'), ('B', u'B: povinne voliteľné predmety'), ('C', u'C: výberové predmety')]
+    self._podmienka_class = podmienka_class
   
   def cursor(self):
     return self.conn.cursor()
@@ -210,9 +211,9 @@ class DataStore(object):
         'E': hodn_e,
         'Fx': hodn_fx
       },
-      'podmienujuce_predmety': Podmienka(podmienujuce_predmety),
-      'odporucane_predmety': Podmienka(odporucane_predmety),
-      'vylucujuce_predmety': Podmienka(vylucujuce_predmety),
+      'podmienujuce_predmety': self._podmienka_class(podmienujuce_predmety),
+      'odporucane_predmety': self._podmienka_class(odporucane_predmety),
+      'vylucujuce_predmety': self._podmienka_class(vylucujuce_predmety),
       'modifikovane': modifikovane,
       'predosla_verzia': predosla_verzia,
       'fakulta': fakulta,
@@ -345,7 +346,7 @@ class DataStore(object):
       'jazyk_prekladu': lang,
     }
   
-  def save_infolist(self, id, data, user=None):
+  def save_infolist(self, id, data, user=None, system_update=False):
     with self.cursor() as cur:
       if user.id not in data['modifikovali']:
         data['modifikovali'][user.id] = {
@@ -365,7 +366,7 @@ class DataStore(object):
         row = cur.fetchone()
         if row == None:
           raise NotFound('infolist({})'.format(id))
-        if row.zamknute:
+        if row.zamknute and not system_update:
           id = self.fork_infolist(id)
           select_for_update(id)
           row = cur.fetchone()
@@ -374,7 +375,7 @@ class DataStore(object):
           if row.zamknute:
             raise ValueError('Zamknuty novo vytvoreny infolist')
         posledna_verzia = row.posledna_verzia
-      nova_verzia = self.save_infolist_verzia(posledna_verzia, data, user=user)
+      nova_verzia = self.save_infolist_verzia(posledna_verzia, data, user=user, system_update=system_update)
       if id != None:
         cur.execute('''UPDATE infolist
           SET posledna_verzia = %s
@@ -389,8 +390,9 @@ class DataStore(object):
         id = cur.fetchone()[0]
       return id
   
-  def save_infolist_verzia(self, predosla_verzia, data, lang='sk', user=None):
-    nove_id = self._save_iv_data(predosla_verzia, data, user=user)
+  def save_infolist_verzia(self, predosla_verzia, data, lang='sk', user=None,
+      system_update=False):
+    nove_id = self._save_iv_data(predosla_verzia, data, user=user, system_update=system_update)
     self._save_iv_suvisiace_predmety(nove_id, data)
     self._save_iv_vyucujuci(nove_id, data['vyucujuci'])
     self._save_iv_cinnosti(nove_id, data['cinnosti'])
@@ -399,7 +401,7 @@ class DataStore(object):
     self._save_iv_trans(nove_id, data, lang=lang)
     return nove_id
     
-  def _save_iv_data(self, predosla_verzia, data, user=None):
+  def _save_iv_data(self, predosla_verzia, data, user=None, system_update=False):
     pct = data['podm_absolvovania']['percenta_na']
     hodn = data['hodnotenia_pocet']
     with self.cursor() as cur:
@@ -416,8 +418,8 @@ class DataStore(object):
           treba_zmenit_kod, predpokladany_semester,
           modifikoval, finalna_verzia, bude_v_povinnom,
           predpokladany_stupen_studia, nepouzivat_stupnicu,
-          obsahuje_varovania)
-        VALUES (''' + ', '.join(['%s'] * 28) + ''')
+          obsahuje_varovania, hromadna_zmena)
+        VALUES (''' + ', '.join(['%s'] * 29) + ''')
         RETURNING id''',
         (data['pocet_kreditov'], data['podm_absolvovania']['percenta_skuska'],
         pct['A'], pct['B'], pct['C'], pct['D'], pct['E'],
@@ -430,7 +432,7 @@ class DataStore(object):
         data['finalna_verzia'], data['bude_v_povinnom'],
         data['predpokladany_stupen_studia'],
         data['podm_absolvovania']['nepouzivat_stupnicu'],
-        data['obsahuje_varovania']))
+        data['obsahuje_varovania'], system_update))
       return cur.fetchone()[0]
   
   def _save_iv_suvisiace_predmety(self, iv_id, data):

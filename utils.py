@@ -134,6 +134,9 @@ class Podmienka(object):
   def __str__(self):
     return unicode(self).encode('UTF-8')
   
+  def __repr__(self):
+    return 'Podmienka({!r})'.format(self.serialize())
+  
   def serialize(self):
     return ' '.join(str(x) for x in self._tokens)
   
