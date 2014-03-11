@@ -9,15 +9,22 @@
   {% for studprog in studijne_programy %}
     <li><a href="{{ url_for('studijny_program_show', id=studprog.id, edit=False) }}">{{ studprog.nazov }} ({{ studprog.stupen_studia }})</a>
       <ul class="inline-label">
+        {% if studprog.finalna_verzia %}
+        <li class="finalna-verzia">finálna verzia</li>
+        {% endif %}
         {% if studprog.obsahuje_varovania %}
         <li class="obsahuje-varovania">obsahuje varovania</li>
         {% endif %}
         {% if studprog.zamknute %}
           <li class="uzamknute">uzamknuté{% if studprog.zamkol %} ({{ (studprog.zamkol|osoba).cele_meno|space2nbsp }}){% endif %}</li>
         {% endif %}
-        <li class="posledna-zmena">posledná zmena: {{ studprog.modifikovane|datetime|space2nbsp }}</li>
+        <li class="posledna-zmena">posledná zmena: {{ studprog.modifikovane|datetime|space2nbsp }}
+        {%- if studprog.modifikoval_cele_meno %}
+          ({{ studprog.modifikoval_cele_meno }})
+        {% endif -%}
+        </li>
         {% if studprog.modifikovali and not
-              (studprog.modifikovali|length == 1 and studprog.modifikovali[0].id == studprog.vytvoril) %}
+              (studprog.modifikovali|length == 1 and studprog.modifikovali[0].id == studprog.modifikoval) %}
         <li class="upravovali">upravovali:
           {% for osoba in studprog.modifikovali %}
             {%- if not loop.first %}; {% endif %}

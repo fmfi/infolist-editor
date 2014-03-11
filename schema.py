@@ -457,4 +457,8 @@ def Studprog():
       štandardného odporúčaného študijného plánu.'''.replace('\n      ', ' '),
     widget=deform.widget.TextAreaWidget(rows=5),
   ))
+  schema.add(SchemaNode(Bool(),
+    name='finalna_verzia',
+    title=u'Táto verzia je finálna a dá sa použiť do akreditačného spisu'
+  ))
   return schema
