@@ -2319,7 +2319,7 @@
 	
 			$item = (typeof value === 'object') ? value : self.getItem(value);
 			value = hash_key($item.attr('data-value'));
-			i = self.items.indexOf(value);
+			i = self.$control.children().not('input').index($item);
 	
 			if (i !== -1) {
 				$item.remove();
