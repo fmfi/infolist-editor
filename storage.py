@@ -267,7 +267,8 @@ class DataStore(object):
                      'kratke_meno': kratke_meno(meno, priezvisko),
                      'typy': set()}
         ivv.append(vyucujuci)
-      vyucujuci['typy'].add(typ_vyucujuceho)
+      if typ_vyucujuceho is not None:
+        vyucujuci['typy'].add(typ_vyucujuceho)
     return ivv
   
   def _load_iv_cinnosti(self, cur, id):
