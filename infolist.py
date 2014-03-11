@@ -39,6 +39,7 @@ psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 from psycopg2.extras import NamedTupleCursor
 from decimal import Decimal, ROUND_HALF_EVEN
 from utils import Podmienka
+from itertools import groupby
 
 class MyRequest(Request):
   parameter_storage_class = OrderedMultiDict
@@ -329,8 +330,41 @@ def export_infolist(id):
   tdata['IL_CINNOSTI'] = cinnosti
 
   tdata['IL_POCET_KREDITOV'] = infolist['pocet_kreditov']
-  tdata['IL_ODPORUCANY_SEMESTER'] = 'TODO'
-  tdata['IL_STUPEN_STUDIA'] = 'TODO'
+  
+  sem2text = {
+    'L': u'letný',
+    'Z': u'zimný',
+  }
+  odp_group = []
+  for k, grp in groupby(infolist['odporucane_semestre'], lambda x: (x['rocnik'], x['semester'])):
+    odp_group.append((k, list(grp)))
+  odp_sem = u''
+  if len(odp_group) > 1:
+    odp_sem += u'\n'
+  for i, ((rocnik, semester), odp) in enumerate(odp_group):
+    if i > 0:
+      odp_sem += u'\n'
+    odp_sem += u'{}. ročník, {} semester'.format(rocnik,
+      sem2text[semester] if semester in sem2text else '?')
+    if len(odp_group) > 1:
+      odp_sem += u' ({})'.format(u', '.join(u'{} {}'.format(x['studprog_skratka'], x['studprog_nazov']) for x in odp))
+    
+  tdata['IL_ODPORUCANY_SEMESTER'] = odp_sem
+  
+  
+  stup_group = []
+  for k, grp in groupby(infolist['odporucane_semestre'], lambda x: x['stupen_studia']):
+    stup_group.append((k, list(grp)))
+  stup_stud = u''
+  if len(stup_group) > 1:
+    stup_stud += u'\n'
+  for i, (stupen, group) in enumerate(stup_group):
+    if i > 0:
+      stup_stud += u'\n'
+    stup_stud += stupen
+    if len(stup_group) > 1:
+      stup_stud += u' ({})'.format(u', '.join(u'{} {}'.format(x['studprog_skratka'], x['studprog_nazov']) for x in group))
+  tdata['IL_STUPEN_STUDIA'] = stup_stud
 
   podm_predmety = unicode(infolist['podmienujuce_predmety'])
   if infolist['odporucane_predmety']:

@@ -130,6 +130,21 @@ class DataStore(object):
         'povodny_kod_predmetu': povodny_kod,
         'povodna_skratka': povodna_skratka
       }
+      cur.execute('''SELECT DISTINCT sp.id as studprog, sp.skratka as studprog_skratka,
+        spv.stupen_studia,
+        spvp.nazov as studprog_nazov,
+        spvbi.rocnik, spvbi.semester
+        FROM studprog_verzia_blok_infolist spvbi
+        INNER JOIN studprog sp ON sp.posledna_verzia = spvbi.studprog_verzia
+        INNER JOIN studprog_verzia spv ON spv.id = spvbi.studprog_verzia
+        LEFT JOIN studprog_verzia_preklad spvp ON spvp.studprog_verzia = spvbi.studprog_verzia
+        WHERE spvbi.infolist = %s
+        AND (spvp.jazyk_prekladu = 'sk' OR spvp.jazyk_prekladu IS NULL)
+        ORDER BY rocnik, semester DESC, studprog_nazov
+        ''', (id,))
+      odp = []
+      i['odporucane_semestre'] = [x._asdict() for x in cur.fetchall()]
+      
     i.update(self.load_infolist_verzia(posledna_verzia, lang))
     return i
   

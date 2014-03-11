@@ -63,6 +63,30 @@
       
       <div class="polozka">
         <label>Odporúčaný semester štúdia a stupeň štúdia</label>
+        {% if data.odporucane_semestre %}
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Stupeň štúdia</th>
+                <th>Semester</th>
+                <th>Študijný program</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for odp in data.odporucane_semestre %}
+              <tr>
+                <td>{{ odp.stupen_studia }}</td>
+                <td>{{ odp.rocnik }}{{ odp.semester }}</td>
+                {% if g.user.vidi_studijne_programy() %}
+                <td><a href="{{ url_for('studijny_program_show', id=odp.studprog, edit=False) }}">{{ odp.studprog_skratka }} {{ odp.studprog_nazov }}</a></td>
+                {% else %}
+                <td>{{ odp.studprog_skratka }} {{ odp.studprog_nazov }}</td>
+                {% endif %}
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
         <div class="help-block">
           <p>Informáciu o odporúčanom semestri a stupni štúdia pridá garant
             študijného programu</p>
