@@ -348,6 +348,7 @@ def Blok(**kwargs):
     name='podmienky',
     title=u'Podmienky absolvovania bloku',
     description=u'Napr. "výber aspoň 27 kreditov", "všetky predmety z bloku", "výber 1 predmetu" a pod.',
+    missing=u''
   ))
   infolist_schema = MappingSchema(name='infolist')
   infolist_schema.add(SchemaNode(Integer(),
@@ -427,6 +428,8 @@ def Studprog():
       povinne voliteľných predmetov S1-S10 a zo všetkých povinne voliteľných
       predmetov musí z ostatných blokov absolvovať aspoň 15 kreditov.''',
     widget=deform.widget.TextAreaWidget(rows=5),
+    missing=u'',
+    warn_if_missing=True
   ))
   schema.add(SchemaNode(Sequence(),
     Blok(
