@@ -432,10 +432,11 @@ def export_infolist(id):
   
   vyuc_str = u''
   for vyucujuci in infolist['vyucujuci']:
-    vyuc_str += u'\n{} - {}'.format(
-      vyucujuci['cele_meno'],
-      u', '.join(filter_typ_vyucujuceho(x) for x in vyucujuci['typy'])
-    )
+    vyuc_str += u'\n{}'.format(vyucujuci['cele_meno'])
+    if vyucujuci['typy']:
+      vyuc_str += u' - {}'.format(
+        u', '.join(filter_typ_vyucujuceho(x) for x in vyucujuci['typy'])
+      )
   tdata['IL_VYUCUJUCI'] = vyuc_str
   tdata['IL_POSLEDNA_ZMENA'] = format_datetime(infolist['modifikovane'], iba_datum=True)
   tdata['IL_SCHVALIL'] = ''
