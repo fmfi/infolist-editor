@@ -45,3 +45,32 @@ form .deform-readonly-text {
   border-radius: 3px;
   margin-bottom: 20px;
 }
+
+.cond-err-preview {
+  border: 1px solid #ff7777;
+  border-radius: 3px;
+  padding: 5px 9px 2px 9px;
+}
+
+.cond-err-preview > div {
+  display: inline-block;
+  vertical-align: baseline;
+  margin: 0 3px 3px 0;
+  padding: 1px 3px;
+  background-color: #efefef;
+  border-radius: 3px;
+}
+
+.cond-err-preview > div.spojka,
+.cond-err-preview > div.zatvorka {
+  background-color: transparent;
+}
+
+.cond-err-preview > div.err-on, .cond-err-preview > div.err-before {
+  background-color: #ff7777;
+  color: white;
+}
+
+.cond-err-item {
+  margin-bottom: 0.5em;
+}

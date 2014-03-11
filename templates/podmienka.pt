@@ -12,12 +12,44 @@
           style style;
           value cstruct;"
            />
+  <div tal:attributes="id 'cond-status-' + oid"></div>
 
   <script type="text/javascript">
     deform.addCallback(
       '${field.oid}',
       function(oid) {
-        $('#' + oid).selectize({
+        var $field_input = $('#' + oid);
+        var $status = $('#cond-status-' + oid);
+        var validate = function(value) {
+            errors = window.validateSubjCond(value);
+            $status.empty();
+            if (errors.length == 0) return;
+            $status.append('<p>Výraz vyššie obsahuje nasledovné chyby:</p>');
+            for (var i = 0; i < errors.length; i++) {
+              $item = $('<div class="cond-err-item">');
+              var $items = $field_input[0].selectize.$control.children().not('input').clone();
+              $where = $('<div class="cond-err-preview">');
+              $where.append($items);
+              if (errors[i].before) {
+                var m = '<div class="err-before">TU JE CHYBA</div>';
+                if ($items.length == errors[i].index) {
+                  $($items[errors[i].index - 1]).after(m);
+                }
+                else {
+                  $($items[errors[i].index]).before(m);
+                }
+              }
+              else {
+                $($items[errors[i].index]).addClass('err-on');
+              }
+              $item.append($where);
+              $message = $('<div>');
+              $message.text(errors[i].text);
+              $item.append($message);
+              $status.append($item);
+            }
+          };
+        $field_input.selectize({
           delimiter: " ",
           enableDuplicate: true,
           hideSelected: false,
@@ -66,7 +98,9 @@
               }
             });
           },
+          onChange: validate,
         });
+        validate($field_input[0].selectize.getValue());
       }
     );
   </script>
