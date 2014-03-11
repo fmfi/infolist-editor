@@ -1118,13 +1118,14 @@ class DataStore(object):
     with self.cursor() as cur:
       cur.execute('''INSERT INTO studprog_verzia (
           aj_konverzny_program, stupen_studia, garant,
-          modifikoval, obsahuje_varovania, finalna_verzia
+          modifikoval, obsahuje_varovania, finalna_verzia,
+          predosla_verzia
         )
-        VALUES (%s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
         RETURNING id''',
         (data['aj_konverzny_program'], data['stupen_studia'],
          data['garant'], user.id if user else None, data['obsahuje_varovania'],
-         data['finalna_verzia']))
+         data['finalna_verzia'], predosla_verzia))
       return cur.fetchone()[0]
   
   def _save_spv_trans(self, spv_id, data, lang='sk'):

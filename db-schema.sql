@@ -770,7 +770,8 @@ CREATE TABLE studprog_verzia (
   modifikovane timestamp not null default now(),
   modifikoval integer references osoba(id),
   obsahuje_varovania boolean not null default false,
-  finalna_verzia boolean not null default false
+  finalna_verzia boolean not null default false,
+  predosla_verzia integer references studprog_verzia(id)
 );
 
 CREATE TABLE studprog_verzia_preklad (
