@@ -426,7 +426,7 @@ class DataStore(object):
         data['podm_absolvovania']['percenta_zapocet'],
         hodn['A'], hodn['B'], hodn['C'], hodn['D'], hodn['E'], hodn['Fx'],
         data['podmienujuce_predmety'].serialize(), data['odporucane_predmety'].serialize(),
-        data['vylucujuce_predmety'].serialize(), data['predosla_verzia'],
+        data['vylucujuce_predmety'].serialize(), predosla_verzia,
         data['fakulta'], data['potrebny_jazyk'], data['treba_zmenit_kod'],
         data['predpokladany_semester'], None if user is None else user.id,
         data['finalna_verzia'], data['bude_v_povinnom'],
