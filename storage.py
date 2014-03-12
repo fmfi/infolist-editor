@@ -39,7 +39,7 @@ class User(object):
     return self.opravnenie('FMFI', 'admin')
   
   def vidi_studijne_programy(self):
-    return self.opravnenie('FMFI', 'garant') or self.opravnenie('FMFI', 'admin')
+    return True
   
   def moze_vytvarat_studijne_programy(self):
     return self.opravnenie('FMFI', 'admin')
