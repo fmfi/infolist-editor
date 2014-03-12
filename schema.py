@@ -413,7 +413,9 @@ def Studprog():
       search_url=url_for('osoba_search', _external=True),
       item_url=url_for('osoba_get', _external=True),
       template="osoba"
-    )
+    ),
+    missing=colander.null,
+    warn_if_missing=True
   ))
   schema.add(SchemaNode(String(),
     name=u'stupen_studia',

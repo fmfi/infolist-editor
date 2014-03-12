@@ -766,7 +766,7 @@ CREATE TABLE studprog_verzia (
   id serial primary key,
   aj_konverzny_program boolean not null default false,
   stupen_studia varchar(10) not null,
-  garant integer not null references osoba(id),
+  garant integer references osoba(id),
   modifikovane timestamp not null default now(),
   modifikoval integer references osoba(id),
   obsahuje_varovania boolean not null default false,
