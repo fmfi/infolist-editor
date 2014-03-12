@@ -127,6 +127,10 @@
   padding-right: 1em;
 }
 
+.studprog-readonly .polozka {
+  clear: both;
+}
+
 .infolist-readonly .polozka+.polozka,
 .studprog-readonly .polozka+.polozka{
   border-top: 1px solid #ddd;
