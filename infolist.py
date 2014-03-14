@@ -313,6 +313,7 @@ def show_infolist(id, edit, predmet_id=None):
     editing=edit, modifikovali=zorad_osoby(infolist['modifikovali']))
 
 @app.route('/infolist/<int:id>.rtf')
+@restrict()
 def export_infolist(id):
   infolist = g.db.load_infolist(id)
 
@@ -480,6 +481,7 @@ def lock_infolist(id, lock):
   return redirect(url_for('show_infolist', id=id, edit=False))
 
 @app.route('/studijny-program/')
+@restrict()
 def studijny_program_index():
   if not g.user.vidi_studijne_programy():
     abort(401)
@@ -489,6 +491,7 @@ def studijny_program_index():
 @app.route('/studijny-program/<int:id>', defaults={'edit': False})
 @app.route('/studijny-program/<int:id>/upravit', defaults={'edit': True}, methods=['GET', 'POST'])
 @app.route('/studijny-program/novy', defaults={'id': None, 'edit': True}, methods=['GET', 'POST'])
+@restrict()
 def studijny_program_show(id, edit):
   if not g.user.vidi_studijne_programy():
     abort(401)
