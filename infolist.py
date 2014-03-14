@@ -88,13 +88,12 @@ def restrict(api=False):
         else:
           if g.username:
             return render_template('unauthorized.html'), 401
+          goto = None
           if request.method in ['HEAD', 'GET']:
             if request.url.startswith(request.url_root):
               goto = request.url[len(request.url_root):]
               serializer = URLSafeSerializer(config.secret)
               goto = serializer.dumps(goto)
-            else:
-              goto = None
           return redirect(url_for('index', next=goto))
       return f(*args, **kwargs)
     return wrapper
