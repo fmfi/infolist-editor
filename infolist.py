@@ -40,6 +40,7 @@ from psycopg2.extras import NamedTupleCursor
 from decimal import Decimal, ROUND_HALF_EVEN
 from utils import Podmienka
 from itertools import groupby
+from itsdangerous import URLSafeSerializer
 
 class MyRequest(Request):
   parameter_storage_class = OrderedMultiDict
@@ -87,7 +88,14 @@ def restrict(api=False):
         else:
           if g.username:
             return render_template('unauthorized.html'), 401
-          return redirect(url_for('index'))
+          if request.method in ['HEAD', 'GET']:
+            if request.url.startswith(request.url_root):
+              goto = request.url[len(request.url_root):]
+              serializer = URLSafeSerializer(config.secret)
+              goto = serializer.dumps(goto)
+            else:
+              goto = None
+          return redirect(url_for('index', next=goto))
       return f(*args, **kwargs)
     return wrapper
   return decorator
@@ -113,12 +121,30 @@ def teardown_request(*args, **kwargs):
 @app.route('/', methods=['POST', 'GET'])
 def index():
   if not g.user:
-    return render_template('login.html')
+    goto = login_get_next_url()
+    goto_enc = None
+    if goto is not None:
+      goto_enc = request.args['next']
+    return render_template('login.html', next=goto_enc, next_url=goto)
   return redirect(url_for('predmet_index', tab='moje'))
+
+def login_get_next_url():
+  if 'next' not in request.args:
+    return None
+  try:
+    serializer = URLSafeSerializer(config.secret)
+    goto = serializer.loads(request.args['next'])
+    goto = request.url_root + goto
+    return goto
+  except:
+    return None
 
 @app.route('/login')
 def login():
-  return redirect(url_for('index'))
+  goto = login_get_next_url()
+  if not goto:
+    return redirect(url_for('index'))
+  return redirect(goto)
 
 @app.route('/logout')
 def logout():
