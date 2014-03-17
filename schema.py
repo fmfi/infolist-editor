@@ -7,6 +7,33 @@ import widgets
 from flask import url_for, g
 from utils import je_profesor_alebo_docent, Podmienka
 
+class DuplicitnyValidator(object):
+  def __init__(self, idkey, msg):
+    self.idkey = idkey
+    self.msg = msg
+  
+  def __call__(self, node, items):
+    seen_items = set()
+    root_exc = colander.Invalid(node)
+    err = False
+    for pos, i in enumerate(items):
+      if self.idkey:
+        val = i[self.idkey]
+      else:
+        val = i
+      if val in seen_items:
+        subnode = node.children[0]
+        if self.idkey:
+          exc = colander.Invalid(subnode)
+          exc[self.idkey] = self.msg
+        else:
+          exc = colander.Invalid(subnode, self.msg)
+        root_exc.add(exc, pos)
+        err = True
+      seen_items.add(val)
+    if err:
+      raise root_exc
+
 def VzdelavaciaCinnost(**kwargs):
   schema = MappingSchema(**kwargs)
   schema.add(SchemaNode(String(),
@@ -111,7 +138,9 @@ def OdporucanaLiteratura(**kwargs):
     description=u'''Písaním do boxu sa spustí vyhľadávanie knihy v aktuálnom
       knižnom fonde. Ak sa kniha nenájde, musíte ju pridať do položky
       "Nová literatúra"''',
-    widget=deform.widget.SequenceWidget(orderable=True)
+    widget=deform.widget.SequenceWidget(orderable=True),
+    validator=DuplicitnyValidator(None,
+      u'''Literatúra sa už v zozname nachádza, prosím zadajte ju iba raz''')
   ))
   schema.add(SchemaNode(Sequence(),
     SchemaNode(String(),
@@ -163,21 +192,6 @@ def bude_v_povinnom_validator(form, value):
       exc3 = colander.Invalid(form)
       invalid_add_exc(exc3, form, 'podm_absolvovania', exc2)
       raise exc3
-
-def vyucujuci_nie_su_duplicitne_validator(node, vyucujuci):
-  osoby = set()
-  root_exc = colander.Invalid(node)
-  err = False
-  for pos, v in enumerate(vyucujuci):
-    if v['osoba'] in osoby:
-      subnode = node.children[0]
-      exc = colander.Invalid(subnode)
-      exc['osoba'] = u'''Vyučujúci sa už v zozname nachádza, prosím zadajte ho iba raz'''
-      root_exc.add(exc, pos)
-      err = True
-    osoby.add(v['osoba'])
-  if err:
-    raise root_exc
 
 def Infolist():
   schema = MappingSchema(warning_validator=bude_v_povinnom_validator)
@@ -333,7 +347,8 @@ def Infolist():
       zozname, prosím kontaktujte nás (potrebujeme meno, priezvisko a tituly
       vyučujúceho).</p>'''),
     widget=deform.widget.SequenceWidget(orderable=True),
-    validator=vyucujuci_nie_su_duplicitne_validator
+    validator=DuplicitnyValidator('osoba',
+      u'''Vyučujúci sa už v zozname nachádza, prosím zadajte ho iba raz''')
   ))
   schema.add(SchemaNode(Bool(),
     name='finalna_verzia',
@@ -421,7 +436,7 @@ def Blok(**kwargs):
     name='infolisty',
     title=u'Informačné listy',
     #widget=widgets.BlokInfolistWidget(),
-    validator=infolisty_v_bloku_nie_su_duplicitne_validator
+    validator=DuplicitnyValidator('infolist', u'''Informačný list sa už v bloku nachádza, prosím zadajte ho iba raz''')
   ))
   return schema
 
