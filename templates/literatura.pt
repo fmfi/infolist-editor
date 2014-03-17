@@ -11,6 +11,9 @@
           id oid;
           class string: form-control ${css_class or ''};
           data-placeholder field.widget.placeholder|None;">
+  <noscript>
+    <p class="alert alert-danger">Na výber literatúry treba mať zapnutý javascript</p>
+  </noscript>
 
   <script type="text/javascript">
     deform.addCallback(

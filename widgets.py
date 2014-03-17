@@ -4,6 +4,7 @@ from colander import null, Invalid
 import json
 from utils import Podmienka
 from flask import g, url_for
+import re
 
 class RemoteSelect2Widget(Widget):
   null_value = ''
@@ -37,7 +38,7 @@ class PodmienkaTyp(object):
     try:
       return Podmienka(cstruct)
     except ValueError, e:
-      raise Invalid(node, e.message)
+      raise Invalid(node, 'Chyba pri parsovani id predmetov (je mozne, ze Vam nefunguje javascriptovy editor?): ' + e.message)
   
   def cstruct_children(self, node, cstruct):
     return []
@@ -56,8 +57,8 @@ class PodmienkaWidget(Widget):
       {'typ': 'zatvorka', 'value': ')', 'text': ')'}
     ]
     
-    podm = Podmienka._tokenize(cstruct)
-    for id in set(int(x) for x in podm if x not in Podmienka.symbols):
+    podm = cstruct.split()
+    for id in set(int(x) for x in podm if re.match(r'^\d+$', x)):
       predmet = g.db.load_predmet_simple(id)
       if not predmet:
         continue

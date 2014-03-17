@@ -5,13 +5,16 @@
      css_class css_class|field.widget.css_class;"
      tal:omit-tag="">
 
-  <input type="text" tal:attributes="
+  <input type="hidden" tal:attributes="
           name name;
           id oid;
           class string: ${css_class};
           style style;
           value cstruct;"
            />
+  <noscript>
+    <p class="alert alert-danger">Na editovanie podmienok predmetov treba mať zapnutý javascript</p>
+  </noscript>
   <div tal:attributes="id 'cond-status-' + oid"></div>
 
   <script type="text/javascript">
