@@ -135,12 +135,15 @@ def OdporucanaLiteratura(**kwargs):
   ))
   return schema
 
-def invalid_add_exc(exc, node, name, subexc):
-  for num, child in enumerate(node.children):
+def get_child(node, name):
+  for pos, child in enumerate(node.children):
     if child.name == name:
-      exc.add(subexc, num)
-      return
+      return pos, child
   raise KeyError(name)
+
+def invalid_add_exc(exc, node, name, subexc):
+  pos, child = get_child(node, name)
+  exc.add(subexc, pos)
 
 def bude_v_povinnom_validator(form, value):
   if value['bude_v_povinnom']:
@@ -160,6 +163,21 @@ def bude_v_povinnom_validator(form, value):
       exc3 = colander.Invalid(form)
       invalid_add_exc(exc3, form, 'podm_absolvovania', exc2)
       raise exc3
+
+def vyucujuci_nie_su_duplicitne_validator(node, vyucujuci):
+  osoby = set()
+  root_exc = colander.Invalid(node)
+  err = False
+  for pos, v in enumerate(vyucujuci):
+    if v['osoba'] in osoby:
+      subnode = node.children[0]
+      exc = colander.Invalid(subnode)
+      exc['osoba'] = u'''Vyučujúci sa už v zozname nachádza, prosím zadajte ho iba raz'''
+      root_exc.add(exc, pos)
+      err = True
+    osoby.add(v['osoba'])
+  if err:
+    raise root_exc
 
 def Infolist():
   schema = MappingSchema(warning_validator=bude_v_povinnom_validator)
@@ -314,7 +332,8 @@ def Infolist():
       V prípade, že sa požadovaný vyučujúci nenachádza v
       zozname, prosím kontaktujte nás (potrebujeme meno, priezvisko a tituly
       vyučujúceho).</p>'''),
-    widget=deform.widget.SequenceWidget(orderable=True)
+    widget=deform.widget.SequenceWidget(orderable=True),
+    validator=vyucujuci_nie_su_duplicitne_validator
   ))
   schema.add(SchemaNode(Bool(),
     name='finalna_verzia',
