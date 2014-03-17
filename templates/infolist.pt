@@ -19,6 +19,9 @@
         function formatEntry(data, e) {
           var r =  '<strong>' + e(data.skratka || '') + ' ' + e(data.nazov_predmetu || '');
           r += '</strong><br /><ul class="inline-label">';
+          if (data.zahodeny) {
+            r += '<li class="zahodeny">zahodený</li>';
+          }
           if (data.finalna_verzia) {
             r += '<li class="finalna-verzia">finálna verzia</li>';
           }

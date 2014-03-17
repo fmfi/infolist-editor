@@ -254,6 +254,8 @@
   {% else %}
     {% if data.import_z_aisu %}
       <p>Tento informačný list je zamknutý proti úpravám pretože bol naimportovaný z AIS-u.</p>
+    {% elif data.zahodeny %}
+      <p>Tento informačný list bol zahodený.</p>
     {% else %}
       <p>Tento informačný list je zamknutý proti úpravám používateľom: {{ (data.zamkol|osoba)[1] }}</p>
       {% if g.user.moze_odomknut_infolist(data) %}
@@ -261,6 +263,17 @@
         <button type="submit" class="btn {% if g.user.id != data.zamkol %}btn-warning{% else %}btn-default{% endif %} btn-block">Povoliť úpravy</button>
       </form>
       {% endif %}
+    {% endif %}
+  {% endif %}
+  {% if g.user.moze_zahadzovat_infolisty() %}
+    {% if data.zahodeny %}
+      <form action="{{ url_for('trash_infolist', id=infolist_id, trash=False) }}" method="POST">
+        <button type="submit" class="btn btn-warning btn-block">Vytiahnuť infolist z koša</button>
+      </form>
+    {% else %}
+      <form action="{{ url_for('trash_infolist', id=infolist_id, trash=True) }}" method="POST">
+        <button type="submit" class="btn btn-danger btn-block"><span class="glyphicon glyphicon-trash"></span> Zahodiť infolist</button>
+      </form>
     {% endif %}
   {% endif %}
   {% if data.obsahuje_varovania %}

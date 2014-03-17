@@ -499,10 +499,31 @@ def lock_infolist(id, lock):
     flash(u'Nepodarilo sa {} informačný list!'.format(u'zamknúť' if lock else u'odomknúť'), 'danger')
     app.logger.exception('Vynimka pocas zamykania/odomykania infolistu')
     g.db.rollback()
-  if lock:
-    flash(u'Informačný list bol zamknutý proti úpravám.', 'success')
   else:
-    flash(u'Úpravy v informačnom liste boli povolené.', 'success')
+    if lock:
+      flash(u'Informačný list bol zamknutý proti úpravám.', 'success')
+    else:
+      flash(u'Úpravy v informačnom liste boli povolené.', 'success')
+  return redirect(url_for('show_infolist', id=id, edit=False))
+
+@app.route('/infolist/<int:id>/trash', methods=['POST'], defaults={'trash': True})
+@app.route('/infolist/<int:id>/untrash', methods=['POST'], defaults={'trash': False})
+@restrict()
+def trash_infolist(id, trash):
+  if not g.user.moze_zahadzovat_infolisty():
+    abort(401)
+  try:
+    g.db.trash_infolist(id, trash)
+    g.db.commit()
+  except:
+    flash(u'Nepodarilo sa {} informačný list!'.format(u'zahodiť' if trash else u'vrátiť'), 'danger')
+    app.logger.exception('Vynimka pocas zahadzovania/vracania infolistu')
+    g.db.rollback()
+  else:
+    if trash:
+      flash(u'Informačný list bol zahodený.', 'success')
+    else:
+      flash(u'Informačný list bol vrátený', 'success')
   return redirect(url_for('show_infolist', id=id, edit=False))
 
 @app.route('/studijny-program/')

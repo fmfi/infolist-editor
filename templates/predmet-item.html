@@ -9,8 +9,18 @@
 </div>
 <ul>
   {% for infolist in predmet.infolisty %}
-    <li><a href="{{ url_for('show_infolist', id=infolist.id, edit=False) }}">{{ infolist.nazov_predmetu }}</a>
+    <li class="{{ 'zahodeny' if infolist.zahodeny else '' }}">
+      {%- if infolist.zahodeny -%}
+      <del>
+      {%- endif -%}
+      <a href="{{ url_for('show_infolist', id=infolist.id, edit=False) }}">{{ infolist.nazov_predmetu }}</a>
+      {%- if infolist.zahodeny -%}
+      </del>
+      {%- endif -%}
       <ul class="inline-label">
+        {% if infolist.zahodeny %}
+        <li class="zahodeny">zahodený</li>
+        {% endif %}
         {% if infolist.finalna_verzia %}
         <li class="finalna-verzia">finálna verzia</li>
         {% endif %}

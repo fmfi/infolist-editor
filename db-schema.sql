@@ -718,7 +718,8 @@ CREATE TABLE infolist (
   zamkol integer references osoba(id),
   povodny_kod_predmetu varchar(200),
   vytvorene timestamp not null default now(),
-  vytvoril integer references osoba(id)
+  vytvoril integer references osoba(id),
+  zahodeny boolean not null default false
 );
 
 CREATE index ON infolist (posledna_verzia);

@@ -32,6 +32,9 @@ class User(object):
       return v
     return v.get(opr)
   
+  def moze_zahadzovat_infolisty(self):
+    return self.opravnenie('FMFI', 'admin')
+  
   def moze_odomknut_infolist(self, il):
     return self.opravnenie('FMFI', 'admin') or (il['zamkol'] == self.id)
   
@@ -56,35 +59,58 @@ class User(object):
   def vidi_stav_vyplnania(self):
     return self.vidi_studijne_programy()
 
-class ConditionBuilder(object):
-  def __init__(self, join_with):
-    self.conds = []
+class SQLBuilder(object):
+  def __init__(self, join_with=' ', item_format='{}'):
+    self.parts = []
     self.params = []
     self.join_with = join_with
+    self.item_format = item_format
     
   def __call__(self, text, *params, **kwargs):
-    if isinstance(text, ConditionBuilder):
+    self.append(text, *params, **kwargs)
+  
+  def _unpack_args(self, text, *params):
+    if isinstance(text, SQLBuilder):
       if len(params) != 0:
-        raise ValueError('No params allowed with ConditionBuilder arg')
-      params = text.params
-      text = str(text)
+        print repr(text), repr(params)
+        raise ValueError('No params allowed with SQLBuilder arg')
+      return text.query()
+    return text, params
+  
+  def append(self, text, *params, **kwargs):
+    text, params = self._unpack_args(text, *params)
     
-    positive = True
-    if 'positive' in kwargs:
-      positive = kwargs['positive']
-    if positive:
-      self.conds.append(text)
-    else:
-      self.conds.append('NOT ({})'.format(text))
+    self.parts.append(text)
     if text.count('%s') != len(params):
       raise ValueError('Got {} placeholders but {} parameters'.format(text.count('%s'), len(params)))
     self.params.extend(params)
   
+  def query(self):
+    return str(self), self.params
+  
   def __str__(self):
-    return ' {} '.format(self.join_with).join('({})'.format(x) for x in self.conds)
+    return self.join_with.join(self.item_format.format(x) for x in self.parts)
   
   def __len__(self):
-    return len(self.conds)
+    return len(self.parts)
+
+class ConditionBuilder(SQLBuilder):
+  def __init__(self, join_with):
+    super(ConditionBuilder, self).__init__(join_with=' {} '.format(join_with), item_format='({})')
+    
+  def append(self, text, *params, **kwargs):
+    text, params = self._unpack_args(text, *params)
+    
+    positive = True
+    if 'positive' in kwargs:
+      positive = kwargs['positive']
+    if not positive:
+      text = ('NOT ({})'.format(text))
+    super(ConditionBuilder, self).append(text, *params, **kwargs)
+  
+  @property
+  def conds(self):
+    return self.parts
 
 class DataStore(object):
   def __init__(self, conn, podmienka_class=Podmienka):
@@ -108,7 +134,7 @@ class DataStore(object):
   def load_infolist(self, id, lang='sk'):
     with self.cursor() as cur:
       cur.execute('''SELECT i.posledna_verzia, i.import_z_aisu,
-        i.forknute_z, i.zamknute, i.zamkol,
+        i.forknute_z, i.zamknute, i.zamkol, i.zahodeny,
         p.kod_predmetu, p.povodny_kod,
         p.skratka, p.povodna_skratka
         FROM infolist i
@@ -119,13 +145,14 @@ class DataStore(object):
       data = cur.fetchone()
       if data == None:
         raise NotFound('infolist({})'.format(id))
-      posledna_verzia, import_z_aisu, forknute_z, zamknute, zamkol, kod_predmetu, povodny_kod, skratka, povodna_skratka = data
+      posledna_verzia, import_z_aisu, forknute_z, zamknute, zamkol, zahodeny, kod_predmetu, povodny_kod, skratka, povodna_skratka = data
       i = {
         'posledna_verzia': posledna_verzia,
         'import_z_aisu': import_z_aisu,
         'forknute_z': forknute_z,
         'zamknute': zamknute,
         'zamkol': zamkol,
+        'zahodeny': zahodeny,
         'kod_predmetu': kod_predmetu,
         'skratka': skratka,
         'povodny_kod_predmetu': povodny_kod,
@@ -647,7 +674,7 @@ class DataStore(object):
     
     with self.cursor() as cur:
       sql = '''SELECT p.id as predmet_id, p.kod_predmetu, p.skratka,
-          i.id as infolist_id, i.zamknute, i.zamkol, i.import_z_aisu, i.vytvoril,
+          i.id as infolist_id, i.zamknute, i.zamkol, i.import_z_aisu, i.vytvoril, i.zahodeny,
           oz.cele_meno as zamkol_cele_meno,
           ov.cele_meno as vytvoril_cele_meno,
           iv.modifikovane, iv.finalna_verzia, iv.obsahuje_varovania,
@@ -687,6 +714,7 @@ class DataStore(object):
               'zamkol_cele_meno': row.zamkol_cele_meno,
               'vytvoril': row.vytvoril,
               'vytvoril_cele_meno': row.vytvoril_cele_meno,
+              'zahodeny': row.zahodeny,
               'import_z_aisu': row.import_z_aisu,
               'modifikovane': row.modifikovane,
               'finalna_verzia': row.finalna_verzia,
@@ -860,6 +888,28 @@ class DataStore(object):
           'garant': row.je_garant,
         }
       return users
+  
+  def trash_infolist(self, id, trashed=True):
+    with self.cursor() as cur:
+      cur.execute('SELECT zahodeny, zamknute, zamkol FROM infolist WHERE id = %s FOR UPDATE', (id,))
+      row = cur.fetchone()
+      if row == None:
+        raise NotFound('infolist({})'.format(id))
+      sql = SQLBuilder()
+      sql.append('UPDATE infolist SET')
+
+      sqlset = SQLBuilder(', ')
+      sqlset.append('zahodeny = %s', trashed)
+      if trashed:
+        if row.zamknute is None:
+          sqlset.append('zamknute = now()')
+      else:
+        if row.zamknute is not None and row.zamkol is None:
+          sqlset.append('zamknute = NULL')
+
+      sql.append(sqlset)
+      sql.append('WHERE id = %s', id)
+      cur.execute(*sql.query())
   
   def lock_infolist(self, id, user):
     self._lock('infolist', id, user)
@@ -1207,6 +1257,7 @@ class DataStore(object):
     cond(like)
     if finalna:
         cond('iv.finalna_verzia')
+        cond('not i.zahodeny')
     return self.fetch_infolisty(cond)
   
   def fetch_infolisty(self, cond=None):
@@ -1218,7 +1269,7 @@ class DataStore(object):
         where = ''
         where_params = []
       
-      sql = '''SELECT i.id,
+      sql = '''SELECT i.id, i.zahodeny,
           iv.id as infolist_verzia, iv.pocet_kreditov,
           iv.modifikovane, iv.finalna_verzia, iv.obsahuje_varovania,
           oz.cele_meno as zamkol_cele_meno,
@@ -1249,6 +1300,7 @@ class DataStore(object):
           'obsahuje_varovania': row.obsahuje_varovania,
           'zamkol': row.zamkol_cele_meno,
           'vytvoril': row.vytvoril_cele_meno,
+          'zahodeny': row.zahodeny
         }
         with self.cursor() as cur2:
           infolist['vyucujuci'] = self._load_iv_vyucujuci(cur2, row.infolist_verzia)
@@ -1283,7 +1335,8 @@ class DataStore(object):
               infolist i2, infolist_verzia iv2
             WHERE pi.predmet = pi2.predmet
             AND pi2.infolist <> pi.infolist AND pi2.infolist = i2.id AND
-            i2.posledna_verzia = iv2.id AND iv2.finalna_verzia)) as w_finalna2
+            i2.posledna_verzia = iv2.id AND iv2.finalna_verzia)) as w_finalna2,
+          (i.zahodeny) as w_zahodeny
         FROM studprog sp
         INNER JOIN studprog_verzia spv ON sp.posledna_verzia = spv.id
         INNER JOIN studprog_verzia_blok_infolist spvbi ON spv.id = spvbi.studprog_verzia
@@ -1297,7 +1350,7 @@ class DataStore(object):
         AND (ivp.jazyk_prekladu = 'sk' OR ivp.jazyk_prekladu IS NULL)
         {}
         ) AS sq
-        WHERE (w_finalna OR w_stupen_studia OR w_semester OR w_finalna2)
+        WHERE (w_finalna OR w_stupen_studia OR w_semester OR w_finalna2 OR w_zahodeny)
         ORDER BY id, infolist_id
       '''
       if limit_sp is not None:
@@ -1332,4 +1385,6 @@ class DataStore(object):
           add_infolist_warning('semester')
         if row.w_stupen_studia:
           add_infolist_warning('stupen_studia')
+        if row.w_zahodeny:
+          add_infolist_warning('zahodeny')
       return sp

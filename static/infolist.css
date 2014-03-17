@@ -184,6 +184,9 @@ ul.predmety > li > ul > li a {
   margin-right: 1.3em;
 }
 
+ul.predmety > li > ul > li.zahodeny {
+  
+}
 
 ul.inline-label {
   display: inline;
@@ -200,6 +203,11 @@ ul.inline-label li {
   margin-right: 1px;
   background: #eee;
   color: black;
+}
+
+ul.inline-label li.zahodeny {
+  background: black;
+  color: white;
 }
 
 ul.inline-label li.finalna-verzia {
