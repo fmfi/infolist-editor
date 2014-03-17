@@ -351,6 +351,21 @@ def warning_schema(node):
     warning_schema(child)
   return node
 
+def infolisty_v_bloku_nie_su_duplicitne_validator(node, infolisty):
+  videne = set()
+  root_exc = colander.Invalid(node)
+  err = False
+  for pos, i in enumerate(infolisty):
+    if i['infolist'] in videne:
+      subnode = node.children[0]
+      exc = colander.Invalid(subnode)
+      exc['infolist'] = u'''Informačný list sa už v bloku nachádza, prosím zadajte ho iba raz'''
+      root_exc.add(exc, pos)
+      err = True
+    videne.add(i['infolist'])
+  if err:
+    raise root_exc
+
 def Blok(**kwargs):
   schema = MappingSchema(**kwargs)
   schema.add(SchemaNode(String(),
@@ -406,7 +421,7 @@ def Blok(**kwargs):
     name='infolisty',
     title=u'Informačné listy',
     #widget=widgets.BlokInfolistWidget(),
-    a=None
+    validator=infolisty_v_bloku_nie_su_duplicitne_validator
   ))
   return schema
 
