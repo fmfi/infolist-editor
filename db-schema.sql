@@ -547,6 +547,8 @@ VALUES
   ( 7, 'D', 'D',  'samostatná práca', false),
   ( 8, 'T', 'T',  'práca v teréne', false),
   ( 9, 'U', 'Su', 'sústredenie', false),
+  (10, 'E', 'E',  'exkurzia', true),
+  (11, 'R', 'PS', 'prednáška + seminár', true),
   (99, 'I', 'I',  'iná', false)
 ;
 
