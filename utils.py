@@ -127,7 +127,7 @@ class Podmienka(object):
         if len(token['nazvy_predmetu']) == 0:
           nazov_predmetu = u'TODO'
         else:
-          nazov_predmetu = token['nazvy_predmetu'][0]
+          nazov_predmetu = u'/'.join(token['nazvy_predmetu'])
         ret += u'{} {}'.format(token['skratka'], nazov_predmetu)
     return ret
   

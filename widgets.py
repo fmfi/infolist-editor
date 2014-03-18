@@ -67,7 +67,7 @@ class PodmienkaWidget(Widget):
         'skratka': predmet['skratka'],
         'kod': predmet['kod_predmetu'],
         'typ': 'predmet',
-        'text': predmet['skratka'] + u'|'.join(predmet['nazvy_predmetu']),
+        'text': predmet['skratka'] + u' ' + u'/'.join(predmet['nazvy_predmetu']),
         'nazvy': predmet['nazvy_predmetu']
       }
       options.append(option)

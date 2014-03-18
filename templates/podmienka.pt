@@ -65,7 +65,7 @@
               else if (item.value == 'OR' || item.value == 'AND') {
                 return '<div class="spojka">' + escape(item.value == 'AND' ? 'a' : 'alebo') + '</div>';
               }
-              var text = item.skratka + " " + item.nazvy.join("|");
+              var text = item.skratka + " " + item.nazvy.join("/");
               return '<' + 'div>' +
                  escape(text) +
               '<' + '/div>';
@@ -77,7 +77,7 @@
               else if (item.value == 'OR' || item.value == 'AND') {
                 return '<div class="spojka">' + escape(item.value == 'AND' ? 'a' : 'alebo') + '</div>';
               }
-              var text = item.skratka + " " + item.nazvy.join("|");
+              var text = item.skratka + " " + item.nazvy.join("/");
               return '<' + 'div>' +
                  escape(text) + 
               '<' + '/div>';
@@ -95,7 +95,7 @@
               },
               success: function(data) {
                 callback($.map(data.predmety, function(predmet) {
-                  var text = predmet.skratka + " " + predmet.nazvy_predmetu.join("|");
+                  var text = predmet.skratka + " " + predmet.nazvy_predmetu.join("/");
                   return {value: predmet.id, kod: predmet.kod_predmetu, skratka: predmet.skratka, typ: 'predmet', text: text, nazvy: predmet.nazvy_predmetu}
                 }));
               }

@@ -620,14 +620,14 @@ class DataStore(object):
       where_cond = ' AND ' + where_cond
 
     with self.cursor() as cur:
-      sql = '''SELECT DISTINCT p.id, p.kod_predmetu, p.skratka, ivp.nazov_predmetu
+      sql = '''SELECT DISTINCT p.id, p.kod_predmetu, p.skratka, iv.finalna_verzia, ivp.nazov_predmetu
           FROM predmet p
           LEFT JOIN predmet_infolist pi ON p.id = pi.predmet
           LEFT JOIN infolist i ON pi.infolist = i.id
           LEFT JOIN infolist_verzia iv ON i.posledna_verzia = iv.id
           LEFT JOIN infolist_verzia_preklad ivp ON iv.id = ivp.infolist_verzia
           WHERE (ivp.jazyk_prekladu = 'sk' OR ivp.jazyk_prekladu IS NULL) {}
-          ORDER BY p.skratka, p.id, ivp.nazov_predmetu'''.format(where_cond)
+          ORDER BY p.skratka, p.id, iv.finalna_verzia desc, ivp.nazov_predmetu'''.format(where_cond)
       cur.execute(sql, where_params)
       predmety = []
       for row in cur:
@@ -638,8 +638,12 @@ class DataStore(object):
             'skratka': row.skratka,
             'nazvy_predmetu': []
           })
+          finalna_verzia = None
         if row.nazov_predmetu:
+          if finalna_verzia is not None and row.finalna_verzia != finalna_verzia:
+            continue
           predmety[-1]['nazvy_predmetu'].append(row.nazov_predmetu)
+          finalna_verzia = row.finalna_verzia
       return predmety
 
   def search_predmet(self, query):
