@@ -830,4 +830,46 @@ CREATE TABLE studprog (
   vytvoril integer references osoba(id)
 );
 
+CREATE TABLE subor_verzia (
+  id serial not null primary key,
+  predosla_verzia integer references subor_verzia(id),
+  modifikovane timestamp not null default now(),
+  modifikoval integer references osoba(id),
+  sha256 char(64) not null
+);
+
+CREATE TABLE subor (
+  id serial not null primary key,
+  nazov varchar(50) not null,
+  posledna_verzia integer references subor_verzia(id)
+);
+
+CREATE TABLE studprog_priloha_typ (
+  id integer not null primary key,
+  nazov varchar(100) not null,
+  kriterium varchar(10),
+);
+
+INSERT INTO studprog_priloha_typ (id, nazov, kriterium) VALUES
+  ( 1, 'Vedecko-pedagogické alebo umelecko-pedagogické charakteristiky profesorov a docentov pôsobiacich v študijnom programe', 'KSP-A3'),
+  ( 2, 'Vedecko-pedagogické alebo umelecko-pedagogické charakteristiky školiteľov v doktorandskom štúdiu', 'KSP-A4'),
+  ( 3, 'Zoznam vedúcich záverečných prác  a tém záverečných prác za obdobie dvoch rokov', 'KSP-A4'),
+  ( 4, 'Zloženie skúšobných komisií na vykonanie štátnych skúšok v študijnom programe za posledné dva roky', 'KSP-A5'),
+  ( 5, 'Kritériá na obsadzovanie funkcií profesor a docent', 'KSP-A6'),
+  ( 6, 'Odporúčaný študijný plán', 'KSP-B1'),
+  ( 7, 'Dohoda spolupracujúcich vysokých škôl', 'KSP-B1'),
+  ( 8, 'Informačné listy predmetov', 'KSP-B2'),
+  ( 9, 'Požadované schopnosti a predpoklady uchádzača o štúdium študijného programu', 'KSP-B8'),
+  (10, 'Pravidlá na schvaľovanie školiteľov v doktorandskom študijnom programe', 'KSP-B9'),
+  (11, 'Stanovisko alebo súhlas príslušnej autority k študijnému programu', 'KSP-B10'),
+  (12, 'Zoznam dokumentov predložených ako príloha k žiadosti', NULL)
+;
+
+CREATE TABLE studprog_priloha (
+  studprog integer not null references studprog(id),
+  typ_prilohy integer not null references studprog_priloha_typ(id),
+  subor integer not null references subor(id),
+  primary key (studprog, typ_prilohy, subor)
+);
+
 COMMIT;
