@@ -835,19 +835,19 @@ CREATE TABLE subor_verzia (
   predosla_verzia integer references subor_verzia(id),
   modifikovane timestamp not null default now(),
   modifikoval integer references osoba(id),
-  sha256 char(64) not null
+  sha256 char(64) not null,
+  nazov varchar(50) not null
 );
 
 CREATE TABLE subor (
   id serial not null primary key,
-  nazov varchar(50) not null,
   posledna_verzia integer references subor_verzia(id)
 );
 
 CREATE TABLE studprog_priloha_typ (
   id integer not null primary key,
-  nazov varchar(100) not null,
-  kriterium varchar(10),
+  nazov text not null,
+  kriterium varchar(10)
 );
 
 INSERT INTO studprog_priloha_typ (id, nazov, kriterium) VALUES

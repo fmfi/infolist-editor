@@ -631,6 +631,15 @@ def studijny_program_show(id, edit):
     studprog_id=id, error_saving=error_saving, editing=edit,
     modifikovali=zorad_osoby(studprog['modifikovali']))
 
+@app.route('/studijny-program/<int:id>/prilohy')
+def studijny_program_prilohy(id):
+  if not g.user.vidi_studijne_programy():
+    abort(403)
+  
+  studprog = g.db.load_studprog(id)
+  prilohy = g.db.load_studprog_prilohy(id)
+  return render_template('studprog-prilohy.html', prilohy=prilohy, data=studprog, studprog_id=id, editing=False)
+
 @app.route('/studprog/<int:id>/lock', methods=['POST'], defaults={'lock': True})
 @app.route('/studprog/<int:id>/unlock', methods=['POST'], defaults={'lock': False})
 @restrict()

@@ -1392,3 +1392,36 @@ class DataStore(object):
         if row.w_zahodeny:
           add_infolist_warning('zahodeny')
       return sp
+  
+  def load_studprog_prilohy(self, studprog_id):
+    with self.cursor() as cur:
+      cur.execute('''SELECT spt.id as typ_prilohy, spt.nazov as typ_prilohy_nazov, spt.kriterium as typ_prilohy_kriterium,
+        s.id as subor_id,
+        sv.id as subor_verzia_id, sv.nazov, sv.sha256, sv.modifikoval, sv.modifikovane,
+        sv.predosla_verzia
+        FROM studprog_priloha_typ spt
+        LEFT JOIN studprog_priloha sp ON spt.id = sp.typ_prilohy
+        LEFT JOIN subor s ON sp.subor = s.id
+        LEFT JOIN subor_verzia sv ON s.posledna_verzia = sv.id
+        WHERE sp.studprog = %s
+        ''', (studprog_id,))
+      prilohy = []
+      for row in cur:
+        if len(prilohy) == 0 or prilohy[-1]['typ_prilohy'] != row.typ_prilohy:
+          prilohy.append({
+            'typ_prilohy': row.typ_prilohy,
+            'nazov': row.typ_prilohy_nazov,
+            'kriterium': row.typ_prilohy_kriterium,
+            'subory': []
+          })
+        if row.subor_id:
+          prilohy[-1]['subory'].append({
+            'id': row.subor_id,
+            'posledna_verzia': row.subor_verzia_id,
+            'nazov': row.nazov,
+            'sha256': row.sha256,
+            'modifikoval': row.modifikoval,
+            'modifikovane': row.modifikovane,
+            'predosla_verzia': row.predosla_verzia
+          })
+      return prilohy

@@ -1,0 +1,14 @@
+{% extends 'studprog.html' %}
+{% block studprog %}
+<div class="body">
+  {{ prilohy }}
+  {% for typ_prilohy in prilohy %}
+    <h2>{{ typ.nazov }}</h2>
+    <ul>
+    {% for subor in typ.subory %}
+      <li>{{ subor.nazov }}</li>
+    {% endfor %}
+    </ul>
+  {% endfor %}
+</div>
+{% endblock %}
