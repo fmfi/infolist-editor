@@ -1,14 +1,31 @@
 {% extends 'studprog.html' %}
 {% block studprog %}
 <div class="body">
-  {{ prilohy }}
-  {% for typ_prilohy in prilohy %}
-    <h2>{{ typ.nazov }}</h2>
-    <ul>
-    {% for subor in typ.subory %}
-      <li>{{ subor.nazov }}</li>
+  {% if prilohy %}
+    {% for typ_prilohy in prilohy %}
+      <h4>{{ typ_prilohy.nazov }}{% if typ_prilohy.kriterium %} ({{ typ_prilohy.kriterium }}){% endif %}</h4>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Súbor</th>
+            <th>Čas zmeny</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for subor in typ_prilohy.subory %}
+          <tr>
+            <td><a href="{{ url_for('download_subor', id=subor.id) }}">{{ subor.nazov }}</a></td>
+            <td>{{ subor.modifikovane|datetime }}</td>
+            <td><a class="btn btn-xs btn-default" href="{{ url_for('studijny_program_prilohy_upload', studprog_id=studprog_id, subor_id=subor.id) }}">Aktualizovať</a></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
     {% endfor %}
-    </ul>
-  {% endfor %}
+  {% else %}
+    <p>K tomuto študijnému programu nie sú pripojené žiadne dokumenty</p>
+  {% endif %}
+  <a class="btn btn-primary" href="{{ url_for('studijny_program_prilohy_upload', studprog_id=studprog_id) }}">Pridať dokument</a>
 </div>
 {% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'studprog.html' %}
+{% block studprog %}
+<div class="body">
+<form action="{{ url_for('studijny_program_prilohy_upload', studprog_id=studprog_id, subor_id=subor_id) }}"
+  method="POST" enctype="multipart/form-data">
+  <h4>Nahrať súbor</h4>
+  <div>
+  <input type="file" name="dokument" />
+  </div>
+  <button type="submit" class="btn btn-primary">Nahrať</button>
+  <a class="btn btn-default" href="{{ url_for('studijny_program_prilohy', id=studprog_id) }}">Zrušiť</a>
+</form>
+</div>
+{% endblock %}
