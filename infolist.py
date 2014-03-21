@@ -631,7 +631,8 @@ def studijny_program_show(id, edit):
     messages=form_messages(form), messages_type=msg_ns.messages_type,
     add_warnings=msg_ns.add_warnings,
     studprog_id=id, error_saving=error_saving, editing=edit,
-    modifikovali=zorad_osoby(studprog['modifikovali']))
+    modifikovali=zorad_osoby(studprog['modifikovali']),
+    tab='sp')
 
 @app.route('/studijny-program/<int:id>/dokumenty')
 def studijny_program_prilohy(id):
@@ -640,7 +641,7 @@ def studijny_program_prilohy(id):
   
   studprog = g.db.load_studprog(id)
   prilohy = g.db.load_studprog_prilohy(id)
-  return render_template('studprog-prilohy.html', prilohy=prilohy, data=studprog, studprog_id=id, editing=False)
+  return render_template('studprog-prilohy.html', prilohy=prilohy, data=studprog, studprog_id=id, editing=False, tab='dokumenty')
 
 def spracuj_subor(f):
   h = hashlib.sha256()
@@ -656,8 +657,6 @@ def studijny_program_prilohy_upload(studprog_id, subor_id):
   if not g.user.moze_menit_studprog():
     abort(403)
   
-  print subor_id
-  
   if request.method == 'POST':
     f = request.files['dokument']
     if f:
@@ -665,9 +664,8 @@ def studijny_program_prilohy_upload(studprog_id, subor_id):
 
       novy_subor_id = g.db.add_subor(sha256, secure_filename(f.filename), g.user.id, subor_id=subor_id)
       
-      typ_prilohy = 1
-      print subor_id
       if subor_id is None:
+        typ_prilohy = int(request.form['typ_prilohy'])
         g.db.add_studprog_priloha(studprog_id, typ_prilohy, novy_subor_id)
       flash(u'Súbor bol úspešne nahratý', 'success')
       g.db.commit()
@@ -675,7 +673,10 @@ def studijny_program_prilohy_upload(studprog_id, subor_id):
       return redirect(url_for('studijny_program_prilohy', id=studprog_id, subor_id=subor_id))
   
   studprog = g.db.load_studprog(studprog_id)
-  return render_template('studprog-priloha-upload.html', data=studprog, studprog_id=studprog_id, editing=True, subor_id=subor_id)
+  return render_template('studprog-priloha-upload.html', data=studprog,
+    studprog_id=studprog_id, editing=True, subor_id=subor_id,
+    typy_priloh=g.db.load_typy_priloh()
+  )
 
 @app.route('/subor/<int:id>')
 def download_subor(id):

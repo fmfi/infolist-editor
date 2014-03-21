@@ -343,3 +343,11 @@ span.podmienka-predmet {
 .large-select2 .select2-choice > .select2-chosen {
   white-space: normal;
 }
+
+.studprog .nav-tabs {
+  margin-top: 0.3em;
+}
+
+.studprog .nav-tabs li:first-child {
+  margin-left: 1em;
+}

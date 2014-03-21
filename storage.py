@@ -1473,3 +1473,11 @@ class DataStore(object):
         ''',
         (subor_id,))
       return cur.fetchone()
+  
+  def load_typy_priloh(self):
+    with self.cursor() as cur:
+      cur.execute('''SELECT id, nazov, kriterium
+        FROM studprog_priloha_typ
+        ORDER BY id
+        ''')
+      return cur.fetchall()

@@ -23,6 +23,10 @@
         </ul>
       </div>
     {% endif %}
+    <ul class="nav nav-tabs">
+      <li class="{{ 'active' if tab == 'sp' else '' }}"><a href="{{ url_for('studijny_program_show', id=studprog_id, edit=False) }}">Študijný program</a></li>
+      <li class="{{ 'active' if tab == 'dokumenty' else '' }}"><a href="{{ url_for('studijny_program_prilohy', id=studprog_id) }}">Dokumenty</a></li>
+    </ul>
     {% block studprog %}
       <div class="body">
         <div class="polozka">

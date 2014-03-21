@@ -847,22 +847,24 @@ CREATE TABLE subor (
 CREATE TABLE studprog_priloha_typ (
   id integer not null primary key,
   nazov text not null,
-  kriterium varchar(10)
+  kriterium varchar(10),
+  moze_vybrat boolean not null default true,
 );
 
-INSERT INTO studprog_priloha_typ (id, nazov, kriterium) VALUES
-  ( 1, 'Vedecko-pedagogické alebo umelecko-pedagogické charakteristiky profesorov a docentov pôsobiacich v študijnom programe', 'KSP-A3'),
-  ( 2, 'Vedecko-pedagogické alebo umelecko-pedagogické charakteristiky školiteľov v doktorandskom štúdiu', 'KSP-A4'),
-  ( 3, 'Zoznam vedúcich záverečných prác  a tém záverečných prác za obdobie dvoch rokov', 'KSP-A4'),
-  ( 4, 'Zloženie skúšobných komisií na vykonanie štátnych skúšok v študijnom programe za posledné dva roky', 'KSP-A5'),
-  ( 5, 'Kritériá na obsadzovanie funkcií profesor a docent', 'KSP-A6'),
-  ( 6, 'Odporúčaný študijný plán', 'KSP-B1'),
-  ( 7, 'Dohoda spolupracujúcich vysokých škôl', 'KSP-B1'),
-  ( 8, 'Informačné listy predmetov', 'KSP-B2'),
-  ( 9, 'Požadované schopnosti a predpoklady uchádzača o štúdium študijného programu', 'KSP-B8'),
-  (10, 'Pravidlá na schvaľovanie školiteľov v doktorandskom študijnom programe', 'KSP-B9'),
-  (11, 'Stanovisko alebo súhlas príslušnej autority k študijnému programu', 'KSP-B10'),
-  (12, 'Zoznam dokumentov predložených ako príloha k žiadosti', NULL)
+INSERT INTO studprog_priloha_typ (id, nazov, kriterium, moze_vybrat) VALUES
+  ( 0, 'Vyplnený RTF formulár študijného programu', NULL, true),
+  ( 1, 'Vedecko-pedagogické alebo umelecko-pedagogické charakteristiky profesorov a docentov pôsobiacich v študijnom programe', 'KSP-A3', false),
+  ( 2, 'Vedecko-pedagogické alebo umelecko-pedagogické charakteristiky školiteľov v doktorandskom štúdiu', 'KSP-A4', false),
+  ( 3, 'Zoznam vedúcich záverečných prác  a tém záverečných prác za obdobie dvoch rokov', 'KSP-A4', true),
+  ( 4, 'Zloženie skúšobných komisií na vykonanie štátnych skúšok v študijnom programe za posledné dva roky', 'KSP-A5', true),
+  ( 5, 'Kritériá na obsadzovanie funkcií profesor a docent', 'KSP-A6', true),
+  ( 6, 'Odporúčaný študijný plán', 'KSP-B1', true),
+  ( 7, 'Dohoda spolupracujúcich vysokých škôl', 'KSP-B1', true),
+  ( 8, 'Informačné listy predmetov', 'KSP-B2', true),
+  ( 9, 'Požadované schopnosti a predpoklady uchádzača o štúdium študijného programu', 'KSP-B8', true),
+  (10, 'Pravidlá na schvaľovanie školiteľov v doktorandskom študijnom programe', 'KSP-B9', true),
+  (11, 'Stanovisko alebo súhlas príslušnej autority k študijnému programu', 'KSP-B10', true),
+  (12, 'Zoznam dokumentov predložených ako príloha k žiadosti', NULL, false)
 ;
 
 CREATE TABLE studprog_priloha (
