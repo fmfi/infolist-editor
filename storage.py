@@ -58,6 +58,9 @@ class User(object):
   
   def vidi_stav_vyplnania(self):
     return self.vidi_studijne_programy()
+  
+  def vidi_dokumenty_sp(self):
+    return self.opravnenie('FMFI', 'admin')
 
 class SQLBuilder(object):
   def __init__(self, join_with=' ', item_format='{}'):
@@ -1395,3 +1398,92 @@ class DataStore(object):
         if row.w_zahodeny:
           add_infolist_warning('zahodeny')
       return sp
+  
+  def load_studprog_prilohy(self, studprog_id):
+    with self.cursor() as cur:
+      cur.execute('''SELECT spt.id as typ_prilohy, spt.nazov as typ_prilohy_nazov, spt.kriterium as typ_prilohy_kriterium,
+        s.id as subor_id,
+        sv.id as subor_verzia_id, sv.nazov, sv.sha256, sv.modifikoval, sv.modifikovane,
+        sv.predosla_verzia
+        FROM studprog_priloha_typ spt
+        LEFT JOIN studprog_priloha sp ON spt.id = sp.typ_prilohy
+        LEFT JOIN subor s ON sp.subor = s.id
+        LEFT JOIN subor_verzia sv ON s.posledna_verzia = sv.id
+        WHERE (sp.studprog = %s OR sp.studprog is null)
+        ORDER BY typ_prilohy
+        ''', (studprog_id,))
+      prilohy = []
+      for row in cur:
+        if len(prilohy) == 0 or prilohy[-1]['typ_prilohy'] != row.typ_prilohy:
+          prilohy.append({
+            'typ_prilohy': row.typ_prilohy,
+            'nazov': row.typ_prilohy_nazov,
+            'kriterium': row.typ_prilohy_kriterium,
+            'subory': []
+          })
+        if row.subor_id:
+          prilohy[-1]['subory'].append({
+            'id': row.subor_id,
+            'posledna_verzia': row.subor_verzia_id,
+            'nazov': row.nazov,
+            'sha256': row.sha256,
+            'modifikoval': row.modifikoval,
+            'modifikovane': row.modifikovane,
+            'predosla_verzia': row.predosla_verzia
+          })
+      return prilohy
+  
+  def add_subor(self, sha256, nazov_suboru, osoba_id, subor_id=None):
+    with self.cursor() as cur:
+      predosla_verzia = None
+      if subor_id is not None:
+        cur.execute('''SELECT posledna_verzia
+          FROM subor
+          WHERE id = %s
+          FOR UPDATE''',
+          (subor_id,))
+        predosla_verzia = cur.fetchone()[0]
+      
+      cur.execute('''INSERT INTO subor_verzia (modifikoval, sha256, nazov, predosla_verzia)
+        VALUES (%s, %s, %s, %s)
+        RETURNING id
+        ''',
+        (osoba_id, sha256, nazov_suboru, predosla_verzia))
+      sv_id = cur.fetchone()[0]
+      if subor_id is None:
+        cur.execute('''INSERT INTO subor (posledna_verzia)
+          VALUES (%s)
+          RETURNING id
+          ''',
+          (sv_id,))
+        subor_id = cur.fetchone()[0]
+      else:
+        cur.execute('''UPDATE subor SET posledna_verzia = %s WHERE id = %s''',
+                    (sv_id, subor_id))
+    return subor_id
+  
+  def add_studprog_priloha(self, studprog_id, typ_prilohy, subor_id):
+    with self.cursor() as cur:
+      cur.execute('''INSERT INTO studprog_priloha (studprog, typ_prilohy, subor)
+        VALUES (%s, %s, %s)
+        ''',
+        (studprog_id, typ_prilohy, subor_id))
+  
+  def load_subor(self, subor_id):
+    with self.cursor() as cur:
+      cur.execute('''SELECT sv.id as subor_verzia, sv.predosla_verzia,
+        sv.modifikovane, sv.modifikoval, sv.sha256, sv.nazov
+        FROM subor s
+        INNER JOIN subor_verzia sv ON s.posledna_verzia = sv.id
+        WHERE s.id = %s
+        ''',
+        (subor_id,))
+      return cur.fetchone()
+  
+  def load_typy_priloh(self):
+    with self.cursor() as cur:
+      cur.execute('''SELECT id, nazov, kriterium
+        FROM studprog_priloha_typ
+        ORDER BY id
+        ''')
+      return cur.fetchall()

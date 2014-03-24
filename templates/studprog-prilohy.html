@@ -1,0 +1,38 @@
+{% extends 'studprog.html' %}
+{% block studprog %}
+<div class="body">
+  {% if prilohy %}
+    {% for typ_prilohy in prilohy %}
+      <h4>{{ typ_prilohy.nazov }}{% if typ_prilohy.kriterium %} ({{ typ_prilohy.kriterium }}){% endif %}</h4>
+      {% if typ_prilohy.typ_prilohy in [1, 2, 6, 8] %}
+        <p>Väčšina dokumentov {{ typ_prilohy.kriterium }} bude priložená automaticky.</p>
+      {% endif %}
+      {% if typ_prilohy.subory %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Súbor</th>
+            <th>Čas zmeny</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for subor in typ_prilohy.subory %}
+          <tr>
+            <td><a href="{{ url_for('download_subor', id=subor.id) }}">{{ subor.nazov }}</a></td>
+            <td>{{ subor.modifikovane|datetime }}</td>
+            <td><a class="btn btn-xs btn-default" href="{{ url_for('studijny_program_prilohy_upload', studprog_id=studprog_id, subor_id=subor.id) }}">Aktualizovať</a></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% elif typ_prilohy.typ_prilohy not in [1, 2, 6, 8]  %}
+        <p>Žiaden ručne priložený dokument.</p>
+      {% endif %}
+    {% endfor %}
+  {% else %}
+    <p>K tomuto študijnému programu nie sú pripojené žiadne dokumenty</p>
+  {% endif %}
+  <a class="btn btn-primary" href="{{ url_for('studijny_program_prilohy_upload', studprog_id=studprog_id) }}">Pridať dokument</a>
+</div>
+{% endblock %}

@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 from flask import render_template, url_for, redirect, jsonify, abort, flash
 from flask import request, Request, g
-from flask import Response
+from flask import Response, send_from_directory
 from werkzeug.exceptions import BadRequest
 from werkzeug.datastructures import OrderedMultiDict
 from werkzeug.routing import BaseConverter
@@ -41,6 +41,8 @@ from decimal import Decimal, ROUND_HALF_EVEN
 from utils import Podmienka
 from itertools import groupby
 from itsdangerous import URLSafeSerializer
+import hashlib
+from werkzeug import secure_filename
 
 class MyRequest(Request):
   parameter_storage_class = OrderedMultiDict
@@ -630,7 +632,69 @@ def studijny_program_show(id, edit, spv_id):
     messages=form_messages(form), messages_type=msg_ns.messages_type,
     add_warnings=msg_ns.add_warnings,
     studprog_id=id, error_saving=error_saving, editing=edit,
-    modifikovali=zorad_osoby(studprog['modifikovali']))
+    modifikovali=zorad_osoby(studprog['modifikovali']),
+    tab='sp')
+
+@app.route('/studijny-program/<int:id>/dokumenty')
+def studijny_program_prilohy(id):
+  if not g.user.vidi_dokumenty_sp():
+    abort(403)
+  
+  studprog = g.db.load_studprog(id)
+  prilohy = g.db.load_studprog_prilohy(id)
+  return render_template('studprog-prilohy.html', prilohy=prilohy, data=studprog, studprog_id=id, editing=False, tab='dokumenty')
+
+def spracuj_subor(f):
+  h = hashlib.sha256()
+  h.update(f.read())
+  f.seek(0)
+  sha256 = h.hexdigest()
+  f.save(os.path.join(config.files_dir, sha256))
+  return sha256
+
+@app.route('/studijny-program/<int:studprog_id>/dokumenty/upload', methods=['GET','POST'], defaults={'subor_id': None})
+@app.route('/studijny-program/<int:studprog_id>/dokumenty/<int:subor_id>/upload', methods=['GET','POST'])
+def studijny_program_prilohy_upload(studprog_id, subor_id):
+  if not (g.user.vidi_dokumenty_sp() and g.user.moze_menit_studprog()):
+    abort(403)
+  
+  if request.method == 'POST':
+    f = request.files['dokument']
+    if f:
+      sha256 = spracuj_subor(f)
+
+      nazov = request.form['nazov']
+      if not nazov:
+        nazov = secure_filename(f.filename)
+
+      novy_subor_id = g.db.add_subor(sha256, nazov, g.user.id, subor_id=subor_id)
+      
+      if subor_id is None:
+        typ_prilohy = int(request.form['typ_prilohy'])
+        g.db.add_studprog_priloha(studprog_id, typ_prilohy, novy_subor_id)
+      flash(u'Súbor bol úspešne nahratý', 'success')
+      g.db.commit()
+    
+      return redirect(url_for('studijny_program_prilohy', id=studprog_id, subor_id=subor_id))
+  
+  studprog = g.db.load_studprog(studprog_id)
+  return render_template('studprog-priloha-upload.html', data=studprog,
+    studprog_id=studprog_id, editing=True, subor_id=subor_id,
+    typy_priloh=g.db.load_typy_priloh(), subor=g.db.load_subor(subor_id)
+  )
+
+@app.route('/subor/<int:id>')
+def download_subor(id):
+  if not g.user.vidi_dokumenty_sp():
+    abort(403)
+  
+  s = g.db.load_subor(id)
+  if s is None:
+    abort(404)
+  
+  return send_from_directory(config.files_dir, s.sha256, as_attachment=True,
+                             attachment_filename=s.nazov)
+
 
 @app.route('/studprog/<int:id>/lock', methods=['POST'], defaults={'lock': True})
 @app.route('/studprog/<int:id>/unlock', methods=['POST'], defaults={'lock': False})

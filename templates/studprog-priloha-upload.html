@@ -1,0 +1,42 @@
+{% extends 'studprog.html' %}
+{% block studprog %}
+<div class="body">
+<h4>Nahrať súbor</h4>
+<form action="{{ url_for('studijny_program_prilohy_upload', studprog_id=studprog_id, subor_id=subor_id) }}"
+  method="POST" enctype="multipart/form-data" class="form-horizontal" role="form">
+  <div class="form-group">
+    <label for="dokument" class="col-sm-2 control-label">Súbor</label>
+    <div class="col-sm-10">
+      <input type="file" name="dokument" id="dokument" />
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="nazov" class="col-sm-2 control-label">Názov dokumentu</label>
+    <div class="col-sm-10">
+      <input class="form-control" type="text" name="nazov" id="nazov" value="{{ subor.nazov }}" />
+    </div>
+  </div>
+  {% if not subor_id %}
+  <div class="form-group">
+    <label for="typ_prilohy" class="col-sm-2 control-label">Typ dokumentu</label>
+    <div class="col-sm-10">
+      <select name="typ_prilohy" id="typ_prilohy" style="width: 100%">
+        {% for typ_prilohy in typy_priloh %}
+          <option value="{{ typ_prilohy.id }}">{{ typ_prilohy.nazov }}{% if typ_prilohy.kriterium%} (kritérium {{ typ_prilohy.kriterium }}){% endif %}</option>
+        {% endfor %}
+      </select>
+      <script>
+          $(document).ready(function() { $("#typ_prilohy").select2(); });
+      </script>
+    </div>
+  </div>
+  {% endif %}
+  <div class="form-group">
+    <div class="col-sm-offset-2 col-sm-10">
+      <button type="submit" class="btn btn-primary">Nahrať</button>
+      <a class="btn btn-default" href="{{ url_for('studijny_program_prilohy', id=studprog_id) }}">Zrušiť</a>
+    </div>
+  </div>
+</form>
+</div>
+{% endblock %}
