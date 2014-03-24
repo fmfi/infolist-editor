@@ -97,7 +97,9 @@
     {% if not editing and (g.user.moze_menit_studprog() or data.obsahuje_varovania) %}
       <div class="meta">
       {% if g.user.moze_menit_studprog() %}
-      {% if not data.zamknute %}
+      {% if data.verzia != data.posledna_verzia %}
+        <p>Toto je historická verzia študíjneho programu</p>
+      {% elif not data.zamknute %}
         <a href="{{ url_for('studijny_program_show', id=studprog_id, edit=True) }}"
           class="btn btn-block btn-primary">Upraviť</a>
         <form action="{{ url_for('lock_studprog', id=studprog_id, lock=True) }}" method="POST">

@@ -988,7 +988,7 @@ class DataStore(object):
       cur.execute('DELETE FROM oblubene_predmety WHERE predmet = %s AND osoba = %s',
                   (predmet_id, osoba_id))
   
-  def load_studprog(self, id, lang='sk'):
+  def load_studprog(self, id, lang='sk', verzia=None):
     with self.cursor() as cur:
       cur.execute('''SELECT sp.skratka, sp.posledna_verzia, sp.zamknute, sp.zamkol, sp.vytvorene, sp.vytvoril
         FROM studprog sp
@@ -998,6 +998,8 @@ class DataStore(object):
       data = cur.fetchone()
       if data is None:
         raise NotFound('studprog({})'.format(id))
+      if verzia is None:
+        verzia = data.posledna_verzia
       sp = {
         'id': id,
         'skratka': data.skratka,
@@ -1006,8 +1008,9 @@ class DataStore(object):
         'zamkol': data.zamkol,
         'vytvorene': data.vytvorene,
         'vytvoril': data.vytvoril,
+        'verzia': verzia
       }
-      sp.update(self.load_studprog_verzia(data.posledna_verzia, lang))
+      sp.update(self.load_studprog_verzia(verzia, lang))
       return sp
   
   def load_studprog_verzia(self, id, lang='sk'):

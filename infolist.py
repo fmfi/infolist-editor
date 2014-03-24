@@ -534,15 +534,16 @@ def studijny_program_index():
   sp = g.db.fetch_studijne_programy()
   return render_template('studprog-index.html', studijne_programy=sp)
 
-@app.route('/studijny-program/<int:id>', defaults={'edit': False})
-@app.route('/studijny-program/<int:id>/upravit', defaults={'edit': True}, methods=['GET', 'POST'])
-@app.route('/studijny-program/novy', defaults={'id': None, 'edit': True}, methods=['GET', 'POST'])
+@app.route('/studijny-program/<int:id>', defaults={'edit': False, 'spv_id': None})
+@app.route('/studijny-program/<int:id>/historia/<int:spv_id>', defaults={'edit': False})
+@app.route('/studijny-program/<int:id>/upravit', defaults={'edit': True, 'spv_id': None}, methods=['GET', 'POST'])
+@app.route('/studijny-program/novy', defaults={'id': None, 'edit': True, 'spv_id': None}, methods=['GET', 'POST'])
 @restrict()
-def studijny_program_show(id, edit):
+def studijny_program_show(id, edit, spv_id):
   if not g.user.vidi_studijne_programy():
     abort(401)
   if id != None:
-    studprog = g.db.load_studprog(id)
+    studprog = g.db.load_studprog(id, verzia=spv_id)
   else:
     if not g.user.moze_vytvarat_studijne_programy():
       abort(401)
