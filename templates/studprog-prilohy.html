@@ -42,5 +42,22 @@
     <p>K tomuto študijnému programu nie sú pripojené žiadne dokumenty</p>
   {% endif %}
   <a class="btn btn-primary" href="{{ url_for('studijny_program_prilohy_upload', studprog_id=studprog_id) }}">Pridať dokument</a>
+  <hr />
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Typ prílohy</th>
+        <th>Počet</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for typ_prilohy in prilohy %}
+      <tr>
+        <td>{{ typ_prilohy.nazov }}</td>
+        <td>{{ typ_prilohy.subory|count }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% endblock %}
