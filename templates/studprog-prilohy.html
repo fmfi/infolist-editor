@@ -19,9 +19,17 @@
         <tbody>
         {% for subor in typ_prilohy.subory %}
           <tr>
+            {% if subor.typ == 'subor' %}
             <td><a href="{{ url_for('download_subor', id=subor.id) }}">{{ subor.nazov }}</a></td>
+            {% elif subor.typ == 'zoznam_priloh' %}
+            <td><a href="{{ url_for('studijny_program_prilohy_rtf', id=studprog_id) }}">{{ subor.nazov }}</a></td>
+            {% endif %}
             <td>{{ subor.modifikovane|datetime }}</td>
+            {% if subor.typ == 'subor' %}
             <td><a class="btn btn-xs btn-default" href="{{ url_for('studijny_program_prilohy_upload', studprog_id=studprog_id, subor_id=subor.id) }}">Aktualizovať</a></td>
+            {% else %}
+            <td></td>
+            {% endif %}
           </tr>
         {% endfor %}
         </tbody>

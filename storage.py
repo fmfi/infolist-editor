@@ -1431,6 +1431,12 @@ class DataStore(object):
             'modifikovane': row.modifikovane,
             'predosla_verzia': row.predosla_verzia
           })
+        if row.typ_prilohy == 12:
+          prilohy[-1]['subory'].append({
+            'typ': 'zoznam_priloh',
+            'nazov': 'zoznam_priloh.rtf',
+            'modifikovane': None
+          })
       return prilohy
   
   def add_subor(self, sha256, nazov_suboru, osoba_id, subor_id=None):

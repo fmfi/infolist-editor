@@ -14,4 +14,5 @@ Editor informačných listov
     virtualenv venv
     source venv/bin/activate
     pip install Flask deform=2.0a2 psycopg2
+    pip install git+https://github.com/shvechikov/python-rtfng.git
 
