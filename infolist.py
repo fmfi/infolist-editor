@@ -636,7 +636,7 @@ def studijny_program_show(id, edit):
 
 @app.route('/studijny-program/<int:id>/dokumenty')
 def studijny_program_prilohy(id):
-  if not g.user.vidi_studijne_programy():
+  if not g.user.vidi_dokumenty_sp():
     abort(403)
   
   studprog = g.db.load_studprog(id)
@@ -654,7 +654,7 @@ def spracuj_subor(f):
 @app.route('/studijny-program/<int:studprog_id>/dokumenty/upload', methods=['GET','POST'], defaults={'subor_id': None})
 @app.route('/studijny-program/<int:studprog_id>/dokumenty/<int:subor_id>/upload', methods=['GET','POST'])
 def studijny_program_prilohy_upload(studprog_id, subor_id):
-  if not g.user.moze_menit_studprog():
+  if not (g.user.vidi_dokumenty_sp() and g.user.moze_menit_studprog()):
     abort(403)
   
   if request.method == 'POST':
@@ -662,7 +662,11 @@ def studijny_program_prilohy_upload(studprog_id, subor_id):
     if f:
       sha256 = spracuj_subor(f)
 
-      novy_subor_id = g.db.add_subor(sha256, secure_filename(f.filename), g.user.id, subor_id=subor_id)
+      nazov = request.form['nazov']
+      if not nazov:
+        nazov = secure_filename(f.filename)
+
+      novy_subor_id = g.db.add_subor(sha256, nazov, g.user.id, subor_id=subor_id)
       
       if subor_id is None:
         typ_prilohy = int(request.form['typ_prilohy'])
@@ -675,12 +679,12 @@ def studijny_program_prilohy_upload(studprog_id, subor_id):
   studprog = g.db.load_studprog(studprog_id)
   return render_template('studprog-priloha-upload.html', data=studprog,
     studprog_id=studprog_id, editing=True, subor_id=subor_id,
-    typy_priloh=g.db.load_typy_priloh()
+    typy_priloh=g.db.load_typy_priloh(), subor=g.db.load_subor(subor_id)
   )
 
 @app.route('/subor/<int:id>')
 def download_subor(id):
-  if not g.user.vidi_studijne_programy():
+  if not g.user.vidi_dokumenty_sp():
     abort(403)
   
   s = g.db.load_subor(id)

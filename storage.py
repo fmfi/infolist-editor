@@ -58,6 +58,9 @@ class User(object):
   
   def vidi_stav_vyplnania(self):
     return self.vidi_studijne_programy()
+  
+  def vidi_dokumenty_sp(self):
+    return self.opravnenie('FMFI', 'admin')
 
 class SQLBuilder(object):
   def __init__(self, join_with=' ', item_format='{}'):
