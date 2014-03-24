@@ -4,6 +4,10 @@
   {% if prilohy %}
     {% for typ_prilohy in prilohy %}
       <h4>{{ typ_prilohy.nazov }}{% if typ_prilohy.kriterium %} ({{ typ_prilohy.kriterium }}){% endif %}</h4>
+      {% if typ_prilohy.typ_prilohy in [1, 2, 6, 8] %}
+        <p>Väčšina dokumentov {{ typ_prilohy.kriterium }} bude priložená automaticky.</p>
+      {% endif %}
+      {% if typ_prilohy.subory %}
       <table class="table">
         <thead>
           <tr>
@@ -22,6 +26,9 @@
         {% endfor %}
         </tbody>
       </table>
+      {% elif typ_prilohy.typ_prilohy not in [1, 2, 6, 8]  %}
+        <p>Žiaden ručne priložený dokument.</p>
+      {% endif %}
     {% endfor %}
   {% else %}
     <p>K tomuto študijnému programu nie sú pripojené žiadne dokumenty</p>

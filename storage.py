@@ -1403,10 +1403,10 @@ class DataStore(object):
         sv.id as subor_verzia_id, sv.nazov, sv.sha256, sv.modifikoval, sv.modifikovane,
         sv.predosla_verzia
         FROM studprog_priloha_typ spt
-        INNER JOIN studprog_priloha sp ON spt.id = sp.typ_prilohy
-        INNER JOIN subor s ON sp.subor = s.id
-        INNER JOIN subor_verzia sv ON s.posledna_verzia = sv.id
-        WHERE (sp.studprog = %s)
+        LEFT JOIN studprog_priloha sp ON spt.id = sp.typ_prilohy
+        LEFT JOIN subor s ON sp.subor = s.id
+        LEFT JOIN subor_verzia sv ON s.posledna_verzia = sv.id
+        WHERE (sp.studprog = %s OR sp.studprog is null)
         ORDER BY typ_prilohy
         ''', (studprog_id,))
       prilohy = []
