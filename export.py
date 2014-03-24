@@ -9,6 +9,32 @@ from markupsafe import soft_unicode
 from utils import format_datetime
 from flask import send_from_directory
 from flask import g, url_for, Response
+import zipfile
+import os.path
+
+class ZipBuffer(object):
+    """ A file-like object for zipfile.ZipFile to write into. http://stackoverflow.com/a/9829044"""
+
+    def __init__(self):
+        self.data = []
+        self.pos = 0
+
+    def write(self, data):
+        self.data.append(data)
+        self.pos += len(data)
+
+    def tell(self):
+        # zipfile calls this so we need it
+        return self.pos
+
+    def flush(self):
+        # zipfile calls this so we need it
+        pass
+
+    def get_and_clear(self):
+        result = self.data
+        self.data = []
+        return result
 
 class Priloha(object):
   def __init__(self, nazov, **kwargs):
@@ -105,6 +131,38 @@ class Prilohy(object):
   def __iter__(self):
     for typ in self.typy:
       yield self.typy[typ], self.podla_typu[typ]
+  
+  def send_zip(self, **context):
+    def entries():
+      output_entries = set()
+      for typ, subory in self:
+        for subor in subory:
+          if subor.nazov in output_entries:
+            continue
+          output_entries.add(subor.nazov)
+          with closing(StringIO()) as f:
+            subor.render(f, **context)
+            yield subor.nazov, f.getvalue()
+    return stream_zip(entries(), 'vsetky.zip')
+
+def stream_zip(entries, filename):
+  """inspired by http://stackoverflow.com/a/9829044"""
+  def chunks():
+    sink = ZipBuffer()
+    archive = zipfile.ZipFile(sink, "w")
+    for entry, data in entries:
+        archive.writestr(entry, data)
+        for chunk in sink.get_and_clear():
+            yield chunk
+
+    archive.close()
+    # close() generates some more data, so we yield that too
+    for chunk in sink.get_and_clear():
+        yield chunk
+  
+  response = Response(chunks(), mimetype='application/zip')
+  response.headers['Content-Disposition'] = 'attachment; filename={}'.format(filename)
+  return response
 
 def prilohy_pre_studijny_program(sp_id):
   prilohy = Prilohy()

@@ -38,6 +38,7 @@
     <p>K tomuto študijnému programu nie sú priložené žiadne dokumenty</p>
   {% endif %}
   <a class="btn btn-primary" href="{{ url_for('studijny_program_prilohy_upload', studprog_id=studprog_id) }}">Pridať dokument</a>
+  <a class="btn btn-default" href="{{ url_for('studijny_program_priloha_stiahni_zip', id=studprog_id) }}"><span class="glyphicon glyphicon-download"></span> Stiahnuť všetky prílohy</a>
   <hr />
   <table class="table">
     <thead>

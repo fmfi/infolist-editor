@@ -645,6 +645,12 @@ def studijny_program_prilohy(id):
   prilohy = export.prilohy_pre_studijny_program(id)
   return render_template('studprog-prilohy.html', prilohy=prilohy, data=studprog, studprog_id=id, editing=False, tab='dokumenty')
 
+def studprog_priloha_context(sp_id):
+  return {
+      'config': config,
+      'studprog': g.db.load_studprog(sp_id)
+    }
+
 @app.route('/studijny-program/<int:id>/dokumenty/stiahni/<nazov>')
 def studijny_program_priloha_stiahni(id, nazov):
   if not g.user.vidi_dokumenty_sp():
@@ -654,9 +660,16 @@ def studijny_program_priloha_stiahni(id, nazov):
   if nazov not in prilohy.podla_nazvu:
     abort(404)
   
-  studprog = g.db.load_studprog(id)
+  return prilohy.podla_nazvu[nazov].send(prilohy=prilohy, **studprog_priloha_context(id))
+
+@app.route('/studijny-program/<int:id>/dokumenty/vsetky.zip')
+def studijny_program_priloha_stiahni_zip(id):
+  if not g.user.vidi_dokumenty_sp():
+    abort(403)
   
-  return prilohy.podla_nazvu[nazov].send(config=config, studprog=studprog, prilohy=prilohy)
+  prilohy = export.prilohy_pre_studijny_program(id)
+  
+  return prilohy.send_zip(prilohy=prilohy, **studprog_priloha_context(id))
 
 def spracuj_subor(f):
   h = hashlib.sha256()
