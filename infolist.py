@@ -43,7 +43,7 @@ from itertools import groupby
 from itsdangerous import URLSafeSerializer
 import hashlib
 from werkzeug import secure_filename
-import rtf_parts
+import export
 
 class MyRequest(Request):
   parameter_storage_class = OrderedMultiDict
@@ -642,23 +642,21 @@ def studijny_program_prilohy(id):
     abort(403)
   
   studprog = g.db.load_studprog(id)
-  prilohy = g.db.load_studprog_prilohy(id)
+  prilohy = export.prilohy_pre_studijny_program(id)
   return render_template('studprog-prilohy.html', prilohy=prilohy, data=studprog, studprog_id=id, editing=False, tab='dokumenty')
 
-@app.route('/studijny-program/<int:id>/dokumenty.rtf')
-def studijny_program_prilohy_rtf(id):
+@app.route('/studijny-program/<int:id>/dokumenty/stiahni/<nazov>')
+def studijny_program_priloha_stiahni(id, nazov):
   if not g.user.vidi_dokumenty_sp():
     abort(403)
   
+  prilohy = export.prilohy_pre_studijny_program(id)
+  if nazov not in prilohy.podla_nazvu:
+    abort(404)
+  
   studprog = g.db.load_studprog(id)
-  prilohy = g.db.load_studprog_prilohy(id)
   
-  rtf = rtf_parts.rtf_zoznam_priloh(prilohy)
-  
-  response =  Response(rtf, mimetype='application/rtf')
-  response.headers['Content-Disposition'] = 'attachment; filename=zoznam-priloh.rtf'.format(id)
-  return response
-
+  return prilohy.podla_nazvu[nazov].send(config=config, studprog=studprog, prilohy=prilohy)
 
 def spracuj_subor(f):
   h = hashlib.sha256()
