@@ -48,7 +48,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for typ_prilohy, subory in prilohy %}
+      {% for typ_prilohy, subory in prilohy if typ_prilohy.id != 0 %}
       <tr>
         <td>{{ typ_prilohy.nazov }}</td>
         <td>{{ subory|count }}</td>

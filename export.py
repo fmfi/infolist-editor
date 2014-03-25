@@ -70,7 +70,7 @@ class PrilohaZoznam(Priloha):
     section.append(p)
     
     for typ_prilohy, subory in prilohy:
-      if not subory:
+      if not subory or typ_prilohy.id == 0:
         continue
       
       p = Paragraph(styles.ParagraphStyles.Heading2)
