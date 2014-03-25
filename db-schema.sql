@@ -848,7 +848,7 @@ CREATE TABLE studprog_priloha_typ (
   id integer not null primary key,
   nazov text not null,
   kriterium varchar(10),
-  moze_vybrat boolean not null default true,
+  moze_vybrat boolean not null default true
 );
 
 INSERT INTO studprog_priloha_typ (id, nazov, kriterium, moze_vybrat) VALUES
