@@ -715,7 +715,7 @@ def studijny_program_prilohy_upload(studprog_id, subor_id):
   studprog = g.db.load_studprog(studprog_id)
   return render_template('studprog-priloha-upload.html', data=studprog,
     studprog_id=studprog_id, editing=True, subor_id=subor_id,
-    typy_priloh=g.db.load_typy_priloh(), subor=g.db.load_subor(subor_id)
+    typy_priloh=g.db.load_typy_priloh(iba_moze_vybrat=True), subor=g.db.load_subor(subor_id)
   )
 
 @app.route('/subor/<int:id>')

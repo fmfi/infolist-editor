@@ -1474,10 +1474,14 @@ class DataStore(object):
         (subor_id,))
       return cur.fetchone()
   
-  def load_typy_priloh(self):
+  def load_typy_priloh(self, iba_moze_vybrat=False):
     with self.cursor() as cur:
+      where = ''
+      if iba_moze_vybrat:
+        where = 'WHERE moze_vybrat'
       cur.execute('''SELECT id, nazov, kriterium
         FROM studprog_priloha_typ
+        {}
         ORDER BY id
-        ''')
+        '''.format(where))
       return cur.fetchall()
