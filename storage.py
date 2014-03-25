@@ -61,7 +61,7 @@ class User(object):
     return self.vidi_studijne_programy()
   
   def vidi_dokumenty_sp(self):
-    return self.opravnenie('FMFI', 'admin')
+    return self.vidi_studijne_programy()
   
   def moze_pridat_nahradu_hodnotenia(self):
     return self.opravnenie('FMFI', 'admin')
