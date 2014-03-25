@@ -1,5 +1,5 @@
 {% extends 'layout.html' %}
-{% from 'macros.html' import render_field, render_checkbox, flashes %}
+{% from 'macros.html' import render_field, render_checkbox, flashes, odporucany_semester %}
 {% block title %}Informačný list{% endblock %}
 {% block content %}
 <div class="content-full">
@@ -76,7 +76,7 @@
             {% for odp in data.odporucane_semestre %}
               <tr>
                 <td>{{ odp.stupen_studia }}</td>
-                <td>{{ odp.rocnik }}{{ odp.semester }}</td>
+                <td>{{ odporucany_semester(odp.rocnik, odp.semester) }}</td>
                 {% if g.user.vidi_studijne_programy() %}
                 <td><a href="{{ url_for('studijny_program_show', id=odp.studprog, edit=False) }}">{{ odp.studprog_skratka }} {{ odp.studprog_nazov }}</a></td>
                 {% else %}

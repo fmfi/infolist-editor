@@ -1,5 +1,5 @@
 {% extends 'layout.html' %}
-{% from 'macros.html' import render_field, render_checkbox, flashes %}
+{% from 'macros.html' import render_field, render_checkbox, flashes, odporucany_semester %}
 {% block title %}Študijný program{% endblock %}
 {% block content %}
 <div class="content-100">
@@ -71,7 +71,7 @@
                 </td>
                 <td>{{ 'áno' if infolist.predmet_jadra else 'nie' }}</td>
                 <td class="col-vyucujuci">{{ infolist.vyucujuci|join(', ', attribute='kratke_meno') }}</td>
-                <td>{{ infolist.rocnik }}{{ infolist.semester }}</td>
+                <td>{{ odporucany_semester(infolist.rocnik, infolist.semester) }}</td>
                 <td>{{ infolist.rozsah|join(' + ') }}</td>
                 <td>{{ infolist.pocet_kreditov }}</td>
               </tr>

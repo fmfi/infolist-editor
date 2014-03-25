@@ -168,14 +168,15 @@ class DataStore(object):
       cur.execute('''SELECT DISTINCT sp.id as studprog, sp.skratka as studprog_skratka,
         spv.stupen_studia,
         spvp.nazov as studprog_nazov,
-        spvbi.rocnik, spvbi.semester
+        spvbi.rocnik, spvbi.semester,
+        CASE semester WHEN 'Z' THEN 0 WHEN 'L' THEN 1 ELSE 2 END as semester_poradie
         FROM studprog_verzia_blok_infolist spvbi
         INNER JOIN studprog sp ON sp.posledna_verzia = spvbi.studprog_verzia
         INNER JOIN studprog_verzia spv ON spv.id = spvbi.studprog_verzia
         LEFT JOIN studprog_verzia_preklad spvp ON spvp.studprog_verzia = spvbi.studprog_verzia
         WHERE spvbi.infolist = %s
         AND (spvp.jazyk_prekladu = 'sk' OR spvp.jazyk_prekladu IS NULL)
-        ORDER BY rocnik, semester DESC, studprog_nazov
+        ORDER BY rocnik NULLS LAST, semester_poradie, studprog_nazov
         ''', (id,))
       odp = []
       i['odporucane_semestre'] = [x._asdict() for x in cur.fetchall()]
@@ -1068,7 +1069,8 @@ class DataStore(object):
     with self.cursor() as cur:
       cur.execute('''SELECT spvb.poradie_blok, spvb.typ, spvbp.nazov, spvbp.podmienky,
           spvbi.infolist, spvbi.semester, spvbi.rocnik, spvbi.poznamka, spvbi.predmet_jadra,
-          p.kod_predmetu, p.skratka, ivp.nazov_predmetu, i.posledna_verzia as infolist_verzia, iv.pocet_kreditov
+          p.kod_predmetu, p.skratka, ivp.nazov_predmetu, i.posledna_verzia as infolist_verzia, iv.pocet_kreditov,
+          CASE spvbi.semester WHEN 'Z' THEN 0 WHEN 'L' THEN 1 ELSE 2 END as semester_poradie
         FROM studprog_verzia_blok spvb
         LEFT JOIN studprog_verzia_blok_preklad spvbp ON spvbp.studprog_verzia = spvb.studprog_verzia AND spvbp.poradie_blok = spvb.poradie_blok
         LEFT JOIN studprog_verzia_blok_infolist spvbi ON spvbi.studprog_verzia = spvb.studprog_verzia AND spvbi.poradie_blok = spvb.poradie_blok
@@ -1080,7 +1082,7 @@ class DataStore(object):
         WHERE spvb.studprog_verzia = %s
         AND (spvbp.jazyk_prekladu = %s OR spvbp.jazyk_prekladu IS NULL)
         AND (ivp.jazyk_prekladu = %s OR ivp.jazyk_prekladu IS NULL)
-        ORDER BY spvbp.studprog_verzia, spvbp.poradie_blok, spvbi.rocnik, spvbi.semester desc, ivp.nazov_predmetu
+        ORDER BY spvbp.studprog_verzia, spvbp.poradie_blok, spvbi.rocnik NULLS LAST, semester_poradie, spvbi.semester desc, ivp.nazov_predmetu
         ''',
         (id, lang, lang))
       bloky = []

@@ -376,8 +376,16 @@ def export_infolist(id):
   for i, ((rocnik, semester), odp) in enumerate(odp_group):
     if i > 0:
       odp_sem += u'\n'
-    odp_sem += u'{}. ročník, {} semester'.format(rocnik,
-      sem2text[semester] if semester in sem2text else '?')
+    if semester == 'N' and rocnik is None:
+      odp_sem += u'neurčený'
+    else:
+      if rocnik is not None:
+        odp_sem += u'{}. ročník'.format(rocnik)
+      if rocnik is not None and semester != 'N':
+        odp_sem += u', '
+      if semester != 'N':
+        odp_sem += u'{} semester'.format(
+          sem2text[semester] if semester in sem2text else semester or '?')
     if len(odp_group) > 1:
       odp_sem += u' ({})'.format(u', '.join(u'{} {}'.format(x['studprog_skratka'], x['studprog_nazov']) for x in odp))
     

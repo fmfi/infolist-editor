@@ -256,7 +256,7 @@ def Infolist(infolist):
   schema.add(SchemaNode(String(),
     name='predpokladany_semester',
     title=u'Predpokladaný semester výučby',
-    widget=deform.widget.Select2Widget(values=(('', ''), ('Z', 'zimný'), ('L', 'letný')), placeholder=u'Vyberte semester'),
+    widget=deform.widget.Select2Widget(values=(('', ''), ('Z', 'zimný'), ('L', 'letný'), ('N', 'neurčený')), placeholder=u'Vyberte semester'),
     missing=colander.null,
     warn_if_missing=True
   ))
@@ -433,12 +433,13 @@ def Blok(**kwargs):
   ))
   infolist_schema.add(SchemaNode(Integer(),
     name='rocnik',
-    title=u'Ročník'
+    title=u'Ročník',
+    missing=colander.null
   ))
   infolist_schema.add(SchemaNode(String(),
     name='semester',
     title=u'Semester',
-    widget=deform.widget.Select2Widget(values=(('', ''), ('Z', 'zimný'), ('L', 'letný')), placeholder=u'Vyberte semester'),
+    widget=deform.widget.Select2Widget(values=(('', ''), ('Z', 'zimný'), ('L', 'letný'), ('N', 'neurčený')), placeholder=u'Vyberte semester'),
   ))
   infolist_schema.add(SchemaNode(String(),
     name='poznamka',

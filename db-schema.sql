@@ -657,7 +657,7 @@ CREATE TABLE infolist_verzia (
 );
 
 COMMENT ON COLUMN infolist_verzia.podm_absol_percenta_skuska IS 'podiel zaverecneho hodnotenia na znamke (priebezne je 100 - tato hodnota)';
-COMMENT ON COLUMN infolist_verzia.predpokladany_semester IS 'Z alebo L';
+COMMENT ON COLUMN infolist_verzia.predpokladany_semester IS 'Z (zimny) alebo L (letny) alebo N (neurceny)';
 
 CREATE TABLE infolist_verzia_preklad (
   infolist_verzia integer not null references infolist_verzia(id),
@@ -810,7 +810,7 @@ CREATE TABLE studprog_verzia_blok_infolist (
   poradie_blok integer not null,
   infolist integer not null references infolist(id),
   semester char(1) not null,
-  rocnik integer not null,
+  rocnik integer,
   poznamka text not null,
   predmet_jadra boolean not null,
   primary key (studprog_verzia, poradie_blok, infolist),

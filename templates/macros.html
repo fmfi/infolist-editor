@@ -58,3 +58,7 @@
     {% endif %}
   {% endwith %}
 {% endmacro %}
+
+{% macro odporucany_semester(rocnik, semester) -%}
+  {%- if rocnik or semester != 'N' %}{{ rocnik or ''}}{{ semester }}{% endif -%}
+{%- endmacro %}
