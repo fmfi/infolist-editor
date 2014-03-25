@@ -524,7 +524,10 @@ CREATE TABLE osoba (
   priezvisko varchar(250),
   cele_meno varchar(250),
   rodne_priezvisko varchar(250),
-  vyucujuci boolean
+  vyucujuci boolean,
+  UNIQUE (uoc),
+  UNIQUE (login),
+  UNIQUE (ais_id)
 );
 
 CREATE TABLE druh_cinnosti (
