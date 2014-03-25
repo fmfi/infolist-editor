@@ -100,7 +100,8 @@ def PodmienkyAbsolvovania(**kwargs):
     name='percenta_skuska',
     title=u'Váha skúšky v hodnotení (%)',
     description=u'''Napríklad ak predmet nemá skúšku, váha skúšky bude 0. 
-      Ak predmet nemá priebežné hodnotenie, váha skúšky bude 100.'''
+      Ak predmet nemá priebežné hodnotenie, váha skúšky bude 100.''',
+    missing=0
   ))
   percenta_na = MappingSchema(
     name='percenta_na',
