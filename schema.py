@@ -504,7 +504,7 @@ def Studprog():
     ),
     name='bloky',
     title=u'Bloky',
-    widget=deform.widget.SequenceWidget(orderable=True),
+    widget=deform.widget.SequenceWidget(orderable=True, item_template='blok_mapping'),
   ))
   schema.add(SchemaNode(String(),
     name=u'poznamka_konverzny',

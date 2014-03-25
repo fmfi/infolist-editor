@@ -1,0 +1,34 @@
+<tal:def tal:define="title title|field.title;
+                     description description|field.description;
+                     errormsg errormsg|field.errormsg;
+                     item_template item_template|field.widget.item_template"
+         i18n:domain="deform">
+  
+  <div class="panel panel-default blok">
+    <div class="panel-heading"><span class="title">${title}</span> (<a href="#" class="toggle">Zbaliť blok</a>)</div>
+    <div class="panel-body">
+
+      <div tal:condition="errormsg" 
+           class="clearfix alert alert-message error">
+        <p i18n:translate="">
+           There was a problem with this section
+        </p>
+        <p>${errormsg}</p>
+      </div>
+
+      <div class="help-block" tal:condition="description">
+        <p tal:omit-tag="hasattr(description, '__html__')">
+          ${description}
+        </p>
+      </div>
+
+      ${field.start_mapping()}
+      <div tal:repeat="child field.children"
+           tal:replace="structure child.render_template(item_template)" >
+      </div>     
+      ${field.end_mapping()}
+
+    </div>
+  </div>
+
+</tal:def>
