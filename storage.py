@@ -62,6 +62,9 @@ class User(object):
   
   def vidi_dokumenty_sp(self):
     return self.opravnenie('FMFI', 'admin')
+  
+  def moze_pridat_nahradu_hodnotenia(self):
+    return self.opravnenie('FMFI', 'admin')
 
 class SQLBuilder(object):
   def __init__(self, join_with=' ', item_format='{}'):

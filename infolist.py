@@ -285,7 +285,7 @@ def show_infolist(id, edit, predmet_id=None):
   if infolist['zamknute'] and edit and request.method != 'POST':
     flash(u'Informačný list je zamknutý proti úpravám, vytvorte si vlastnú kópiu', 'danger')
     return redirect(url_for('show_infolist', id=id, edit=False))
-  form = Form(schema.Infolist(), buttons=('submit',),
+  form = Form(schema.Infolist(infolist), buttons=('submit',),
               appstruct=recursive_replace(infolist, None, colander.null))
   error_saving = False
   msg_ns = type("", (), {})() # http://bit.ly/1cPX3G5
@@ -293,7 +293,7 @@ def show_infolist(id, edit, predmet_id=None):
   msg_ns.has_warnings = False
   def check_warnings():
     try:
-      schema.warning_schema(schema.Infolist()).deserialize(form.cstruct)
+      schema.warning_schema(schema.Infolist(infolist)).deserialize(form.cstruct)
     except colander.Invalid as e:
       form.widget.handle_error(form, e)
       msg_ns.messages_type = 'warning'

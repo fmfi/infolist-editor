@@ -76,50 +76,62 @@ def Vyucujuci(**kwargs):
   ))
   return schema
 
-def PodmienkyAbsolvovania(**kwargs):
+def PodmienkyAbsolvovania(podm_absolvovania, **kwargs):
   schema = MappingSchema(**kwargs)
-  schema.add(SchemaNode(String(),
-    name='priebezne',
-    title=u'Spôsob priebežného hodnotenia',
-    description=u'Napríklad: domáce úlohy, písomka',
-    missing=''
-  ))
-  schema.add(SchemaNode(Integer(),
-    name='percenta_zapocet',
-    title=u'Percentá na pripustenie ku skúške',
-    description=u'Zobrazí vetu "Na pripustenie ku skúške je potrebných aspoň X% bodov z priebežného hodnotenia." Ak túto vetu nechcete zobraziť, ponechajte pole prázdne.',
-    missing=colander.null,
-  ))
-  schema.add(SchemaNode(String(),
-    name='skuska',
-    title=u'Forma skúšky',
-    description=u'Napríklad: písomná, ústna; nevyplňovať ak predmet nemá skúšku',
-    missing=''
-  ))
-  schema.add(SchemaNode(Integer(),
-    name='percenta_skuska',
-    title=u'Váha skúšky v hodnotení (%)',
-    description=u'''Napríklad ak predmet nemá skúšku, váha skúšky bude 0. 
-      Ak predmet nemá priebežné hodnotenie, váha skúšky bude 100.''',
-    missing=0
-  ))
-  percenta_na = MappingSchema(
-    name='percenta_na',
-    title=u'Stupnica hodnotenia'
-  )
-  schema.add(percenta_na)
-  for i, x in enumerate(['A', 'B', 'C', 'D', 'E']):
-    percenta_na.add(SchemaNode(Integer(),
-      name=x,
-      title=u'Minimálna hranica na {} (%)'.format(x),
-      default=(90 - i * 10)
+  nahrada = podm_absolvovania.get('nahrada')
+  if g.user.moze_pridat_nahradu_hodnotenia() or not nahrada:
+    schema.add(SchemaNode(String(),
+      name='priebezne',
+      title=u'Spôsob priebežného hodnotenia',
+      description=u'Napríklad: domáce úlohy, písomka',
+      missing=''
     ))
-  schema.add(SchemaNode(Bool(),
-    name='nepouzivat_stupnicu',
-    title=u'Nepoužívať stupnicu hodnotenia',
-    description=u'''Napríklad pri štátnicových predmetoch. Predmety ktoré
-      majú vyplnený nejaký druh vzdelávacej činnosti musia používať stupnicu hodnotenia.''',
-  ))
+    schema.add(SchemaNode(Integer(),
+      name='percenta_zapocet',
+      title=u'Percentá na pripustenie ku skúške',
+      description=u'Zobrazí vetu "Na pripustenie ku skúške je potrebných aspoň X% bodov z priebežného hodnotenia." Ak túto vetu nechcete zobraziť, ponechajte pole prázdne.',
+      missing=colander.null,
+    ))
+    schema.add(SchemaNode(String(),
+      name='skuska',
+      title=u'Forma skúšky',
+      description=u'Napríklad: písomná, ústna; nevyplňovať ak predmet nemá skúšku',
+      missing=''
+    ))
+    schema.add(SchemaNode(Integer(),
+      name='percenta_skuska',
+      title=u'Váha skúšky v hodnotení (%)',
+      description=u'''Napríklad ak predmet nemá skúšku, váha skúšky bude 0. 
+        Ak predmet nemá priebežné hodnotenie, váha skúšky bude 100.''',
+      missing=0
+    ))
+    percenta_na = MappingSchema(
+      name='percenta_na',
+      title=u'Stupnica hodnotenia'
+    )
+    schema.add(percenta_na)
+    for i, x in enumerate(['A', 'B', 'C', 'D', 'E']):
+      percenta_na.add(SchemaNode(Integer(),
+        name=x,
+        title=u'Minimálna hranica na {} (%)'.format(x),
+        default=(90 - i * 10)
+      ))
+    schema.add(SchemaNode(Bool(),
+      name='nepouzivat_stupnicu',
+      title=u'Nepoužívať stupnicu hodnotenia',
+      description=u'''Napríklad pri štátnicových predmetoch. Predmety ktoré
+        majú vyplnený nejaký druh vzdelávacej činnosti musia používať stupnicu hodnotenia.''',
+    ))
+  if g.user.moze_pridat_nahradu_hodnotenia() or nahrada:
+    kwargs = {}
+    if g.user.moze_pridat_nahradu_hodnotenia():
+      kwargs['missing'] = colander.null
+    schema.add(SchemaNode(String(),
+      name='nahrada',
+      title=u'Podmienky absolvovania predmetu (náhradný textový obsah)',
+      widget=deform.widget.TextAreaWidget(rows=5),
+      **kwargs
+    ))
   return schema
 
 def OdporucanaLiteratura(**kwargs):
@@ -194,7 +206,7 @@ def bude_v_povinnom_validator(form, value):
       invalid_add_exc(exc3, form, 'podm_absolvovania', exc2)
       raise exc3
 
-def Infolist():
+def Infolist(infolist):
   schema = MappingSchema(warning_validator=bude_v_povinnom_validator)
   schema.add(SchemaNode(String(),
     name='fakulta',
@@ -287,6 +299,7 @@ def Infolist():
     description=u'Napríklad: "1-INF-123 alebo 1-INF-456". Kódy budú automaticky preklopené na nové priradené kódy.'
   ))
   schema.add(PodmienkyAbsolvovania(
+    infolist.get('podm_absolvovania', {}),
     name='podm_absolvovania',
     title=u'Podmienky absolvovania predmetu'
   ))
