@@ -8,7 +8,7 @@
 <div class="body">
   {% if error_saving %}
   <div class="alert alert-danger">
-    Formulár sa nepodarilo uložiť!
+    <strong>CHYBA PRI UKLADANÍ!!!</strong> Formulár sa nepodarilo uložiť!
   </div>
   {% endif %}
   {% if form.error or messages %}
@@ -16,7 +16,7 @@
     {% if messages_type == 'warning' %}
       <div>Formulár nie je správne vyplnený, skontrolujte prosím vyplnené údaje.</div>
     {% else %}
-      <div class="errorMsgLbl">Vo formulári sa vyskytli chyby. Skontrolujte vyplnené údaje!</div>
+      <div class="errorMsgLbl"><strong>CHYBA PRI UKLADANÍ!!!</strong> Pre uloženie formulára treba opraviť niektoré údaje!</div>
     {% endif %}
     {% if messages %}
       <p>Nasledovné polia ešte treba doplniť alebo opraviť:</p>
