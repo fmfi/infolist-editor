@@ -4,6 +4,7 @@ from StringIO import StringIO
 from contextlib import closing
 from rtfng.Elements import Document, Section
 from rtfng.document.paragraph import Cell, Paragraph, Table
+from rtfng.document.character import B
 from rtfng.PropertySets import BorderPropertySet, FramePropertySet, ParagraphPropertySet, TabPropertySet
 from markupsafe import soft_unicode
 from utils import format_datetime
@@ -69,6 +70,12 @@ class PrilohaZoznam(Priloha):
     p.append(u'Zoznam príloh')
     section.append(p)
     
+    def th(content):
+      return Cell(Paragraph(content, styles.ParagraphStyles.Normal))
+    
+    def td(content):
+      return Cell(Paragraph(content, styles.ParagraphStyles.Normal))
+    
     for typ_prilohy, subory in prilohy:
       if not subory or typ_prilohy.id == 0:
         continue
@@ -78,9 +85,9 @@ class PrilohaZoznam(Priloha):
       section.append(p)
     
       table = Table(TabPropertySet.DEFAULT_WIDTH * 7, TabPropertySet.DEFAULT_WIDTH * 3)
-      table.AddRow(Cell(Paragraph(u'Príloha', styles.ParagraphStyles.Normal)), Cell(Paragraph(u'Dátum modifikácie', styles.ParagraphStyles.Normal)))
+      table.AddRow(th(u'Príloha'), th(u'Dátum modifikácie'))
       for subor in subory:
-        table.AddRow(Cell(Paragraph(subor.nazov, styles.ParagraphStyles.Normal)), Cell(Paragraph(format_datetime(subor.modifikovane, iba_datum=True), styles.ParagraphStyles.Normal)))
+        table.AddRow(td(subor.nazov), td(format_datetime(subor.modifikovane, iba_datum=True)))
       section.append(table)
     
     doc.write(to_file)
