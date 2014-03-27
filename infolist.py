@@ -414,14 +414,14 @@ def export_infolist(id):
 
   podm_absol_text = u'\n'
   podm_absol = infolist['podm_absolvovania']
-  if podm_absol['nahrada'] != None:
+  if podm_absol['nahrada']:
     podm_absol_text = podm_absol['nahrada']
   else:
-    if podm_absol['priebezne'] != None:
+    if podm_absol['priebezne']:
       podm_absol_text += u'Priebežné hodnotenie: {}\n'.format(podm_absol['priebezne'])
     if podm_absol['percenta_zapocet'] != None:
       podm_absol_text += u'Na pripustenie ku skúške je potrebných aspoň {}% bodov z priebežného hodnotenia.\n'.format(podm_absol['percenta_zapocet'])
-    if podm_absol['skuska'] != None:
+    if podm_absol['skuska']:
       podm_absol_text += u'Skúška: {}\n'.format(podm_absol['skuska'])
     if podm_absol['percenta_skuska'] != None:
       podm_absol_text += u'Váha skúšky v hodnotení: {}%\n'.format(podm_absol['percenta_skuska'])
