@@ -645,6 +645,7 @@ def studijny_program_show(id, edit, spv_id):
     tab='sp')
 
 @app.route('/studijny-program/<int:id>/dokumenty')
+@restrict()
 def studijny_program_prilohy(id):
   if not g.user.vidi_dokumenty_sp():
     abort(403)
@@ -660,6 +661,7 @@ def studprog_priloha_context(sp_id):
     }
 
 @app.route('/studijny-program/<int:id>/dokumenty/stiahni/<nazov>')
+@restrict()
 def studijny_program_priloha_stiahni(id, nazov):
   if not g.user.vidi_dokumenty_sp():
     abort(403)
@@ -671,6 +673,7 @@ def studijny_program_priloha_stiahni(id, nazov):
   return prilohy.podla_nazvu[nazov].send(prilohy=prilohy, **studprog_priloha_context(id))
 
 @app.route('/studijny-program/<int:id>/dokumenty/vsetky.zip')
+@restrict()
 def studijny_program_priloha_stiahni_zip(id):
   if not g.user.vidi_dokumenty_sp():
     abort(403)
@@ -689,6 +692,7 @@ def spracuj_subor(f):
 
 @app.route('/studijny-program/<int:studprog_id>/dokumenty/upload', methods=['GET','POST'], defaults={'subor_id': None})
 @app.route('/studijny-program/<int:studprog_id>/dokumenty/<int:subor_id>/upload', methods=['GET','POST'])
+@restrict()
 def studijny_program_prilohy_upload(studprog_id, subor_id):
   if not (g.user.vidi_dokumenty_sp() and g.user.moze_menit_studprog()):
     abort(403)
@@ -719,6 +723,7 @@ def studijny_program_prilohy_upload(studprog_id, subor_id):
   )
 
 @app.route('/subor/<int:id>')
+@restrict()
 def download_subor(id):
   if not g.user.vidi_dokumenty_sp():
     abort(403)
