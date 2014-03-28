@@ -653,14 +653,18 @@ def studijny_program_statistiky(id):
   osoby = g.db.load_studprog_osoby_struktura(id)
   
   ps = utils.PocitadloStruktura()
-  
+
+  chybajuci = set()
   for osoba in osoby:
+    if len(osoba['uvazky']) == 0:
+      chybajuci.add(osoba['cele_meno'])
     for uvazok in osoba['uvazky']:
-      # pridaj(id, funkcia, kvalifikacia, vaha, pov)
+      # pridaj(id, funkcia, kvalifikacia, vaha)
       ps.pridaj(osoba['id'], uvazok['funkcia'], osoba['kvalifikacia'],
-        Decimal(uvazok['uvazok']) / Decimal(100), osoba['pov'])
-  
-  return Response(str(ps), mimetype='text/plain')
+        Decimal(uvazok['uvazok']) / Decimal(100))
+
+  studprog = g.db.load_studprog(id)
+  return render_template('studprog-statistiky.html', pocty_osob=ps, chybajuci=chybajuci, data=studprog, studprog_id=id, editing=False, tab='statistiky')
 
 @app.route('/studijny-program/<int:id>/dokumenty')
 @restrict()

@@ -332,6 +332,30 @@ class Pocitadlo(object):
     return '{} {} {} {} {}'.format(self.fyzicky, self.fyzicky_podskupina,
       self.prepocitany, self.prepocitany_podskupina, self.fyzicky_tyzdenne)
 
+class PocitadloSucet(object):
+  def __init__(self, *pocitadla):
+    self.pocitadla = pocitadla
+
+  @property
+  def fyzicky(self):
+    return sum(getattr(x, 'fyzicky') for x in self.pocitadla)
+
+  @property
+  def fyzicky_tyzdenne(self):
+    return sum(getattr(x, 'fyzicky_tyzdenne') for x in self.pocitadla)
+
+  @property
+  def fyzicky_podskupina(self):
+    return sum(getattr(x, 'fyzicky_podskupina') for x in self.pocitadla)
+
+  @property
+  def prepocitany(self):
+    return sum(getattr(x, 'prepocitany') for x in self.pocitadla)
+
+  @property
+  def prepocitany_podskupina(self):
+    return sum(getattr(x, 'prepocitany_podskupina') for x in self.pocitadla)
+
 class PocitadloStruktura(object):
   def __init__(self):
     self.profesor = Pocitadlo()
@@ -340,13 +364,17 @@ class PocitadloStruktura(object):
     self.odborny_asistent = Pocitadlo()
     self.asistent = Pocitadlo()
     self.lektor = Pocitadlo()
+    self.ucitelia_spolu = PocitadloSucet(self.profesor, self.docent, self.hostujuci_profesor, self.odborny_asistent, self.lektor)
     self.vyskumny_pracovnik = Pocitadlo()
+    self.zamestnanci_spolu = PocitadloSucet(self.ucitelia_spolu, self.vyskumny_pracovnik)
     self.doktorand = Pocitadlo()
+    self.zamestanci_mimo_pomeru = Pocitadlo()
+    self.spolu = PocitadloSucet(self.zamestnanci_spolu, self.doktorand, self.zamestanci_mimo_pomeru)
     self.pocitadla = ['profesor', 'docent', 'hostujuci_profesor',
-      'odborny_asistent', 'asistent', 'lektor', 'vyskumny_pracovnik',
-      'doktorand']
+      'odborny_asistent', 'asistent', 'lektor', 'ucitelia_spolu', 'vyskumny_pracovnik',
+      'zamestnanci_spolu', 'doktorand', 'zamestnanci_mimo_pomeru', 'spolu']
     
-  def pridaj(self, id, funkcia, kvalifikacia, vaha, pov):
+  def pridaj(self, id, funkcia, kvalifikacia, vaha):
     treti_stupen = ['10', '11', '12', '20', '21', '30', '31']
     if funkcia == '1P':
       self.profesor.pridaj(id, vaha, kvalifikacia != '12')
@@ -358,10 +386,12 @@ class PocitadloStruktura(object):
       self.asistent.pridaj(id, vaha, kvalifikacia in treti_stupen)
     elif funkcia == '5L':
       self.lektor.pridaj(id, vaha, kvalifikacia in treti_stupen)
-    elif funkcia in ['6V', '6T', '6P'] and pov:
+    elif funkcia in ['6V', '6T', '6P']:
       self.vyskumny_pracovnik.pridaj(id, vaha, kvalifikacia in treti_stupen)
-    elif funkcia == '0S' and pov:
-      self.doktorand.pridaj(id, vaha, False)
+    elif funkcia == '0S':
+      self.doktorand.pridaj(id, vaha, kvalifikacia in treti_stupen)
+    elif funkcia in ['9U', '9V']:
+      self.zamestanci_mimo_pomeru.pridaj(id, vaha, kvalifikacia in treti_stupen)
     
   def __str__(self):
     return 'fyzicky z_toho prepocitany z_toho fyz_tyzdenny\n'+'\n'.join('{}: {}'.format(x.rjust(20), getattr(self, x)) for x in self.pocitadla)

@@ -1,0 +1,136 @@
+{% extends 'studprog.html' %}
+{% block studprog %}
+<div class="body">
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th rowspan="2">Funkcia alebo zaradenie fyzickej osoby</th>
+        <th colspan="2">Fyzický počet</th>
+        <th colspan="2">Prepočítaný počet</th>
+        <th rowspan="2">Z toho na ustanovený týždenný pracovný čas</th>
+      </tr>
+      <tr>
+        <th></th>
+        <th>Z toho mimoriadnych</th>
+        <th></th>
+        <th>Z toho mimoriadnych</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Profesor<sub>r1</sub></td>
+        <td>{{ pocty_osob.profesor.fyzicky }}</td>
+        <td>{{ pocty_osob.profesor.fyzicky_podskupina }}</td>
+        <td>{{ pocty_osob.profesor.prepocitany }}</td>
+        <td>{{ pocty_osob.profesor.prepocitany_podskupina }}</td>
+        <td>{{ pocty_osob.profesor.fyzicky_tyzdenne }}</td>
+      </tr>
+      <tr>
+        <td>Docent<sub>r2</sub></td>
+        <td>{{ pocty_osob.docent.fyzicky }}</td>
+        <td></td>
+        <td>{{ pocty_osob.docent.prepocitany }}</td>
+        <td></td>
+        <td>{{ pocty_osob.docent.fyzicky_tyzdenne }}</td>
+      </tr>
+      <tr>
+        <th></th>
+        <th></th>
+        <th>Z toho s vysokoškolským vzdelaním tretieho stupňa</th>
+        <th></th>
+        <th>Z toho s vysokoškolským vzdelaním tretieho stupňa</th>
+        <th></th>
+      </tr>
+      <tr>
+        <td>Hosťujúci profesor<sub>r3</sub></td>
+        <td>{{ pocty_osob.hostujuci_profesor.fyzicky }}</td>
+        <td>{{ pocty_osob.hostujuci_profesor.fyzicky_podskupina }}</td>
+        <td>{{ pocty_osob.hostujuci_profesor.prepocitany }}</td>
+        <td>{{ pocty_osob.hostujuci_profesor.prepocitany_podskupina }}</td>
+        <td>{{ pocty_osob.hostujuci_profesor.fyzicky_tyzdenne }}</td>
+      </tr>
+      <tr>
+        <td>Odborný asistent<sub>r4</sub></td>
+        <td>{{ pocty_osob.odborny_asistent.fyzicky }}</td>
+        <td>{{ pocty_osob.odborny_asistent.fyzicky_podskupina }}</td>
+        <td>{{ pocty_osob.odborny_asistent.prepocitany }}</td>
+        <td>{{ pocty_osob.odborny_asistent.prepocitany_podskupina }}</td>
+        <td>{{ pocty_osob.odborny_asistent.fyzicky_tyzdenne }}</td>
+      </tr>
+      <tr>
+        <td>Asistent<sub>r5</sub></td>
+        <td>{{ pocty_osob.asistent.fyzicky }}</td>
+        <td>{{ pocty_osob.asistent.fyzicky_podskupina }}</td>
+        <td>{{ pocty_osob.asistent.prepocitany }}</td>
+        <td>{{ pocty_osob.asistent.prepocitany_podskupina }}</td>
+        <td>{{ pocty_osob.asistent.fyzicky_tyzdenne }}</td>
+      </tr>
+      <tr>
+        <td>Lektor<sub>r6</sub></td>
+        <td>{{ pocty_osob.lektor.fyzicky }}</td>
+        <td>{{ pocty_osob.lektor.fyzicky_podskupina }}</td>
+        <td>{{ pocty_osob.lektor.prepocitany }}</td>
+        <td>{{ pocty_osob.lektor.prepocitany_podskupina }}</td>
+        <td>{{ pocty_osob.lektor.fyzicky_tyzdenne }}</td>
+      </tr>
+      <tr>
+        <td>Vysokoškolskí učitelia spolu<sub>r7=r1+r2+r3+r4+r5+r6</sub></td>
+        <td>{{ pocty_osob.ucitelia_spolu.fyzicky }}</td>
+        <td>{{ pocty_osob.ucitelia_spolu.fyzicky_podskupina }}</td>
+        <td>{{ pocty_osob.ucitelia_spolu.prepocitany }}</td>
+        <td>{{ pocty_osob.ucitelia_spolu.prepocitany_podskupina }}</td>
+        <td>{{ pocty_osob.ucitelia_spolu.fyzicky_tyzdenne }}</td>
+      </tr>
+     <tr>
+        <td>Výskumný pracovník<sub>r8</sub></td>
+        <td>{{ pocty_osob.vyskumny_pracovnik.fyzicky }}</td>
+        <td>{{ pocty_osob.vyskumny_pracovnik.fyzicky_podskupina }}</td>
+        <td>{{ pocty_osob.vyskumny_pracovnik.prepocitany }}</td>
+        <td>{{ pocty_osob.vyskumny_pracovnik.prepocitany_podskupina }}</td>
+        <td>{{ pocty_osob.vyskumny_pracovnik.fyzicky_tyzdenne }}</td>
+      </tr>
+      <tr>
+        <td>Zamestnanci v pracovnom pomere spolu<sub>r9=r7+r8</sub></td>
+        <td>{{ pocty_osob.zamestnanci_spolu.fyzicky }}</td>
+        <td>{{ pocty_osob.zamestnanci_spolu.fyzicky_podskupina }}</td>
+        <td>{{ pocty_osob.zamestnanci_spolu.prepocitany }}</td>
+        <td>{{ pocty_osob.zamestnanci_spolu.prepocitany_podskupina }}</td>
+        <td>{{ pocty_osob.zamestnanci_spolu.fyzicky_tyzdenne }}</td>
+      </tr>
+      <tr>
+        <td>Denný doktorand<sub>r10</sub></td>
+        <td>{{ pocty_osob.doktorand.fyzicky }}</td>
+        <td>{{ pocty_osob.doktorand.fyzicky_podskupina }}</td>
+        <td>{{ pocty_osob.doktorand.prepocitany }}</td>
+        <td>{{ pocty_osob.doktorand.prepocitany_podskupina }}</td>
+        <td>{{ pocty_osob.doktorand.fyzicky_tyzdenne }}</td>
+      </tr>
+      <tr>
+        <td>Zamestnanci, mimo pracovného pomeru<sub>r11</sub></td>
+        <td>{{ pocty_osob.zamestanci_mimo_pomeru.fyzicky }}</td>
+        <td>{{ pocty_osob.zamestanci_mimo_pomeru.fyzicky_podskupina }}</td>
+        <td>{{ pocty_osob.zamestanci_mimo_pomeru.prepocitany }}</td>
+        <td>{{ pocty_osob.zamestanci_mimo_pomeru.prepocitany_podskupina }}</td>
+        <td>{{ pocty_osob.zamestanci_mimo_pomeru.fyzicky_tyzdenne }}</td>
+      </tr>
+      <tr>
+        <td>Spolu<sub>r12=r9+r10+r11</sub></td>
+        <td>{{ pocty_osob.spolu.fyzicky }}</td>
+        <td>{{ pocty_osob.spolu.fyzicky_podskupina }}</td>
+        <td>{{ pocty_osob.spolu.prepocitany }}</td>
+        <td>{{ pocty_osob.spolu.prepocitany_podskupina }}</td>
+        <td>{{ pocty_osob.spolu.fyzicky_tyzdenne }}</td>
+      </tr>
+    </tbody>
+    {% if chybajuci %}
+    <tfoot>
+      <tr>
+        <td colspan="6" class="danger">
+          V tabuľke chýbajú údaje o nasledovných učiteľoch, pripočítajte si informácie o nich ručne: {{ chybajuci|join(',') }}
+        </td>
+      </tr>
+    </tfoot>
+    {% endif %}
+  </table>
+</div>
+{% endblock %}

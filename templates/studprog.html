@@ -25,6 +25,7 @@
     {% endif %}
     <ul class="nav nav-tabs">
       <li class="{{ 'active' if tab == 'sp' else '' }}"><a href="{{ url_for('studijny_program_show', id=studprog_id, edit=False) }}">Študijný program</a></li>
+      <li class="{{ 'active' if tab == 'statistiky' else '' }}"><a href="{{ url_for('studijny_program_statistiky', id=studprog_id) }}">Štatistiky</a></li>
       {% if g.user.vidi_dokumenty_sp() %}
       <li class="{{ 'active' if tab == 'dokumenty' else '' }}"><a href="{{ url_for('studijny_program_prilohy', id=studprog_id) }}">Dokumenty</a></li>
       {% endif %}

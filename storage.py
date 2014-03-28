@@ -1489,19 +1489,16 @@ class DataStore(object):
   def load_studprog_osoby_struktura(self, sp_id):
     with self.cursor() as cur:
       cur.execute('''
-        SELECT o.id, o.cele_meno, ou.funkcia, ou.kvalifikacia, ou.uvazok,
-          EXISTS (SELECT 1
-            FROM infolist_verzia_vyucujuci ivv2, infolist i2, studprog_verzia_blok_infolist spvbi2,
-              studprog_verzia_blok spvb2
-            WHERE ivv2.osoba = o.id AND ivv2.infolist_verzia = i2.posledna_verzia AND spvbi2.infolist = i2.id
-            AND spvbi2.studprog_verzia = sp.posledna_verzia AND spvb2.studprog_verzia = sp.posledna_verzia
-            AND spvbi2.poradie_blok = spvb2.poradie_blok AND spvb2.typ IN ('A', 'B')
-          ) as pov
+        SELECT o.id, o.cele_meno, ou.funkcia, ou.kvalifikacia, ou.uvazok
         FROM studprog sp, osoba o
         LEFT JOIN osoba_uvazok ou ON ou.osoba = o.id
         WHERE EXISTS (SELECT 1
-          FROM infolist_verzia_vyucujuci ivv, infolist i, studprog_verzia_blok_infolist spvbi
-          WHERE ivv.osoba = o.id AND ivv.infolist_verzia = i.posledna_verzia AND spvbi.infolist = i.id AND spvbi.studprog_verzia = sp.posledna_verzia)
+            FROM infolist_verzia_vyucujuci ivv, infolist i, studprog_verzia_blok_infolist spvbi,
+              studprog_verzia_blok spvb
+            WHERE ivv.osoba = o.id AND ivv.infolist_verzia = i.posledna_verzia AND spvbi.infolist = i.id
+            AND spvbi.studprog_verzia = sp.posledna_verzia AND spvb.studprog_verzia = sp.posledna_verzia
+            AND spvbi.poradie_blok = spvb.poradie_blok AND spvb.typ IN ('A', 'B')
+          )
         AND sp.id = %s
         ORDER BY o.priezvisko, o.meno, o.id
       ''',
@@ -1513,7 +1510,6 @@ class DataStore(object):
             'id': row.id,
             'cele_meno': row.cele_meno,
             'kvalifikacia': row.kvalifikacia,
-            'pov': row.pov,
             'uvazky': []
           })
         if row.funkcia is not None or row.kvalifikacia is not None or row.uvazok is not None:
