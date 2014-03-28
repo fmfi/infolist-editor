@@ -364,4 +364,4 @@ class PocitadloStruktura(object):
       self.doktorand.pridaj(id, vaha, False)
     
   def __str__(self):
-    return '\n'.join('{}: {}'.format(x, getattr(self, x)) for x in self.pocitadla)
+    return 'fyzicky z_toho prepocitany z_toho fyz_tyzdenny\n'+'\n'.join('{}: {}'.format(x.rjust(20), getattr(self, x)) for x in self.pocitadla)
