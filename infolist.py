@@ -644,6 +644,24 @@ def studijny_program_show(id, edit, spv_id):
     modifikovali=zorad_osoby(studprog['modifikovali']),
     tab='sp')
 
+@app.route('/studijny-program/<int:id>/statistiky')
+@restrict()
+def studijny_program_statistiky(id):
+  if not g.user.vidi_studijne_programy():
+    abort(403)
+  
+  osoby = g.db.load_studprog_osoby_struktura(id)
+  
+  ps = utils.PocitadloStruktura()
+  
+  for osoba in osoby:
+    for uvazok in osoba['uvazky']:
+      # pridaj(id, funkcia, kvalifikacia, vaha, pov)
+      ps.pridaj(osoba['id'], uvazok['funkcia'], osoba['kvalifikacia'],
+        Decimal(uvazok['uvazok']) / Decimal(100), osoba['pov'])
+  
+  return Response(str(ps), mimetype='text/plain')
+
 @app.route('/studijny-program/<int:id>/dokumenty')
 @restrict()
 def studijny_program_prilohy(id):

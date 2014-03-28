@@ -4,6 +4,7 @@ from flask import g
 from jinja2 import evalcontextfilter, Markup, escape
 import colander
 from markupsafe import soft_unicode
+from decimal import Decimal
 
 class Podmienka(object):
   symbols = ('(', ')', 'OR', 'AND')
@@ -295,3 +296,72 @@ def multiple_replacer(*key_values):
 
 def multiple_replace(string, *key_values):
     return multiple_replacer(*key_values)(string)
+  
+# end http://stackoverflow.com/a/15221068
+
+class Pocitadlo(object):
+  def __init__(self):
+    self._fyzicky = set()
+    self._fyzicky_tyzdenne = set() # ustanoveny tyzdenny prac cas
+    self._fyzicky_podskupina = set() # mimoriadny/3st.
+    self.prepocitany = Decimal(0)
+    self.prepocitany_podskupina = 0 # mimoriadny/3st.
+  
+  def pridaj(self, id, vaha, podskupina):
+    self._fyzicky.add(id)
+    self.prepocitany += vaha
+    if podskupina:
+      self._fyzicky_podskupina.add(id)
+      self.prepocitany_podskupina += vaha
+    if vaha == Decimal(1):
+      self._fyzicky_tyzdenne.add(id)
+  
+  @property
+  def fyzicky(self):
+    return len(self._fyzicky)
+  
+  @property
+  def fyzicky_tyzdenne(self):
+    return len(self._fyzicky_tyzdenne)
+  
+  @property
+  def fyzicky_podskupina(self):
+    return len(self._fyzicky_podskupina)
+  
+  def __str__(self):
+    return '{} {} {} {} {}'.format(self.fyzicky, self.fyzicky_podskupina,
+      self.prepocitany, self.prepocitany_podskupina, self.fyzicky_tyzdenne)
+
+class PocitadloStruktura(object):
+  def __init__(self):
+    self.profesor = Pocitadlo()
+    self.docent = Pocitadlo()
+    self.hostujuci_profesor = Pocitadlo()
+    self.odborny_asistent = Pocitadlo()
+    self.asistent = Pocitadlo()
+    self.lektor = Pocitadlo()
+    self.vyskumny_pracovnik = Pocitadlo()
+    self.doktorand = Pocitadlo()
+    self.pocitadla = ['profesor', 'docent', 'hostujuci_profesor',
+      'odborny_asistent', 'asistent', 'lektor', 'vyskumny_pracovnik',
+      'doktorand']
+    
+  def pridaj(self, id, funkcia, kvalifikacia, vaha, pov):
+    treti_stupen = ['10', '11', '12', '20', '21', '30', '31']
+    if funkcia == '1P':
+      self.profesor.pridaj(id, vaha, kvalifikacia != '12')
+    elif funkcia == '2D':
+      self.docent.pridaj(id, vaha, False)
+    elif funkcia == '3O':
+      self.odborny_asistent.pridaj(id, vaha, kvalifikacia in treti_stupen)
+    elif funkcia == '4A':
+      self.asistent.pridaj(id, vaha, kvalifikacia in treti_stupen)
+    elif funkcia == '5L':
+      self.lektor.pridaj(id, vaha, kvalifikacia in treti_stupen)
+    elif funkcia in ['6V', '6T', '6P'] and pov:
+      self.vyskumny_pracovnik.pridaj(id, vaha, kvalifikacia in treti_stupen)
+    elif funkcia == '0S' and pov:
+      self.doktorand.pridaj(id, vaha, False)
+    
+  def __str__(self):
+    return '\n'.join('{}: {}'.format(x, getattr(self, x)) for x in self.pocitadla)

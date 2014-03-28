@@ -877,4 +877,13 @@ CREATE TABLE studprog_priloha (
   primary key (studprog, typ_prilohy, subor)
 );
 
+CREATE TABLE osoba_uvazok (
+  osoba integer not null references osoba(id),
+  pracovisko varchar(50),
+  funkcia varchar(10),
+  kvalifikacia varchar(2),
+  uvazok integer,
+  PRIMARY KEY (osoba, pracovisko, funkcia)
+);
+
 COMMIT;
