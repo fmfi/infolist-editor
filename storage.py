@@ -1518,3 +1518,43 @@ class DataStore(object):
             'uvazok': row.uvazok
           })
       return result
+
+  def load_studprog_osoby_zoznam(self, sp_id):
+    with self.cursor() as cur:
+      cur.execute('''
+        SELECT DISTINCT spvbi.predmet_jadra, i.id as infolist, ivp.nazov_predmetu,
+          o.id as osoba, o.priezvisko, o.meno, ou.funkcia, ou.kvalifikacia, ou.uvazok,
+          ivvt.typ_vyucujuceho, spvb.typ, ivv.poradie
+        FROM studprog sp
+        INNER JOIN studprog_verzia_blok spvb ON sp.posledna_verzia = spvb.studprog_verzia
+        INNER JOIN studprog_verzia_blok_infolist spvbi ON sp.posledna_verzia = spvbi.studprog_verzia AND spvb.poradie_blok = spvbi.poradie_blok
+        INNER JOIN infolist i ON spvbi.infolist = i.id
+        INNER JOIN infolist_verzia_vyucujuci ivv ON i.posledna_verzia = ivv.infolist_verzia
+        INNER JOIN osoba o ON ivv.osoba = o.id
+        INNER JOIN infolist_verzia_preklad ivp ON i.posledna_verzia = ivp.infolist_verzia
+        LEFT JOIN osoba_uvazok ou ON ivv.osoba = ou.osoba
+        LEFT JOIN infolist_verzia_vyucujuci_typ ivvt ON ivvt.infolist_verzia = ivv.infolist_verzia AND ivvt.osoba = ivv.osoba
+        WHERE sp.id = %s AND spvb.typ in ('A', 'B') AND ivp.jazyk_prekladu = 'sk'
+        ORDER BY spvb.typ, ivp.nazov_predmetu, i.id, ivv.poradie, ivvt.typ_vyucujuceho
+      ''',
+      (sp_id,))
+      result = []
+      for row in cur:
+        if (len(result) == 0 or result[-1]['infolist'] != row.infolist or result[-1]['osoba'] != row.osoba or
+            result[-1]['funkcia'] != row.funkcia or result[-1]['kvalifikacia'] != row.kvalifikacia or
+            result[-1]['uvazok'] != row.uvazok):
+          result.append({
+            'predmet_jadra': row.predmet_jadra,
+            'infolist': row.infolist,
+            'nazov_predmetu': row.nazov_predmetu,
+            'osoba': row.osoba,
+            'priezvisko': row.priezvisko,
+            'meno': row.meno,
+            'funkcia': row.funkcia,
+            'kvalifikacia': row.kvalifikacia,
+            'uvazok': row.uvazok,
+            'typy_vyucujuceho': []
+          })
+        if row.typ_vyucujuceho:
+          result[-1]['typy_vyucujuceho'].append(row.typ_vyucujuceho)
+      return result

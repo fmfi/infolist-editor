@@ -663,8 +663,11 @@ def studijny_program_statistiky(id):
       ps.pridaj(osoba['id'], uvazok['funkcia'], osoba['kvalifikacia'],
         Decimal(uvazok['uvazok']) / Decimal(100))
 
+  zoznam = g.db.load_studprog_osoby_zoznam(id)
+
   studprog = g.db.load_studprog(id)
-  return render_template('studprog-statistiky.html', pocty_osob=ps, chybajuci=chybajuci, data=studprog, studprog_id=id, editing=False, tab='statistiky')
+  return render_template('studprog-statistiky.html', pocty_osob=ps, chybajuci=chybajuci,
+      data=studprog, studprog_id=id, editing=False, tab='statistiky', zoznam=zoznam)
 
 @app.route('/studijny-program/<int:id>/dokumenty')
 @restrict()
