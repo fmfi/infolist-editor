@@ -1522,7 +1522,7 @@ class DataStore(object):
   def load_studprog_osoby_zoznam(self, sp_id):
     with self.cursor() as cur:
       cur.execute('''
-        SELECT DISTINCT spvbi.predmet_jadra, i.id as infolist, ivp.nazov_predmetu,
+        SELECT DISTINCT spvbi.predmet_jadra, i.id as infolist, ivp.nazov_predmetu COLLATE "sk_SK" as nazov_predmetu,
           o.id as osoba, o.priezvisko, o.meno, ou.funkcia, ou.kvalifikacia, ou.uvazok,
           ivvt.typ_vyucujuceho, spvb.typ, ivv.poradie
         FROM studprog sp
@@ -1535,7 +1535,7 @@ class DataStore(object):
         LEFT JOIN osoba_uvazok ou ON ivv.osoba = ou.osoba
         LEFT JOIN infolist_verzia_vyucujuci_typ ivvt ON ivvt.infolist_verzia = ivv.infolist_verzia AND ivvt.osoba = ivv.osoba
         WHERE sp.id = %s AND spvb.typ in ('A', 'B') AND ivp.jazyk_prekladu = 'sk'
-        ORDER BY spvb.typ, ivp.nazov_predmetu, i.id, ivv.poradie, ivvt.typ_vyucujuceho
+        ORDER BY spvb.typ, nazov_predmetu, i.id, ivv.poradie, ivvt.typ_vyucujuceho
       ''',
       (sp_id,))
       result = []
