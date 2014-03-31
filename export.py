@@ -417,6 +417,8 @@ class Prilohy(object):
   
   def add(self, typ, priloha, adresar=None):
     filename = ''
+    if typ > 0:
+      filename += 'III_{}_'.format(typ)
     if adresar is not None:
       filename = adresar + '/'
     filename += priloha.filename
