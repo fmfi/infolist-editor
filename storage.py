@@ -67,6 +67,9 @@ class User(object):
   def moze_pridat_nahradu_hodnotenia(self):
     return self.opravnenie('FMFI', 'admin')
 
+  def vidi_exporty(self):
+    return self.opravnenie('FMFI', 'admin')
+
 class SQLBuilder(object):
   def __init__(self, join_with=' ', item_format='{}'):
     self.parts = []
@@ -80,7 +83,6 @@ class SQLBuilder(object):
   def _unpack_args(self, text, *params):
     if isinstance(text, SQLBuilder):
       if len(params) != 0:
-        print repr(text), repr(params)
         raise ValueError('No params allowed with SQLBuilder arg')
       return text.query()
     return text, params
@@ -1251,7 +1253,7 @@ class DataStore(object):
   
   def fetch_studijne_programy(self, lang='sk'):
     with self.cursor() as cur:
-      cur.execute('''SELECT sp.id, sp.skratka, sp.zamknute, sp.zamkol, sp.vytvorene, sp.vytvoril, 
+      cur.execute('''SELECT sp.id, sp.skratka, sp.zamknute, sp.zamkol, sp.vytvorene, sp.vytvoril, sp.oblast_vyskumu,
           spv.aj_konverzny_program, spv.stupen_studia, spv.modifikovane, spv.modifikoval, spv.obsahuje_varovania, spv.finalna_verzia,
           spvp.nazov, spvp.podmienky_absolvovania, spvp.poznamka_konverzny,
           ov.cele_meno as vytvoril_cele_meno,
@@ -1424,7 +1426,7 @@ class DataStore(object):
           add_infolist_warning('zahodeny')
       return sp
   
-  def load_studprog_prilohy_subory(self, studprog_id):
+  def load_studprog_prilohy_subory(self, context, studprog_id):
     with self.cursor() as cur:
       cur.execute('''SELECT sp.typ_prilohy,
         s.id as subor_id, s.posledna_verzia,
@@ -1440,7 +1442,7 @@ class DataStore(object):
       for row in cur:
         if row.typ_prilohy not in subory:
           subory[row.typ_prilohy] = []
-        subory[row.typ_prilohy].append(PrilohaSubor(id=row.subor_id,
+        subory[row.typ_prilohy].append(PrilohaSubor(context=context, id=row.subor_id,
           posledna_verzia=row.posledna_verzia, nazov=row.nazov, filename=row.filename,
           sha256=row.sha256, modifikoval=row.modifikoval, modifikovane=row.modifikovane,
           predosla_verzia=row.predosla_verzia, studprog_id=studprog_id, mimetype=row.mimetype))

@@ -43,19 +43,42 @@ class ZipBuffer(object):
         self.data = []
         return result
 
+class PrilohaContext(object):
+  def __init__(self, config):
+    self.config = config
+    self._studprog_cache = {}
+    self._infolist_cache = {}
+    self._typy_priloh = {}
+    for row in g.db.load_typy_priloh():
+      self._typy_priloh[row.id] = row
+
+  def studprog(self, id):
+    if id not in self._studprog_cache:
+      self._studprog_cache['id'] = g.db.load_studprog(id)
+    return self._studprog_cache['id']
+
+  def infolist(self, id):
+    if id not in self._infolist_cache:
+      self._infolist_cache['id'] = g.db.load_infolist(id)
+    return self._infolist_cache['id']
+
+  def typ_prilohy(self, id):
+    return self._typy_priloh[id]
+
 class Priloha(object):
-  def __init__(self, nazov=None, filename=None, **kwargs):
+  def __init__(self, context, nazov=None, filename=None, **kwargs):
+    self.context = context
     self.nazov = nazov
     self.url_aktualizacie = None
     self.modifikovane = None
     self._filename = filename
   
-  def render(self, to_file, **kwargs):
+  def render(self, to_file):
     pass
   
-  def send(self, **kwargs):
+  def send(self):
     with closing(StringIO()) as f:
-      self.render(f, **kwargs)
+      self.render(f)
       response = Response(f.getvalue(), mimetype=self.mimetype)
       response.headers['Content-Disposition'] = 'attachment; filename={}'.format(self.filename)
       return response
@@ -68,11 +91,14 @@ class Priloha(object):
 
   @property
   def filename(self):
-    print self._filename
     return self._filename
 
 class PrilohaZoznam(Priloha):
-  def render(self, to_file, prilohy, **kwargs):
+  def __init__(self, prilohy, **kwargs):
+    super(PrilohaZoznam, self).__init__(**kwargs)
+    self.prilohy = prilohy
+
+  def render(self, to_file):
     doc = Document()
     section = Section()
     doc.Sections.append(section)
@@ -88,9 +114,11 @@ class PrilohaZoznam(Priloha):
     def td(content):
       return Cell(Paragraph(content, styles.ParagraphStyles.Normal))
     
-    for typ_prilohy, subory in prilohy:
-      if not subory or typ_prilohy.id == 0:
+    for typ_prilohy_id, entries in groupby(self.prilohy,key=lambda x: x[1]):
+      if not entries or typ_prilohy_id == 0:
         continue
+
+      typ_prilohy = self.context.typ_prilohy(typ_prilohy_id)
       
       p = Paragraph(styles.ParagraphStyles.Heading2)
       p.append(typ_prilohy.nazov)
@@ -98,8 +126,8 @@ class PrilohaZoznam(Priloha):
     
       table = Table(TabPropertySet.DEFAULT_WIDTH * 7, TabPropertySet.DEFAULT_WIDTH * 3)
       table.AddRow(th(u'Príloha'), th(u'Dátum modifikácie'))
-      for subor in subory:
-        table.AddRow(td(subor.nazov), td(format_datetime(subor.modifikovane, iba_datum=True)))
+      for filename, _, priloha in entries:
+        table.AddRow(td(filename), td(format_datetime(priloha.modifikovane, iba_datum=True)))
       section.append(table)
     
     doc.write(to_file)
@@ -117,16 +145,16 @@ class PrilohaSubor(Priloha):
     self.url_aktualizacie = url_for('studijny_program_prilohy_upload', studprog_id=studprog_id, subor_id=id)
     self._mimetype = mimetype
   
-  def render(self, to_file, config, studprog, **kwargs):
-    with open(os.path.join(config.files_dir, self.sha256)) as fin:
+  def render(self, to_file):
+    with open(os.path.join(self.context.config.files_dir, self.sha256)) as fin:
       buffer_size = 262144 
       data = fin.read(buffer_size)
       while data != '':
         to_file.write(data)
         data = fin.read(buffer_size)
   
-  def send(self, config, studprog, **kwargs):
-    return send_from_directory(config.files_dir, self.sha256, as_attachment=True,
+  def send(self):
+    return send_from_directory(self.context.config.files_dir, self.sha256, as_attachment=True,
       attachment_filename=secure_filename(self.filename))
 
   @property
@@ -139,15 +167,9 @@ class PrilohaInfolist(Priloha):
   def __init__(self, infolist_id, **kwargs):
     super(PrilohaInfolist, self).__init__(**kwargs)
     self.infolist_id = infolist_id
-    self._data = None
 
-  def load(self):
-    if self._data is None:
-      self._data = g.db.load_infolist(self.infolist_id)
-    return self._data
-
-  def render(self, to_file, **kwargs):
-    infolist = self.load()
+  def render(self, to_file):
+    infolist = self.context.infolist(self.infolist_id)
 
     tdata = {}
     tdata['IL_NAZOV_SKOLY'] = u'Univerzita Komenského v Bratislave'
@@ -300,15 +322,9 @@ class PrilohaStudPlan(Priloha):
   def __init__(self, studprog_id, **kwargs):
     super(PrilohaStudPlan, self).__init__(**kwargs)
     self.studprog_id = studprog_id
-    self._data = None
 
-  def load(self):
-    if self._data is None:
-      self._data = g.db.load_studprog(self.studprog_id)
-    return self._data
-
-  def render(self, to_file, **kwargs):
-    studprog = self.load()
+  def render(self, to_file):
+    studprog = self.context.studprog(self.studprog_id)
 
     doc = Document()
     section = Section()
@@ -381,8 +397,10 @@ class PrilohaStudPlan(Priloha):
 
   @property
   def filename(self):
-    studprog = self.load()
-    return '2a_SP_{}_{}_formular.rtf'.format(studprog['oblast_vyskumu'], stupen_studia_titul.get(studprog['stupen_studia']))
+    studprog = self.context.studprog(self.studprog_id)
+    return secure_filename('2a_SP_{}_{}_{}_formular.rtf'.format(studprog['oblast_vyskumu'],
+                                                stupen_studia_titul.get(studprog['stupen_studia']),
+                                                studprog['nazov']))
 
 class TypPrilohySP(object):
   def __init__(self, id, nazov, kriterium):
@@ -391,41 +409,45 @@ class TypPrilohySP(object):
     self.kriterium = kriterium
 
 class Prilohy(object):
-  def __init__(self):
-    self.typy = {}
+  def __init__(self, context):
     self.podla_nazvu_suboru = {}
-    self.podla_typu = {}
-    
-  def add_typ(self, typ):
-    self.typy[typ.id] = typ
-    self.podla_typu[typ.id] = []
+    self.entries = []
+    self.context = context
   
-  def add(self, typ, priloha):
-    self.podla_typu[typ].append(priloha)
-    self.podla_nazvu_suboru[priloha.filename] = priloha
-  
+  def add(self, typ, priloha, adresar=None):
+    filename = ''
+    if adresar is not None:
+      filename = adresar + '/'
+    filename += priloha.filename
+
+    self.podla_nazvu_suboru[filename] = priloha
+    self.entries.append((filename, typ, priloha))
+
+  def add_adresar(self, adresar, prilohy):
+    for filename, typ, priloha in prilohy.entries:
+      self.add(typ, priloha, adresar=adresar)
+
   def __iter__(self):
-    for typ in self.typy:
-      yield self.typy[typ], self.podla_typu[typ]
+    for entry in self.entries:
+      yield entry
   
-  def send_zip(self, **context):
+  def send_zip(self, attachment_filename='vsetky.zip'):
     def entries():
       output_entries = set()
-      for typ, subory in self:
-        for subor in subory:
-          if subor.nazov in output_entries:
-            continue
-          output_entries.add(subor.nazov)
-          with closing(StringIO()) as f:
-            subor.render(f, **context)
-            yield subor.nazov, f.getvalue()
-    return stream_zip(entries(), 'vsetky.zip')
+      for filename, typ, subor in self.entries:
+        if filename in output_entries:
+          continue
+        output_entries.add(filename)
+        with closing(StringIO()) as f:
+          subor.render(f)
+          yield filename, f.getvalue()
+    return stream_zip(entries(), attachment_filename)
 
 def stream_zip(entries, filename):
   """inspired by http://stackoverflow.com/a/9829044"""
   def chunks():
     sink = ZipBuffer()
-    archive = zipfile.ZipFile(sink, "w")
+    archive = zipfile.ZipFile(sink, "w", compression=zipfile.ZIP_DEFLATED)
     for entry, data in entries:
         archive.writestr(entry, data)
         for chunk in sink.get_and_clear():
@@ -440,15 +462,22 @@ def stream_zip(entries, filename):
   response.headers['Content-Disposition'] = 'attachment; filename={}'.format(filename)
   return response
 
-def prilohy_pre_studijny_program(sp_id):
-  prilohy = Prilohy()
-  for row in g.db.load_typy_priloh():
-    prilohy.add_typ(TypPrilohySP(row.id, row.nazov, row.kriterium))
+def prilohy_pre_studijny_program(context, sp_id):
+  prilohy = Prilohy(context)
   
-  for typ, subory in g.db.load_studprog_prilohy_subory(sp_id).iteritems():
+  for typ, subory in g.db.load_studprog_prilohy_subory(context, sp_id).iteritems():
     for subor in subory:
       prilohy.add(typ, subor)
   
-  prilohy.add(12, PrilohaZoznam(u'Zoznam dokumentov priložených k žiadosti', 'zoznam_priloh.rtf'))
+  prilohy.add(12, PrilohaZoznam(prilohy, context=context, nazov=u'Zoznam dokumentov priložených k žiadosti', filename='zoznam_priloh.rtf'))
   
   return prilohy
+
+def prilohy_vsetky(context):
+  root = Prilohy(context)
+  for studprog in g.db.fetch_studijne_programy():
+    adresar = secure_filename(u'SP_{}_{}_{}'.format(studprog['oblast_vyskumu'],stupen_studia_titul.get(studprog['stupen_studia']),
+      studprog['nazov']))
+    subory = prilohy_pre_studijny_program(context, studprog['id'])
+    root.add_adresar(adresar, subory)
+  return root

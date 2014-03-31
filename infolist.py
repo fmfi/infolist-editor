@@ -448,7 +448,6 @@ def studijny_program_show(id, edit, spv_id):
       msg_ns.has_warnings = True
     for warning in g.db.find_sp_warnings(limit_sp=id):
       msg_ns.add_warnings = warning['messages']
-      print repr(warning)
   
   if request.method == 'POST':
     controls = request.form.items(multi=True)
@@ -520,14 +519,18 @@ def studijny_program_prilohy(id):
     abort(403)
   
   studprog = g.db.load_studprog(id)
-  prilohy = export.prilohy_pre_studijny_program(id)
-  return render_template('studprog-prilohy.html', prilohy=prilohy, data=studprog, studprog_id=id, editing=False, tab='dokumenty')
+  podla_typu = {}
+  podla_typu2 = []
 
-def studprog_priloha_context(sp_id):
-  return {
-      'config': config,
-      'studprog': g.db.load_studprog(sp_id)
-    }
+  for row in g.db.load_typy_priloh():
+    podla_typu[row.id] = (row, [],)
+    podla_typu2.append(podla_typu[row.id])
+
+  prilohy = export.prilohy_pre_studijny_program(export.PrilohaContext(config), id)
+  for filename, typ, priloha in prilohy:
+    podla_typu[typ][1].append([filename, priloha])
+
+  return render_template('studprog-prilohy.html', prilohy=podla_typu2, data=studprog, studprog_id=id, editing=False, tab='dokumenty')
 
 @app.route('/studijny-program/<int:id>/dokumenty/stiahni/<subor>')
 @restrict()
@@ -535,11 +538,11 @@ def studijny_program_priloha_stiahni(id, subor):
   if not g.user.vidi_dokumenty_sp():
     abort(403)
   
-  prilohy = export.prilohy_pre_studijny_program(id)
+  prilohy = export.prilohy_pre_studijny_program(export.PrilohaContext(config), id)
   if subor not in prilohy.podla_nazvu_suboru:
     abort(404)
   
-  return prilohy.podla_nazvu_suboru[subor].send(prilohy=prilohy, **studprog_priloha_context(id))
+  return prilohy.podla_nazvu_suboru[subor].send()
 
 @app.route('/studijny-program/<int:id>/dokumenty/vsetky.zip')
 @restrict()
@@ -547,9 +550,9 @@ def studijny_program_priloha_stiahni_zip(id):
   if not g.user.vidi_dokumenty_sp():
     abort(403)
   
-  prilohy = export.prilohy_pre_studijny_program(id)
+  prilohy = export.prilohy_pre_studijny_program(export.PrilohaContext(config), id)
   
-  return prilohy.send_zip(prilohy=prilohy, **studprog_priloha_context(id))
+  return prilohy.send_zip()
 
 def spracuj_subor(f):
   h = hashlib.sha256()
@@ -592,8 +595,6 @@ def studijny_program_prilohy_upload(studprog_id, subor_id):
     if not filename:
       filename = f.filename
     filename = secure_filename(filename)
-    if typ_prilohy:
-      filename = 'III_{}_{}'.format(typ_prilohy, filename)
     if not '.' in filename:
       filename += '.rtf'
 
@@ -671,6 +672,23 @@ def stav_vyplnania():
   sp_warnings = g.db.find_sp_warnings()
   return render_template('stav-vyplnania.html',
     sp_warnings=sp_warnings)
+
+@app.route('/exporty')
+@restrict()
+def exporty():
+  if not g.user.vidi_exporty():
+    abort(401)
+  return render_template('exporty.html')
+
+@app.route('/exporty/vsetky-sp.zip')
+@restrict()
+def export_vsetkych_sp():
+  if not g.user.vidi_exporty():
+    abort(401)
+
+  prilohy = export.prilohy_vsetky(export.PrilohaContext(config))
+
+  return prilohy.send_zip('vsetky-sp.zip')
 
 @app.route('/pouzivatelia')
 @restrict()
