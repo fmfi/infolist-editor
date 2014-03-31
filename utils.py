@@ -336,25 +336,43 @@ class PocitadloSucet(object):
   def __init__(self, *pocitadla):
     self.pocitadla = pocitadla
 
+  def sum(self, attr):
+    return sum(getattr(x, attr) for x in self.pocitadla)
+
   @property
   def fyzicky(self):
-    return sum(getattr(x, 'fyzicky') for x in self.pocitadla)
+    return self.sum('fyzicky')
 
   @property
   def fyzicky_tyzdenne(self):
-    return sum(getattr(x, 'fyzicky_tyzdenne') for x in self.pocitadla)
+    return self.sum('fyzicky_tyzdenne')
 
   @property
   def fyzicky_podskupina(self):
-    return sum(getattr(x, 'fyzicky_podskupina') for x in self.pocitadla)
+    return self.sum('fyzicky_podskupina')
 
   @property
   def prepocitany(self):
-    return sum(getattr(x, 'prepocitany') for x in self.pocitadla)
+    return self.sum('prepocitany')
 
   @property
   def prepocitany_podskupina(self):
-    return sum(getattr(x, 'prepocitany_podskupina') for x in self.pocitadla)
+    return self.sum('prepocitany_podskupina')
+
+class PocitadloSucetSpecial(PocitadloSucet):
+  def __init__(self, prof, doc, *ostat):
+    self.profdoc = PocitadloSucet(prof, doc)
+    self.ostat = PocitadloSucet(*ostat)
+  
+  def sum(self, attr):
+    v = self.ostat.sum(attr)
+    if attr == 'fyzicky_podskupina':
+      v += self.profdoc.fyzicky
+    elif attr == 'prepocitany_podskupina':
+      v += self.profdoc.prepocitany
+    else:
+      v += self.profdoc.sum(attr)
+    return v
 
 class PocitadloStruktura(object):
   def __init__(self):
@@ -364,7 +382,7 @@ class PocitadloStruktura(object):
     self.odborny_asistent = Pocitadlo()
     self.asistent = Pocitadlo()
     self.lektor = Pocitadlo()
-    self.ucitelia_spolu = PocitadloSucet(self.profesor, self.docent, self.hostujuci_profesor, self.odborny_asistent, self.lektor)
+    self.ucitelia_spolu = PocitadloSucetSpecial(self.profesor, self.docent, self.hostujuci_profesor, self.odborny_asistent, self.lektor)
     self.vyskumny_pracovnik = Pocitadlo()
     self.zamestnanci_spolu = PocitadloSucet(self.ucitelia_spolu, self.vyskumny_pracovnik)
     self.doktorand = Pocitadlo()
