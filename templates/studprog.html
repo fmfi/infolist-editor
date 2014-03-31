@@ -23,6 +23,7 @@
         </ul>
       </div>
     {% endif %}
+    {% if not editing %}
     <ul class="nav nav-tabs">
       <li class="{{ 'active' if tab == 'sp' else '' }}"><a href="{{ url_for('studijny_program_show', id=studprog_id, edit=False) }}">Študijný program</a></li>
       <li class="{{ 'active' if tab == 'statistiky' else '' }}"><a href="{{ url_for('studijny_program_statistiky', id=studprog_id) }}">Štatistiky</a></li>
@@ -30,6 +31,7 @@
       <li class="{{ 'active' if tab == 'dokumenty' else '' }}"><a href="{{ url_for('studijny_program_prilohy', id=studprog_id) }}">Dokumenty</a></li>
       {% endif %}
     </ul>
+    {% endif %}
     {% block studprog %}
       <div class="body">
         <div class="polozka">
@@ -144,9 +146,11 @@
       {% endif %}
     </div>
     {% endif %}
-  <div class="meta">
-    <a class="btn btn-default btn-block" href="{{ url_for('export_studprog', id=studprog_id) }}"><span class="glyphicon glyphicon-download"></span> Export do RTF</a>
-  </div>
+    {% if not editing %}
+    <div class="meta">
+      <a class="btn btn-default btn-block" href="{{ url_for('export_studprog', id=studprog_id) }}"><span class="glyphicon glyphicon-download"></span> Export do RTF</a>
+    </div>
+    {% endif %}
   </div>
   <div class="clearfix"></div>
 </div>
