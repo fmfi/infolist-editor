@@ -11,7 +11,7 @@ from rtfng.document.character import B
 from rtfng.PropertySets import BorderPropertySet, FramePropertySet, ParagraphPropertySet, TabPropertySet
 from markupsafe import soft_unicode
 from utils import format_datetime
-from flask import send_from_directory
+from flask import send_from_directory, stream_with_context
 from flask import g, url_for, Response
 import zipfile
 import os.path
@@ -461,7 +461,7 @@ def stream_zip(entries, filename):
     for chunk in sink.get_and_clear():
         yield chunk
   
-  response = Response(chunks(), mimetype='application/zip')
+  response = Response(stream_with_context(chunks()), mimetype='application/zip')
   response.headers['Content-Disposition'] = 'attachment; filename={}'.format(filename)
   return response
 
