@@ -12,6 +12,8 @@ from flask import send_from_directory
 from flask import g, url_for, Response
 import zipfile
 import os.path
+from werkzeug.utils import secure_filename
+
 
 class ZipBuffer(object):
     """ A file-like object for zipfile.ZipFile to write into. http://stackoverflow.com/a/9829044"""
@@ -38,10 +40,11 @@ class ZipBuffer(object):
         return result
 
 class Priloha(object):
-  def __init__(self, nazov, **kwargs):
+  def __init__(self, nazov, filename, **kwargs):
     self.nazov = nazov
     self.url_aktualizacie = None
     self.modifikovane = None
+    self._filename = filename
   
   def render(self, to_file, **kwargs):
     pass
@@ -58,6 +61,11 @@ class Priloha(object):
     if self.nazov.endswith('.rtf'):
       return 'application/rtf'
     return 'application/octet-stream'
+
+  @property
+  def filename(self):
+    print self._filename
+    return self._filename
 
 class PrilohaZoznam(Priloha):
   def render(self, to_file, prilohy, **kwargs):
@@ -93,7 +101,8 @@ class PrilohaZoznam(Priloha):
     doc.write(to_file)
 
 class PrilohaSubor(Priloha):
-  def __init__(self, id, posledna_verzia, sha256, modifikoval, modifikovane, predosla_verzia, studprog_id, **kwargs):
+  def __init__(self, id, posledna_verzia, sha256, modifikoval, modifikovane, predosla_verzia, studprog_id, mimetype,
+               **kwargs):
     super(PrilohaSubor, self).__init__(**kwargs)
     self.id = id
     self.posledna_verzia = posledna_verzia
@@ -102,6 +111,7 @@ class PrilohaSubor(Priloha):
     self.modifikovane = modifikovane
     self.predosla_verzia = predosla_verzia
     self.url_aktualizacie = url_for('studijny_program_prilohy_upload', studprog_id=studprog_id, subor_id=id)
+    self._mimetype = mimetype
   
   def render(self, to_file, config, studprog, **kwargs):
     with open(os.path.join(config.files_dir, self.sha256)) as fin:
@@ -113,7 +123,13 @@ class PrilohaSubor(Priloha):
   
   def send(self, config, studprog, **kwargs):
     return send_from_directory(config.files_dir, self.sha256, as_attachment=True,
-      attachment_filename=self.nazov)
+      attachment_filename=secure_filename(self.filename))
+
+  @property
+  def mimetype(self):
+    if self._mimetype:
+      return self._mimetype
+    return super(PrilohaSubor, self).mimetype
 
 class TypPrilohySP(object):
   def __init__(self, id, nazov, kriterium):
@@ -124,7 +140,7 @@ class TypPrilohySP(object):
 class Prilohy(object):
   def __init__(self):
     self.typy = {}
-    self.podla_nazvu = {}
+    self.podla_nazvu_suboru = {}
     self.podla_typu = {}
     
   def add_typ(self, typ):
@@ -133,7 +149,7 @@ class Prilohy(object):
   
   def add(self, typ, priloha):
     self.podla_typu[typ].append(priloha)
-    self.podla_nazvu[priloha.nazov] = priloha
+    self.podla_nazvu_suboru[priloha.filename] = priloha
   
   def __iter__(self):
     for typ in self.typy:
@@ -180,6 +196,6 @@ def prilohy_pre_studijny_program(sp_id):
     for subor in subory:
       prilohy.add(typ, subor)
   
-  prilohy.add(12, PrilohaZoznam('zoznam-priloh.rtf'))
+  prilohy.add(12, PrilohaZoznam(u'Zoznam dokumentov priložených k žiadosti', 'zoznam_priloh.rtf'))
   
   return prilohy

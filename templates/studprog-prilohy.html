@@ -11,7 +11,8 @@
       <table class="table">
         <thead>
           <tr>
-            <th>Súbor</th>
+            <th>Dokument</th>
+            <th>Názov súboru</th>
             <th>Čas zmeny</th>
             <th></th>
           </tr>
@@ -19,7 +20,8 @@
         <tbody>
         {% for subor in subory %}
           <tr>
-            <td><a href="{{ url_for('studijny_program_priloha_stiahni', id=studprog_id, nazov=subor.nazov) }}">{{ subor.nazov }}</a></td>
+            <td><a href="{{ url_for('studijny_program_priloha_stiahni', id=studprog_id, subor=subor.filename) }}">{{ subor.nazov }}</a></td>
+            <td>{{  subor.filename }}</td>
             <td>{{ subor.modifikovane|datetime }}</td>
             {% if subor.url_aktualizacie %}
             <td><a class="btn btn-xs btn-default" href="{{ subor.url_aktualizacie }}">Aktualizovať</a></td>

@@ -685,17 +685,17 @@ def studprog_priloha_context(sp_id):
       'studprog': g.db.load_studprog(sp_id)
     }
 
-@app.route('/studijny-program/<int:id>/dokumenty/stiahni/<nazov>')
+@app.route('/studijny-program/<int:id>/dokumenty/stiahni/<subor>')
 @restrict()
-def studijny_program_priloha_stiahni(id, nazov):
+def studijny_program_priloha_stiahni(id, subor):
   if not g.user.vidi_dokumenty_sp():
     abort(403)
   
   prilohy = export.prilohy_pre_studijny_program(id)
-  if nazov not in prilohy.podla_nazvu:
+  if subor not in prilohy.podla_nazvu_suboru:
     abort(404)
   
-  return prilohy.podla_nazvu[nazov].send(prilohy=prilohy, **studprog_priloha_context(id))
+  return prilohy.podla_nazvu_suboru[subor].send(prilohy=prilohy, **studprog_priloha_context(id))
 
 @app.route('/studijny-program/<int:id>/dokumenty/vsetky.zip')
 @restrict()
@@ -721,30 +721,59 @@ def spracuj_subor(f):
 def studijny_program_prilohy_upload(studprog_id, subor_id):
   if not (g.user.vidi_dokumenty_sp() and g.user.moze_menit_studprog()):
     abort(403)
+
+  typ_prilohy = None
+  if subor_id is not None:
+    subor = g.db.load_subor(subor_id)
+  else:
+    subor = None
   
   if request.method == 'POST':
     f = request.files['dokument']
     if f:
       sha256 = spracuj_subor(f)
+      mimetype = f.mimetype
+    else:
+      sha256 = subor.sha256
+      mimetype = subor.mimetype
 
-      nazov = request.form['nazov']
-      if not nazov:
-        nazov = secure_filename(f.filename)
+    if 'typ_prilohy' in request.form:
+      typ_prilohy = int(request.form['typ_prilohy'])
 
-      novy_subor_id = g.db.add_subor(sha256, nazov, g.user.id, subor_id=subor_id)
-      
-      if subor_id is None:
-        typ_prilohy = int(request.form['typ_prilohy'])
-        g.db.add_studprog_priloha(studprog_id, typ_prilohy, novy_subor_id)
-      flash(u'Súbor bol úspešne nahratý', 'success')
-      g.db.commit()
-    
-      return redirect(url_for('studijny_program_prilohy', id=studprog_id, subor_id=subor_id))
+    nazov = request.form['nazov']
+    if not nazov:
+      nazov = f.filename
+
+    filename = request.form.get('filename')
+    if not filename:
+      filename = f.filename
+    filename = secure_filename(filename)
+    if typ_prilohy:
+      filename = 'III_{}_{}'.format(typ_prilohy, filename)
+    if not '.' in filename:
+      filename += '.rtf'
+
+    if len(filename) > 50:
+      parts = filename.rsplit('.', 1)
+      filename = '{}.{}'.format(parts[:50-len(parts[1])-1])
+
+    novy_subor_id = g.db.add_subor(sha256, nazov, filename, mimetype, g.user.id, subor_id=subor_id)
+
+    if subor_id is None:
+      if typ_prilohy is None:
+        raise BadRequest()
+      g.db.add_studprog_priloha(studprog_id, typ_prilohy, novy_subor_id)
+      flash(u'Dokument bol úspešne nahratý', 'success')
+    else:
+      flash(u'Dokument bol úspešne aktualizovaný', 'success')
+    g.db.commit()
+
+    return redirect(url_for('studijny_program_prilohy', id=studprog_id, subor_id=subor_id))
   
   studprog = g.db.load_studprog(studprog_id)
   return render_template('studprog-priloha-upload.html', data=studprog,
     studprog_id=studprog_id, editing=True, subor_id=subor_id,
-    typy_priloh=g.db.load_typy_priloh(iba_moze_vybrat=True), subor=g.db.load_subor(subor_id)
+    typy_priloh=g.db.load_typy_priloh(iba_moze_vybrat=True), subor=subor
   )
 
 @app.route('/subor/<int:id>')
