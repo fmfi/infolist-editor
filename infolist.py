@@ -343,7 +343,7 @@ def show_infolist(id, edit, predmet_id=None):
 @app.route('/infolist/<int:id>.rtf')
 @restrict()
 def export_infolist(id):
-  infolist_rtf = export.PrilohaInfolist(id)
+  infolist_rtf = export.PrilohaInfolist(id, context=export.PrilohaContext(config), filename='infolist-{}.rtf'.format(id))
   return infolist_rtf.send()
 
 @app.route('/infolist/<int:id>/fork', methods=['POST'])
@@ -661,7 +661,7 @@ def lock_studprog(id, lock):
 @app.route('/studijny-program/<int:id>.rtf')
 @restrict()
 def export_studprog(id):
-  studplan_rtf = export.PrilohaStudPlan(id)
+  studplan_rtf = export.PrilohaStudPlan(id, context=export.PrilohaContext(config), filename='studprog-{}.rtf'.format(id))
   return studplan_rtf.send()
 
 @app.route('/stav-vyplnania')
