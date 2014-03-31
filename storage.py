@@ -1487,7 +1487,7 @@ class DataStore(object):
   def load_subor(self, subor_id):
     with self.cursor() as cur:
       cur.execute('''SELECT sv.id as subor_verzia, sv.predosla_verzia,
-        sv.modifikovane, sv.modifikoval, sv.sha256, sv.nazov, sv.filename
+        sv.modifikovane, sv.modifikoval, sv.sha256, sv.nazov, sv.filename, sv.mimetype
         FROM subor s
         INNER JOIN subor_verzia sv ON s.posledna_verzia = sv.id
         WHERE s.id = %s
