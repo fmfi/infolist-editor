@@ -500,11 +500,12 @@ def Studprog():
   schema.add(SchemaNode(Sequence(),
     Blok(
       name='blok',
-      title=u'Blok'
+      title=u'Blok',
+      widget=deform.widget.MappingWidget(template='blok_mapping')
     ),
     name='bloky',
     title=u'Bloky',
-    widget=deform.widget.SequenceWidget(orderable=True, item_template='blok_mapping'),
+    widget=deform.widget.SequenceWidget(orderable=True),
   ))
   schema.add(SchemaNode(String(),
     name=u'poznamka_konverzny',
