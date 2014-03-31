@@ -395,7 +395,7 @@ class PocitadloStruktura(object):
   def pridaj(self, id, funkcia, kvalifikacia, vaha):
     treti_stupen = ['10', '11', '12', '20', '21', '30', '31']
     if funkcia in ['1P', '1H']:
-      self.profesor.pridaj(id, vaha, not kvalifikacia.starts_with('1'))
+      self.profesor.pridaj(id, vaha, not kvalifikacia.startswith('1'))
     elif funkcia == '2D':
       self.docent.pridaj(id, vaha, False)
     elif funkcia == '3O':
