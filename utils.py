@@ -413,3 +413,9 @@ class PocitadloStruktura(object):
     
   def __str__(self):
     return 'fyzicky z_toho prepocitany z_toho fyz_tyzdenny\n'+'\n'.join('{}: {}'.format(x.rjust(20), getattr(self, x)) for x in self.pocitadla)
+
+stupen_studia_titul = {
+  '1.': 'Bc',
+  '2.': 'Mgr',
+  '3.': 'PhD'
+}

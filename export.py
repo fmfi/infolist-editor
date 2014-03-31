@@ -2,7 +2,7 @@
 from decimal import ROUND_HALF_EVEN, Decimal
 from itertools import groupby
 from utils import escape_rtf, filter_fakulta, filter_druh_cinnosti, filter_obdobie, filter_metoda_vyucby, \
-  filter_literatura, filter_jazyk_vyucby, filter_typ_vyucujuceho, render_rtf
+  filter_literatura, filter_jazyk_vyucby, filter_typ_vyucujuceho, render_rtf, stupen_studia_titul, filter_typ_bloku
 from StringIO import StringIO
 from contextlib import closing
 from rtfng.Elements import Document, Section
@@ -62,7 +62,7 @@ class Priloha(object):
   
   @property
   def mimetype(self):
-    if self.nazov.endswith('.rtf'):
+    if self.filename and self.filename.endswith('.rtf'):
       return 'application/rtf'
     return 'application/octet-stream'
 
@@ -295,6 +295,94 @@ class PrilohaInfolist(Priloha):
   @property
   def filename(self):
     return 'infolist-{}.rtf'.format(self.infolist_id)
+
+class PrilohaStudPlan(Priloha):
+  def __init__(self, studprog_id, **kwargs):
+    super(PrilohaStudPlan, self).__init__(**kwargs)
+    self.studprog_id = studprog_id
+    self._data = None
+
+  def load(self):
+    if self._data is None:
+      self._data = g.db.load_studprog(self.studprog_id)
+    return self._data
+
+  def render(self, to_file, **kwargs):
+    studprog = self.load()
+
+    doc = Document()
+    section = Section()
+    doc.Sections.append(section)
+    styles = doc.StyleSheet
+
+    def th(content):
+      return Cell(Paragraph(content, styles.ParagraphStyles.Normal))
+
+    def td(content):
+      return Cell(Paragraph(content, styles.ParagraphStyles.Normal))
+
+    nadpis_sp = u''
+    if studprog['skratka']:
+      nadpis_sp += studprog['skratka']
+      nadpis_sp += u' '
+    nadpis_sp += studprog['nazov']
+    p = Paragraph(styles.ParagraphStyles.Heading1)
+    p.append(nadpis_sp)
+    section.append(p)
+
+    if studprog['aj_konverzny_program']:
+      nadpis_sp += u' (konverzný program)'
+      p = Paragraph(styles.ParagraphStyles.Heading1)
+      p.append(nadpis_sp)
+      section.append(p)
+
+    p = Paragraph(styles.ParagraphStyles.Normal)
+    p.append(u'Podmienky absolvovania študijného programu:\n' + studprog['podmienky_absolvovania'])
+    section.append(p)
+
+    for blok in studprog['bloky']:
+      p = Paragraph(styles.ParagraphStyles.Heading2)
+      p.append(blok['nazov'])
+      section.append(p)
+      p = Paragraph(styles.ParagraphStyles.Normal)
+      p.append(u'({})'.format(filter_typ_bloku(blok['typ'])))
+      section.append(p)
+
+      if blok['podmienky']:
+        p = Paragraph(styles.ParagraphStyles.Normal)
+        p.append(blok['podmienky'])
+        section.append(p)
+
+      table = Table(3350, 2880, 1200, 1000, 1000)
+      table.AddRow(th(u'Predmet'), th(u'Vyučujúci'), th(u'Roč./Sem.'), th(u'Rozsah'), th(u'Kredity'))
+      for infolist in blok['infolisty']:
+        predmet = u'{} {}'.format(infolist['skratka_predmetu'], infolist['nazov_predmetu'])
+        if infolist['poznamka_cislo']:
+          predmet = u'{} *{}'.format(predmet, infolist['poznamka_cislo'])
+        vyucujuci = u', '.join(x['kratke_meno'] for x in infolist['vyucujuci'])
+        semester = u'{}{}'.format(infolist['rocnik'] or '', '.' if infolist['semester'] == 'N' else infolist['semester'])
+        rozsah = u' + '.join(infolist['rozsah'])
+        kredity = u'{}'.format(infolist['pocet_kreditov'])
+        table.AddRow(td(predmet), td(vyucujuci), td(semester), td(rozsah), td(kredity))
+
+      section.append(table)
+
+      for cislo, poznamka in enumerate(blok['poznamky'], start=1):
+        p = Paragraph(styles.ParagraphStyles.Normal)
+        p.append(u'*{} {}'.format(cislo, poznamka))
+        section.append(p)
+
+    if studprog['aj_konverzny_program']:
+      p = Paragraph(styles.ParagraphStyles.Normal)
+      p.append(u'Poznámka ku konverznému programu: {}'.format(studprog['poznamka_konverzny']))
+      section.append(p)
+
+    doc.write(to_file)
+
+  @property
+  def filename(self):
+    studprog = self.load()
+    return '2a_SP_{}_{}_formular.rtf'.format(studprog['oblast_vyskumu'], stupen_studia_titul.get(studprog['stupen_studia']))
 
 class TypPrilohySP(object):
   def __init__(self, id, nazov, kriterium):

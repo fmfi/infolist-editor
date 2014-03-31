@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import utils
 from werkzeug.exceptions import BadRequest, NotFound
 from utils import Podmienka
 from export import *
@@ -998,7 +999,8 @@ class DataStore(object):
   
   def load_studprog(self, id, lang='sk', verzia=None):
     with self.cursor() as cur:
-      cur.execute('''SELECT sp.skratka, sp.posledna_verzia, sp.zamknute, sp.zamkol, sp.vytvorene, sp.vytvoril
+      cur.execute('''SELECT sp.skratka, sp.posledna_verzia, sp.zamknute, sp.zamkol, sp.vytvorene, sp.vytvoril,
+          sp.oblast_vyskumu
         FROM studprog sp
         WHERE sp.id = %s
         ''',
@@ -1016,9 +1018,26 @@ class DataStore(object):
         'zamkol': data.zamkol,
         'vytvorene': data.vytvorene,
         'vytvoril': data.vytvoril,
-        'verzia': verzia
+        'verzia': verzia,
+        'oblast_vyskumu': data.oblast_vyskumu
       }
       sp.update(self.load_studprog_verzia(verzia, lang))
+      vyrob_rozsah = utils.rozsah()
+
+      for blok in sp['bloky']:
+        blok['poznamky'] = []
+        for infolist in blok['infolisty']:
+          if 'cinnosti' in infolist:
+            infolist['rozsah'] = vyrob_rozsah(infolist['cinnosti'])
+          if infolist['poznamka']:
+            try:
+              infolist['poznamka_cislo'] = blok['poznamky'].index(infolist['poznamka'])
+            except ValueError:
+              infolist['poznamka_cislo'] = len(blok['poznamky'])
+              blok['poznamky'].append(infolist['poznamka'])
+          else:
+            infolist['poznamka_cislo'] = None
+
       return sp
   
   def load_studprog_verzia(self, id, lang='sk'):
