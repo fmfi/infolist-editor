@@ -597,9 +597,10 @@ def studijny_program_prilohy_upload(studprog_id, subor_id):
     if not '.' in filename:
       filename += '.rtf'
 
-    if len(filename) > 50:
+    filename_len_limit = 100
+    if len(filename) > filename_len_limit:
       parts = filename.rsplit('.', 1)
-      filename = '{}.{}'.format(parts[:50-len(parts[1])-1])
+      filename = '{}.{}'.format(parts[:filename_len_limit-len(parts[1])-1])
 
     novy_subor_id = g.db.add_subor(sha256, nazov, filename, mimetype, g.user.id, subor_id=subor_id)
 

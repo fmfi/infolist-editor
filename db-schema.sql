@@ -841,7 +841,7 @@ CREATE TABLE subor_verzia (
   modifikoval integer references osoba(id),
   sha256 char(64) not null,
   nazov varchar(150) not null,
-  filename varchar(50) not null,
+  filename varchar(100) not null,
   mimetype varchar(100)
 );
 
