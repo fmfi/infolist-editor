@@ -830,7 +830,8 @@ CREATE TABLE studprog (
   zamknute timestamp,
   zamkol integer references osoba(id),
   vytvorene timestamp not null default now(),
-  vytvoril integer references osoba(id)
+  vytvoril integer references osoba(id),
+  oblast_vyskumu varchar(20)
 );
 
 CREATE TABLE subor_verzia (
