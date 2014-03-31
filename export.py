@@ -70,7 +70,6 @@ class Priloha(object):
     self.context = context
     self.nazov = nazov
     self.url_aktualizacie = None
-    self.modifikovane = None
     self._filename = filename
   
   def render(self, to_file):
@@ -92,6 +91,10 @@ class Priloha(object):
   @property
   def filename(self):
     return self._filename
+
+  @property
+  def modifikovane(self):
+    return None
 
 class PrilohaZoznam(Priloha):
   def __init__(self, prilohy, **kwargs):
@@ -140,7 +143,7 @@ class PrilohaSubor(Priloha):
     self.posledna_verzia = posledna_verzia
     self.sha256 = sha256
     self.modifikoval = modifikoval
-    self.modifikovane = modifikovane
+    self._modifikovane = modifikovane
     self.predosla_verzia = predosla_verzia
     self.url_aktualizacie = url_for('studijny_program_prilohy_upload', studprog_id=studprog_id, subor_id=id)
     self._mimetype = mimetype
@@ -162,6 +165,10 @@ class PrilohaSubor(Priloha):
     if self._mimetype:
       return self._mimetype
     return super(PrilohaSubor, self).mimetype
+
+  @property
+  def modifikovane(self):
+    return self._modifikovane
 
 class PrilohaInfolist(Priloha):
   def __init__(self, infolist_id, **kwargs):
@@ -396,11 +403,9 @@ class PrilohaStudPlan(Priloha):
     doc.write(to_file)
 
   @property
-  def filename(self):
+  def modifikovane(self):
     studprog = self.context.studprog(self.studprog_id)
-    return secure_filename('2a_SP_{}_{}_{}_formular.rtf'.format(studprog['oblast_vyskumu'],
-                                                stupen_studia_titul.get(studprog['stupen_studia']),
-                                                studprog['nazov']))
+    return studprog['modifikovane']
 
 class TypPrilohySP(object):
   def __init__(self, id, nazov, kriterium):
@@ -468,7 +473,8 @@ def prilohy_pre_studijny_program(context, sp_id):
   for typ, subory in g.db.load_studprog_prilohy_subory(context, sp_id).iteritems():
     for subor in subory:
       prilohy.add(typ, subor)
-  
+
+  prilohy.add(6, PrilohaStudPlan(sp_id, context=context, nazov=u'Odporúčaný študijný plán', filename='studijny_plan.rtf'))
   prilohy.add(12, PrilohaZoznam(prilohy, context=context, nazov=u'Zoznam dokumentov priložených k žiadosti', filename='zoznam_priloh.rtf'))
   
   return prilohy

@@ -4,7 +4,7 @@
   {% if prilohy %}
     {% for typ_prilohy, subory in prilohy %}
       <h4>{{ typ_prilohy.nazov }}{% if typ_prilohy.kriterium %} ({{ typ_prilohy.kriterium }}){% endif %}</h4>
-      {% if typ_prilohy.id in [1, 2, 6, 8] %}
+      {% if typ_prilohy.id in [1, 2, 8] %}
         <p>Prílohy v tejto kategórii budú priložené systémom automaticky.</p>
       {% endif %}
       {% if subory %}
@@ -32,7 +32,7 @@
         {% endfor %}
         </tbody>
       </table>
-      {% elif typ_prilohy.id not in [1, 2, 6, 8]  %}
+      {% elif typ_prilohy.id not in [1, 2, 8]  %}
         <p>Žiaden priložený dokument.</p>
       {% endif %}
     {% endfor %}
