@@ -839,7 +839,7 @@ CREATE TABLE subor_verzia (
   modifikovane timestamp not null default now(),
   modifikoval integer references osoba(id),
   sha256 char(64) not null,
-  nazov varchar(50) not null
+  nazov varchar(150) not null
 );
 
 CREATE TABLE subor (
