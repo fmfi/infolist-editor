@@ -70,7 +70,7 @@ class Priloha(object):
     self.context = context
     self.nazov = nazov
     self.url_aktualizacie = None
-    self._filename = filename
+    self._filename = secure_filename(filename)
   
   def render(self, to_file):
     pass
@@ -321,10 +321,6 @@ class PrilohaInfolist(Priloha):
   def mimetype(self):
     return 'application/rtf'
 
-  @property
-  def filename(self):
-    return 'infolist-{}.rtf'.format(self.infolist_id)
-
 class PrilohaStudPlan(Priloha):
   def __init__(self, studprog_id, **kwargs):
     super(PrilohaStudPlan, self).__init__(**kwargs)
@@ -473,6 +469,11 @@ def prilohy_pre_studijny_program(context, sp_id):
   for typ, subory in g.db.load_studprog_prilohy_subory(context, sp_id).iteritems():
     for subor in subory:
       prilohy.add(typ, subor)
+
+  for infolist in g.db.load_studprog_infolisty(sp_id):
+    prilohy.add(8, PrilohaInfolist(infolist.infolist, context=context, nazov=infolist.nazov_predmetu,
+                                   filename=u'{}_{}.rtf'.format(infolist.skratka, infolist.nazov_predmetu)))
+
 
   prilohy.add(6, PrilohaStudPlan(sp_id, context=context, nazov=u'Odporúčaný študijný plán', filename='studijny_plan.rtf'))
   prilohy.add(12, PrilohaZoznam(prilohy, context=context, nazov=u'Zoznam dokumentov priložených k žiadosti', filename='zoznam_priloh.rtf'))

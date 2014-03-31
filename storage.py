@@ -1579,3 +1579,21 @@ class DataStore(object):
         if row.typ_vyucujuceho:
           result[-1]['typy_vyucujuceho'].append(row.typ_vyucujuceho)
       return result
+
+  def load_studprog_infolisty(self, sp_id):
+    with self.cursor() as cur:
+      cur.execute('''
+        SELECT DISTINCT spvbi.predmet_jadra, i.id as infolist, ivp.nazov_predmetu COLLATE "sk_SK" as nazov_predmetu,
+          p.skratka
+        FROM studprog sp
+        INNER JOIN studprog_verzia_blok spvb ON sp.posledna_verzia = spvb.studprog_verzia
+        INNER JOIN studprog_verzia_blok_infolist spvbi ON sp.posledna_verzia = spvbi.studprog_verzia AND spvb.poradie_blok = spvbi.poradie_blok
+        INNER JOIN infolist i ON spvbi.infolist = i.id
+        INNER JOIN infolist_verzia_preklad ivp ON i.posledna_verzia = ivp.infolist_verzia
+        INNER JOIN predmet_infolist pi ON pi.infolist = i.id
+        INNER JOIN predmet p ON p.id = pi.predmet
+        WHERE sp.id = %s AND ivp.jazyk_prekladu = 'sk'
+        ORDER BY nazov_predmetu, i.id
+      ''',
+      (sp_id,))
+      return cur.fetchall()
