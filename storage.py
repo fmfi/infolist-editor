@@ -1602,7 +1602,7 @@ class DataStore(object):
     with self.cursor() as cur:
       cur.execute('''
         SELECT DISTINCT o.id as osoba, o.priezvisko COLLATE "sk_SK", o.meno COLLATE "sk_SK", o.cele_meno, o.login,
-          ou.funkcia IS NOT NULL as mame_funkciu, spvb.typ, ovp.token
+          ou.funkcia IS NOT NULL as mame_funkciu, ovp.token
         FROM studprog sp
         INNER JOIN studprog_verzia_blok spvb ON sp.posledna_verzia = spvb.studprog_verzia
         INNER JOIN studprog_verzia_blok_infolist spvbi ON sp.posledna_verzia = spvbi.studprog_verzia AND spvb.poradie_blok = spvbi.poradie_blok
