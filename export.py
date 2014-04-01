@@ -532,10 +532,8 @@ def prilohy_pre_studijny_program(context, sp_id):
                                    filename=u'{}_{}.rtf'.format(infolist.skratka, infolist.nazov_predmetu)))
 
   for osoba in g.db.load_studprog_vpchar(sp_id):
-    if osoba.funkcia is None:
+    if not osoba.mame_funkciu:
       context.add_warning_by_typ(1, u'V databáze chýba funkcia pre {}, neviem zistiť, či treba prikladať VPCHAR!'.format(osoba.cele_meno))
-      continue
-    if osoba.funkcia not in ['1P', '1H', '2D']:
       continue
     if osoba.token:
       rtfname = 'token-{}.rtf'.format(osoba.token)
