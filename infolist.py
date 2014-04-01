@@ -526,11 +526,13 @@ def studijny_program_prilohy(id):
     podla_typu[row.id] = (row, [],)
     podla_typu2.append(podla_typu[row.id])
 
-  prilohy = export.prilohy_pre_studijny_program(export.PrilohaContext(config), id)
+  context = export.PrilohaContext(config)
+  prilohy = export.prilohy_pre_studijny_program(context, id)
   for filename, typ, priloha in prilohy:
     podla_typu[typ][1].append([filename, priloha])
 
-  return render_template('studprog-prilohy.html', prilohy=podla_typu2, data=studprog, studprog_id=id, editing=False, tab='dokumenty')
+  return render_template('studprog-prilohy.html', prilohy=podla_typu2, data=studprog, studprog_id=id, editing=False,
+                         tab='dokumenty', context=context)
 
 @app.route('/studijny-program/<int:id>/dokumenty/stiahni/<subor>')
 @restrict()

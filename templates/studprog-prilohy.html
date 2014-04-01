@@ -4,8 +4,17 @@
   {% if prilohy %}
     {% for typ_prilohy, subory in prilohy %}
       <h4>{{ typ_prilohy.nazov }}{% if typ_prilohy.kriterium %} ({{ typ_prilohy.kriterium }}){% endif %}</h4>
-      {% if typ_prilohy.id in [1, 2] %}
+      {% if typ_prilohy.id in [2] %}
         <p>Prílohy v tejto kategórii budú priložené systémom automaticky.</p>
+      {% endif %}
+      {% if context.warnings_by_typ(typ_prilohy.id) %}
+        <div class="alert alert-danger">
+          <ul>
+            {% for msg in context.warnings_by_typ(typ_prilohy.id) %}
+              <li>{{ msg }}</li>
+            {% endfor %}
+          </ul>
+        </div>
       {% endif %}
       {% if subory %}
       <table class="table">
@@ -32,7 +41,7 @@
         {% endfor %}
         </tbody>
       </table>
-      {% elif typ_prilohy.id not in [1, 2]  %}
+      {% elif typ_prilohy.id not in [2]  %}
         <p>Žiaden priložený dokument.</p>
       {% endif %}
     {% endfor %}

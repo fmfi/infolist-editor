@@ -5,6 +5,7 @@ class Configuration(object):
 
     self.conn_str = 'host=localhost dbname= user= password='
     self.files_dir = ''
+    self.vpchar_dir = ''
 
     ADMINS = ['email@example.com']
     if not app.debug:

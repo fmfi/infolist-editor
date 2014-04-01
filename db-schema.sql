@@ -889,4 +889,9 @@ CREATE TABLE osoba_uvazok (
   PRIMARY KEY (osoba, pracovisko, funkcia)
 );
 
+CREATE TABLE osoba_vpchar (
+  osoba integer not null references osoba(id),
+  token varchar(32) not null
+);
+
 COMMIT;

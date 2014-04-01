@@ -11,7 +11,7 @@ from rtfng.document.character import B
 from rtfng.PropertySets import BorderPropertySet, FramePropertySet, ParagraphPropertySet, TabPropertySet
 from markupsafe import soft_unicode
 from utils import format_datetime
-from flask import send_from_directory, stream_with_context
+from flask import send_from_directory, stream_with_context, safe_join
 from flask import g, url_for, Response
 import zipfile
 import os.path
@@ -49,8 +49,10 @@ class PrilohaContext(object):
     self._studprog_cache = {}
     self._infolist_cache = {}
     self._typy_priloh = {}
+    self._warning_by_typ = {}
     for row in g.db.load_typy_priloh():
       self._typy_priloh[row.id] = row
+      self._warning_by_typ[row.id] = []
 
   def studprog(self, id):
     if id not in self._studprog_cache:
@@ -65,12 +67,21 @@ class PrilohaContext(object):
   def typ_prilohy(self, id):
     return self._typy_priloh[id]
 
+  def add_warning_by_typ(self, typ, message):
+    self._warning_by_typ[typ].append(message)
+
+  def warnings_by_typ(self, typ):
+    return self._warning_by_typ[typ]
+
 class Priloha(object):
   def __init__(self, context, nazov=None, filename=None, **kwargs):
     self.context = context
-    self.nazov = nazov
+    self._nazov = nazov
     self.url_aktualizacie = None
-    self._filename = secure_filename(filename)
+    if filename is not None:
+      self._filename = secure_filename(filename)
+    else:
+      self._filename = None
   
   def render(self, to_file):
     pass
@@ -95,6 +106,10 @@ class Priloha(object):
   @property
   def modifikovane(self):
     return None
+
+  @property
+  def nazov(self):
+    return self._nazov
 
 class PrilohaZoznam(Priloha):
   def __init__(self, prilohy, **kwargs):
@@ -135,29 +150,22 @@ class PrilohaZoznam(Priloha):
     
     doc.write(to_file)
 
-class PrilohaSubor(Priloha):
-  def __init__(self, id, posledna_verzia, sha256, modifikoval, modifikovane, predosla_verzia, studprog_id, mimetype,
-               **kwargs):
-    super(PrilohaSubor, self).__init__(**kwargs)
-    self.id = id
-    self.posledna_verzia = posledna_verzia
-    self.sha256 = sha256
-    self.modifikoval = modifikoval
-    self._modifikovane = modifikovane
-    self.predosla_verzia = predosla_verzia
-    self.url_aktualizacie = url_for('studijny_program_prilohy_upload', studprog_id=studprog_id, subor_id=id)
+class PrilohaSuborBase(Priloha):
+  def __init__(self, mimetype=None, **kwargs):
+    super(PrilohaSuborBase, self).__init__(**kwargs)
     self._mimetype = mimetype
-  
+
   def render(self, to_file):
-    with open(os.path.join(self.context.config.files_dir, self.sha256)) as fin:
-      buffer_size = 262144 
+    with open(self.real_filename) as fin:
+      buffer_size = 262144
       data = fin.read(buffer_size)
       while data != '':
         to_file.write(data)
         data = fin.read(buffer_size)
-  
+
   def send(self):
-    return send_from_directory(self.context.config.files_dir, self.sha256, as_attachment=True,
+    l_dir, l_file = self.location
+    return send_from_directory(l_dir, l_file, as_attachment=True,
       attachment_filename=secure_filename(self.filename))
 
   @property
@@ -167,8 +175,46 @@ class PrilohaSubor(Priloha):
     return super(PrilohaSubor, self).mimetype
 
   @property
+  def real_filename(self):
+    return safe_join(self.context.config.files_dir, self.sha256)
+
+class PrilohaSubor(PrilohaSuborBase):
+  def __init__(self, id, posledna_verzia, sha256, modifikoval, modifikovane, predosla_verzia, studprog_id,
+               **kwargs):
+    super(PrilohaSubor, self).__init__(**kwargs)
+    self.id = id
+    self.posledna_verzia = posledna_verzia
+    self.sha256 = sha256
+    self.modifikoval = modifikoval
+    self._modifikovane = modifikovane
+    self.predosla_verzia = predosla_verzia
+    self.url_aktualizacie = url_for('studijny_program_prilohy_upload', studprog_id=studprog_id, subor_id=id)
+
+  @property
   def modifikovane(self):
     return self._modifikovane
+
+  @property
+  def location(self):
+    return self.context.config.files_dir, self.sha256
+
+class PrilohaVPChar(PrilohaSuborBase):
+  def __init__(self, osoba, rtfname, **kwargs):
+    super(PrilohaVPChar, self).__init__(mimetype='application/rtf', **kwargs)
+    self.osoba = osoba
+    self.rtfname = rtfname
+
+  @property
+  def location(self):
+    return self.context.config.vpchar_dir, self.rtfname
+
+  @property
+  def filename(self):
+    return secure_filename(u'{}_{}_{}.rtf'.format(self.osoba.priezvisko, self.osoba.meno, self.osoba.osoba))
+
+  @property
+  def nazov(self):
+    return self.osoba.cele_meno
 
 class PrilohaInfolist(Priloha):
   def __init__(self, infolist_id, **kwargs):
@@ -428,7 +474,7 @@ class Prilohy(object):
     filename = ''
     if adresar is not None:
       filename = adresar + '/'
-    if typ > 0:
+    if typ > 2:
       filename += 'III_{}_'.format(typ)
     filename += priloha.filename
 
@@ -484,6 +530,23 @@ def prilohy_pre_studijny_program(context, sp_id):
   for infolist in g.db.load_studprog_infolisty(sp_id):
     prilohy.add(8, PrilohaInfolist(infolist.infolist, context=context, nazov=infolist.nazov_predmetu,
                                    filename=u'{}_{}.rtf'.format(infolist.skratka, infolist.nazov_predmetu)))
+
+  for osoba in g.db.load_studprog_vpchar(sp_id):
+    if osoba.funkcia is None:
+      context.add_warning_by_typ(1, u'V databáze chýba funkcia pre {}, neviem zistiť, či treba prikladať VPCHAR!'.format(osoba.cele_meno))
+      continue
+    if osoba.funkcia not in ['1P', '1H', '2D']:
+      continue
+    if osoba.token:
+      rtfname = 'token-{}.rtf'.format(osoba.token)
+    elif osoba.login:
+      rtfname = 'user-{}.rtf'.format(osoba.login)
+    else:
+      rtfname = None
+    if not rtfname or not os.path.exists(safe_join(context.config.vpchar_dir, rtfname)):
+      context.add_warning_by_typ(1, u'Chýba VPCHAR pre {}!'.format(osoba.cele_meno))
+      continue
+    prilohy.add(1, PrilohaVPChar(osoba=osoba, rtfname=rtfname, context=context))
 
 
   prilohy.add(6, PrilohaStudPlan(sp_id, context=context, nazov=u'Odporúčaný študijný plán', filename='studijny_plan.rtf'))

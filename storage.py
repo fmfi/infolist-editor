@@ -1597,3 +1597,22 @@ class DataStore(object):
       ''',
       (sp_id,))
       return cur.fetchall()
+
+  def load_studprog_vpchar(self, sp_id):
+    with self.cursor() as cur:
+      cur.execute('''
+        SELECT DISTINCT o.id as osoba, o.priezvisko COLLATE "sk_SK", o.meno COLLATE "sk_SK", o.cele_meno, o.login, ou.funkcia, spvb.typ, ovp.token
+        FROM studprog sp
+        INNER JOIN studprog_verzia_blok spvb ON sp.posledna_verzia = spvb.studprog_verzia
+        INNER JOIN studprog_verzia_blok_infolist spvbi ON sp.posledna_verzia = spvbi.studprog_verzia AND spvb.poradie_blok = spvbi.poradie_blok
+        INNER JOIN infolist i ON spvbi.infolist = i.id
+        INNER JOIN infolist_verzia_vyucujuci ivv ON i.posledna_verzia = ivv.infolist_verzia
+        INNER JOIN osoba o ON ivv.osoba = o.id
+        INNER JOIN infolist_verzia_preklad ivp ON i.posledna_verzia = ivp.infolist_verzia
+        LEFT JOIN osoba_uvazok ou ON ivv.osoba = ou.osoba
+        LEFT JOIN osoba_vpchar ovp ON ivv.osoba = ovp.osoba
+        WHERE sp.id = %s AND spvb.typ in ('A', 'B') AND ivp.jazyk_prekladu = 'sk'
+        ORDER BY o.priezvisko COLLATE "sk_SK", o.meno COLLATE "sk_SK", o.id
+      ''',
+      (sp_id,))
+      return cur.fetchall()
