@@ -340,20 +340,28 @@ class PrilohaStudPlan(Priloha):
     def td(content):
       return Cell(Paragraph(content, styles.ParagraphStyles.Normal))
 
+
+    stupen = {
+      '1.': u' - bakalárske štúdium',
+      '2.': u' - magisterské štúdium',
+      '3.': u' - doktoransdké štúdium'
+    }
+    nadpis = u'Odporúčaný študijný plán' + stupen.get(studprog['stupen_studia'], u'')
+
     nadpis_sp = u''
     if studprog['skratka']:
       nadpis_sp += studprog['skratka']
       nadpis_sp += u' '
     nadpis_sp += studprog['nazov']
-    p = Paragraph(styles.ParagraphStyles.Heading1)
-    p.append(nadpis_sp)
-    section.append(p)
+    nadpis += u'\n' + nadpis_sp
 
     if studprog['aj_konverzny_program']:
       nadpis_sp += u' (konverzný program)'
-      p = Paragraph(styles.ParagraphStyles.Heading1)
-      p.append(nadpis_sp)
-      section.append(p)
+      nadpis += u'\n' + nadpis_sp
+
+    p = Paragraph(styles.ParagraphStyles.Heading1)
+    p.append(nadpis)
+    section.append(p)
 
     p = Paragraph(styles.ParagraphStyles.Normal)
     p.append(u'Podmienky absolvovania študijného programu:\n' + studprog['podmienky_absolvovania'])
@@ -372,17 +380,18 @@ class PrilohaStudPlan(Priloha):
         p.append(blok['podmienky'])
         section.append(p)
 
-      table = Table(3350, 2880, 1200, 1000, 1000)
-      table.AddRow(th(u'Predmet'), th(u'Vyučujúci'), th(u'Roč./Sem.'), th(u'Rozsah'), th(u'Kredity'))
+      table = Table(2850, 2380, 1250, 1100, 950, 900)
+      table.AddRow(th(u'Predmet'), th(u'Vyučujúci'), th(u'Roč./Sem.'), th(u'Rozsah'), th(u'Kredity'), th(u'Jadro'))
       for infolist in blok['infolisty']:
         predmet = u'{} {}'.format(infolist['skratka_predmetu'], infolist['nazov_predmetu'])
-        if infolist['poznamka_cislo']:
-          predmet = u'{} *{}'.format(predmet, infolist['poznamka_cislo'])
+        if infolist['poznamka_cislo'] is not None:
+          predmet = u'{} *{}'.format(predmet, infolist['poznamka_cislo']+1)
         vyucujuci = u', '.join(x['kratke_meno'] for x in infolist['vyucujuci'])
         semester = u'{}{}'.format(infolist['rocnik'] or '', '.' if infolist['semester'] == 'N' else infolist['semester'])
         rozsah = u' + '.join(infolist['rozsah'])
         kredity = u'{}'.format(infolist['pocet_kreditov'])
-        table.AddRow(td(predmet), td(vyucujuci), td(semester), td(rozsah), td(kredity))
+        jadro = u'áno' if infolist['predmet_jadra'] else u'nie'
+        table.AddRow(td(predmet), td(vyucujuci), td(semester), td(rozsah), td(kredity), td(jadro))
 
       section.append(table)
 
