@@ -131,6 +131,7 @@ class DataStore(object):
     self._jazyky_vyucby = None
     self._typy_bloku = [('A', u'A: povinné predmety'), ('B', u'B: povinne voliteľné predmety'), ('C', u'C: výberové predmety')]
     self._podmienka_class = podmienka_class
+    self._typy_priloh = None
   
   def cursor(self):
     return self.conn.cursor()
@@ -1496,16 +1497,16 @@ class DataStore(object):
       return cur.fetchone()
   
   def load_typy_priloh(self, iba_moze_vybrat=False):
-    with self.cursor() as cur:
-      where = ''
-      if iba_moze_vybrat:
-        where = 'WHERE moze_vybrat'
-      cur.execute('''SELECT id, nazov, kriterium
-        FROM studprog_priloha_typ
-        {}
-        ORDER BY id
-        '''.format(where))
-      return cur.fetchall()
+    if self._typy_priloh is None:
+      with self.cursor() as cur:
+        cur.execute('''SELECT id, nazov, kriterium, moze_vybrat
+          FROM studprog_priloha_typ
+          ORDER BY id
+          ''')
+        self._typy_priloh = cur.fetchall()
+    if iba_moze_vybrat:
+      return [x for x in self._typy_priloh if x.moze_vybrat]
+    return self._typy_priloh
 
   def load_studprog_osoby_struktura(self, sp_id):
     with self.cursor() as cur:

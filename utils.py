@@ -419,3 +419,15 @@ stupen_studia_titul = {
   '2.': 'Mgr',
   '3.': 'PhD'
 }
+
+def prilohy_podla_typu(prilohy):
+  podla_typu = {}
+  podla_typu2 = []
+
+  for row in g.db.load_typy_priloh():
+    podla_typu[row.id] = (row, [],)
+    podla_typu2.append(podla_typu[row.id])
+  for filename, typ, priloha in prilohy:
+    podla_typu[typ][1].append([filename, priloha])
+
+  return podla_typu2

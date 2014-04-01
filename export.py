@@ -2,7 +2,8 @@
 from decimal import ROUND_HALF_EVEN, Decimal
 from itertools import groupby
 from utils import escape_rtf, filter_fakulta, filter_druh_cinnosti, filter_obdobie, filter_metoda_vyucby, \
-  filter_literatura, filter_jazyk_vyucby, filter_typ_vyucujuceho, render_rtf, stupen_studia_titul, filter_typ_bloku
+  filter_literatura, filter_jazyk_vyucby, filter_typ_vyucujuceho, render_rtf, stupen_studia_titul, filter_typ_bloku, \
+  prilohy_podla_typu
 from StringIO import StringIO
 from contextlib import closing
 from rtfng.Elements import Document, Section
@@ -131,20 +132,18 @@ class PrilohaZoznam(Priloha):
     
     def td(content):
       return Cell(Paragraph(content, styles.ParagraphStyles.Normal))
-    
-    for typ_prilohy_id, entries in groupby(self.prilohy,key=lambda x: x[1]):
-      if not entries or typ_prilohy_id == 0:
+
+    for typ_prilohy, entries in prilohy_podla_typu(self.prilohy):
+      if not entries or typ_prilohy.id == 0:
         continue
 
-      typ_prilohy = self.context.typ_prilohy(typ_prilohy_id)
-      
       p = Paragraph(styles.ParagraphStyles.Heading2)
       p.append(typ_prilohy.nazov)
       section.append(p)
     
       table = Table(TabPropertySet.DEFAULT_WIDTH * 7, TabPropertySet.DEFAULT_WIDTH * 3)
       table.AddRow(th(u'Príloha'), th(u'Dátum modifikácie'))
-      for filename, _, priloha in entries:
+      for filename, priloha in entries:
         table.AddRow(td(filename), td(format_datetime(priloha.modifikovane, iba_datum=True)))
       section.append(table)
     

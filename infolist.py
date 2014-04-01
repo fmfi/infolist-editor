@@ -519,19 +519,12 @@ def studijny_program_prilohy(id):
     abort(403)
   
   studprog = g.db.load_studprog(id)
-  podla_typu = {}
-  podla_typu2 = []
 
-  for row in g.db.load_typy_priloh():
-    podla_typu[row.id] = (row, [],)
-    podla_typu2.append(podla_typu[row.id])
 
   context = export.PrilohaContext(config)
   prilohy = export.prilohy_pre_studijny_program(context, id)
-  for filename, typ, priloha in prilohy:
-    podla_typu[typ][1].append([filename, priloha])
 
-  return render_template('studprog-prilohy.html', prilohy=podla_typu2, data=studprog, studprog_id=id, editing=False,
+  return render_template('studprog-prilohy.html', prilohy=utils.prilohy_podla_typu(prilohy), data=studprog, studprog_id=id, editing=False,
                          tab='dokumenty', context=context)
 
 @app.route('/studijny-program/<int:id>/dokumenty/stiahni/<subor>')
