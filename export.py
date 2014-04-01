@@ -209,7 +209,7 @@ class PrilohaVPChar(PrilohaSuborBase):
 
   @property
   def filename(self):
-    return secure_filename(u'{}_{}_{}.rtf'.format(self.osoba.priezvisko, self.osoba.meno, self.osoba.osoba))
+    return secure_filename(u'vpch_{}_{}_{}.rtf'.format(self.osoba.priezvisko, self.osoba.meno, self.osoba.osoba))
 
   @property
   def nazov(self):
