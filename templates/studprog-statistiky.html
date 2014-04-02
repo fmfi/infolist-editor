@@ -154,7 +154,7 @@
           <td>{{ row.priezvisko }} {{ row.meno }}</td>
           <td>{{ row.funkcia or '??' }}</td>
           <td>{{ row.kvalifikacia or '??' }}</td>
-          <td>{{ row.uvazok or '??' }}</td>
+          <td>{{ row.uvazok if row.uvazok != None else '??' }}</td>
           <td>{{ row.typy_vyucujuceho|join(', ') }}</td>
           <td>{{ 'áno' if row.predmet_jadra else 'nie' }}</td>
         </tr>
