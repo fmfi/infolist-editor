@@ -357,7 +357,7 @@ class PrilohaInfolist(Priloha):
         )
     tdata['IL_VYUCUJUCI'] = vyuc_str
     tdata['IL_POSLEDNA_ZMENA'] = format_datetime(infolist['modifikovane'], iba_datum=True)
-    tdata['IL_SCHVALIL'] = ''
+    tdata['IL_SCHVALIL'] = u', '.join(x['cele_meno'] for x in infolist['garanti'])
 
     rtf_template = resource_string(__name__, 'templates/infolist.rtf')
     to_file.write(render_rtf(rtf_template, tdata))

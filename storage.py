@@ -184,6 +184,16 @@ class DataStore(object):
         ''', (id,))
       odp = []
       i['odporucane_semestre'] = [x._asdict() for x in cur.fetchall()]
+
+      cur.execute('''SELECT DISTINCT spv.garant as garant, o.cele_meno, o.priezvisko COLLATE "sk_SK", o.meno COLLATE "sk_SK"
+        FROM studprog_verzia_blok_infolist spvbi
+        INNER JOIN studprog sp ON sp.posledna_verzia = spvbi.studprog_verzia
+        INNER JOIN studprog_verzia spv ON spv.id = spvbi.studprog_verzia
+        INNER JOIN osoba o ON o.id = spv.garant
+        WHERE spvbi.infolist = %s
+        ORDER BY o.priezvisko COLLATE "sk_SK", o.meno COLLATE "sk_SK"
+        ''', (id,))
+      i['garanti'] = [x._asdict() for x in cur.fetchall()]
       
     i.update(self.load_infolist_verzia(posledna_verzia, lang))
     return i
