@@ -175,7 +175,7 @@ class PrilohaSuborBase(Priloha):
 
   @property
   def real_filename(self):
-    return safe_join(self.context.config.files_dir, self.sha256)
+    return safe_join(*self.location)
 
 class PrilohaSubor(PrilohaSuborBase):
   def __init__(self, id, posledna_verzia, sha256, modifikoval, modifikovane, predosla_verzia, studprog_id,
