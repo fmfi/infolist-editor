@@ -1,0 +1,14 @@
+{% extends 'studprog.html' %}
+{% block studprog %}
+<div class="body">
+  <h4>Školitelia v doktorandskom štúdiu</h4>
+  <form>
+  <input type=""
+  <ul class="skolitelia">
+  {% for osoba in osoby %}
+    <li><label><input name="skolitelia" value="{{ osoba.osoba }}" type="checkbox" {% if osoba.je_skolitel %}checked="checked"{% endif %}> {{ osoba.cele_meno }}</label></li>
+  {% endfor %}
+  </ul>
+  </form>
+</div>
+{% endblock %}

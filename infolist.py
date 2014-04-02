@@ -512,6 +512,18 @@ def studijny_program_statistiky(id):
   return render_template('studprog-statistiky.html', pocty_osob=ps, chybajuci=chybajuci,
       data=studprog, studprog_id=id, editing=False, tab='statistiky', zoznam=zoznam)
 
+@app.route('/studijny-program/<int:id>/skolitelia')
+@restrict()
+def studijny_program_skolitelia(id):
+  if not g.user.vidi_studijne_programy():
+    abort(403)
+
+  osoby = g.db.load_studprog_skolitelia(id)
+
+  studprog = g.db.load_studprog(id)
+  return render_template('studprog-skolitelia.html', osoby=osoby,
+      data=studprog, studprog_id=id, editing=False, tab='statistiky')
+
 @app.route('/studijny-program/<int:id>/dokumenty')
 @restrict()
 def studijny_program_prilohy(id):
