@@ -389,7 +389,7 @@ class PrilohaStudPlan(Priloha):
     stupen = {
       '1.': u' - bakalárske štúdium',
       '2.': u' - magisterské štúdium',
-      '3.': u' - doktoransdké štúdium'
+      '3.': u' - doktorandské štúdium'
     }
     nadpis = u'Odporúčaný študijný plán' + stupen.get(studprog['stupen_studia'], u'')
 
