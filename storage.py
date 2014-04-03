@@ -1655,3 +1655,18 @@ class DataStore(object):
       cur.execute('DELETE FROM studprog_skolitel WHERE studprog = %s', (sp_id,))
       for skolitel in skolitelia:
         cur.execute('INSERT INTO studprog_skolitel(studprog, osoba) VALUES (%s, %s)', (sp_id, skolitel))
+
+  def load_studprog_skolitelia_vpchar(self, sp_id):
+    with self.cursor() as cur:
+      cur.execute('''
+        SELECT DISTINCT o.id as osoba, o.priezvisko COLLATE "sk_SK", o.meno COLLATE "sk_SK", o.cele_meno, o.login,
+          ovp.token
+        FROM studprog sp
+        INNER JOIN studprog_skolitel sps ON sps.studprog = sp.id
+        INNER JOIN osoba o ON sps.osoba = o.id
+        LEFT JOIN osoba_vpchar ovp ON o.id = ovp.osoba
+        WHERE sp.id = %s
+        ORDER BY o.priezvisko COLLATE "sk_SK", o.meno COLLATE "sk_SK", o.id
+      ''',
+      (sp_id,))
+      return cur.fetchall()
