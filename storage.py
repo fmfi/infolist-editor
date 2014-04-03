@@ -1649,3 +1649,9 @@ class DataStore(object):
         ORDER BY o.priezvisko COLLATE "sk_SK", o.meno COLLATE "sk_SK", o.id
       ''', (sp_id, sp_id, sp_id))
       return cur.fetchall()
+
+  def save_studprog_skolitelia(self, sp_id, skolitelia):
+    with self.cursor() as cur:
+      cur.execute('DELETE FROM studprog_skolitel WHERE studprog = %s', (sp_id,))
+      for skolitel in skolitelia:
+        cur.execute('INSERT INTO studprog_skolitel(studprog, osoba) VALUES (%s, %s)', (sp_id, skolitel))

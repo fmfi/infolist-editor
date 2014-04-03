@@ -512,11 +512,16 @@ def studijny_program_statistiky(id):
   return render_template('studprog-statistiky.html', pocty_osob=ps, chybajuci=chybajuci,
       data=studprog, studprog_id=id, editing=False, tab='statistiky', zoznam=zoznam)
 
-@app.route('/studijny-program/<int:id>/skolitelia')
+@app.route('/studijny-program/<int:id>/skolitelia', methods=['GET', 'POST'])
 @restrict()
 def studijny_program_skolitelia(id):
   if not g.user.vidi_studijne_programy():
     abort(403)
+
+  if request.method == 'POST':
+    novi_skolitelia = set(request.form.getlist('skolitelia', type=int))
+    g.db.save_studprog_skolitelia(id, novi_skolitelia)
+    g.db.commit()
 
   osoby = g.db.load_studprog_skolitelia(id)
 

@@ -359,3 +359,7 @@ span.podmienka-predmet {
 .skolitelia label:after {
     content: inherit;
 }
+
+.skolitelia .dalsie-osoby {
+    width: 20em;
+}
