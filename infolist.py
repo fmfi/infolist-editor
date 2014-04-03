@@ -527,7 +527,7 @@ def studijny_program_skolitelia(id):
 
   studprog = g.db.load_studprog(id)
   return render_template('studprog-skolitelia.html', osoby=osoby,
-      data=studprog, studprog_id=id, editing=False, tab='statistiky')
+      data=studprog, studprog_id=id, editing=False, tab='skolitelia')
 
 @app.route('/studijny-program/<int:id>/dokumenty')
 @restrict()
