@@ -522,6 +522,7 @@ def studijny_program_skolitelia(id):
     novi_skolitelia = set(request.form.getlist('skolitelia', type=int))
     g.db.save_studprog_skolitelia(id, novi_skolitelia)
     g.db.commit()
+    flash(u'Zoznam školitelov bol úspešne uložený', 'success')
 
   osoby = g.db.load_studprog_skolitelia(id)
 
