@@ -530,11 +530,7 @@ def prilohy_pre_studijny_program(context, sp_id):
     prilohy.add(8, PrilohaInfolist(infolist.infolist, context=context, nazov=infolist.nazov_predmetu,
                                    filename=u'{}_{}.rtf'.format(infolist.skratka, infolist.nazov_predmetu)))
 
-  for osoba in g.db.load_studprog_vpchar(sp_id):
-    if not osoba.mame_funkciu and not (u'prof.' in osoba.cele_meno.lower() or u'doc.' in osoba.cele_meno.lower()
-                                       or osoba.cele_meno.lower().startswith(u'prof ') or osoba.cele_meno.lower().startswith(u'doc ')):
-      context.add_warning_by_typ(1, u'V databáze chýba funkcia pre {}, neviem zistiť, či treba prikladať VPCHAR!'.format(osoba.cele_meno))
-      continue
+  def pridaj_vpchar(typ, osoba):
     if osoba.token:
       rtfname = 'token-{}.rtf'.format(osoba.token)
     elif osoba.login:
@@ -542,10 +538,19 @@ def prilohy_pre_studijny_program(context, sp_id):
     else:
       rtfname = None
     if not rtfname or not os.path.exists(safe_join(context.config.vpchar_dir, rtfname)):
-      context.add_warning_by_typ(1, u'Chýba VPCHAR pre {}!'.format(osoba.cele_meno))
-      continue
-    prilohy.add(1, PrilohaVPChar(osoba=osoba, rtfname=rtfname, context=context))
+      context.add_warning_by_typ(typ, u'Chýba VPCHAR pre {}!'.format(osoba.cele_meno))
+      return
+    prilohy.add(typ, PrilohaVPChar(osoba=osoba, rtfname=rtfname, context=context))
 
+  for osoba in g.db.load_studprog_vpchar(sp_id):
+    if not osoba.mame_funkciu and not (u'prof.' in osoba.cele_meno.lower() or u'doc.' in osoba.cele_meno.lower()
+                                       or osoba.cele_meno.lower().startswith(u'prof ') or osoba.cele_meno.lower().startswith(u'doc ')):
+      context.add_warning_by_typ(1, u'V databáze chýba funkcia pre {}, neviem zistiť, či treba prikladať VPCHAR!'.format(osoba.cele_meno))
+      continue
+    pridaj_vpchar(1, osoba)
+
+  for osoba in g.db.load_studprog_skolitelia_vpchar(sp_id):
+    pridaj_vpchar(2, osoba)
 
   prilohy.add(6, PrilohaStudPlan(sp_id, context=context, nazov=u'Odporúčaný študijný plán', filename='studijny_plan.rtf'))
   prilohy.add(12, PrilohaZoznam(prilohy, context=context, nazov=u'Zoznam dokumentov priložených k žiadosti', filename='zoznam_priloh.rtf'))

@@ -351,3 +351,15 @@ span.podmienka-predmet {
 .studprog .nav-tabs li:first-child {
   margin-left: 1em;
 }
+
+.skolitelia label {
+    font-weight: normal;
+}
+
+.skolitelia label:after {
+    content: inherit;
+}
+
+.skolitelia .dalsie-osoby {
+    width: 20em;
+}

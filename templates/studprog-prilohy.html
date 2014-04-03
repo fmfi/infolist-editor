@@ -4,8 +4,8 @@
   {% if prilohy %}
     {% for typ_prilohy, subory in prilohy %}
       <h4>{{ typ_prilohy.nazov }}{% if typ_prilohy.kriterium %} ({{ typ_prilohy.kriterium }}){% endif %}</h4>
-      {% if typ_prilohy.id in [2] %}
-        <p>Prílohy v tejto kategórii budú priložené systémom automaticky.</p>
+      {% if typ_prilohy.id == 2 %}
+        <p>Prílohy v tejto kategórii prikladá systém podľa osôb vybraných v záložke "Školitelia".</p>
       {% endif %}
       {% if context.warnings_by_typ(typ_prilohy.id) %}
         <div class="alert alert-danger">

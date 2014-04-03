@@ -880,6 +880,12 @@ CREATE TABLE studprog_priloha (
   primary key (studprog, typ_prilohy, subor)
 );
 
+CREATE TABLE studprog_skolitel (
+  studprog integer not null references studprog(id),
+  osoba integer not null references osoba(id),
+  primary key (studprog, osoba)
+);
+
 CREATE TABLE osoba_uvazok (
   osoba integer not null references osoba(id),
   pracovisko varchar(50),

@@ -1629,3 +1629,44 @@ class DataStore(object):
       ''',
       (sp_id, '%prof.%', '%doc.%', 'prof %', 'doc %'))
       return cur.fetchall()
+
+  def load_studprog_skolitelia(self, sp_id):
+    with self.cursor() as cur:
+      cur.execute('''
+        SELECT DISTINCT o.id as osoba, o.priezvisko COLLATE "sk_SK", o.meno COLLATE "sk_SK", o.cele_meno,
+          EXISTS (SELECT 1 FROM studprog_skolitel sps WHERE sps.osoba = o.id AND studprog = %s) as je_skolitel
+        FROM osoba o
+        WHERE EXISTS (SELECT 1 FROM studprog_skolitel sps WHERE sps.osoba = o.id AND studprog = %s)
+        OR EXISTS(
+          SELECT 1
+          FROM studprog sp
+          INNER JOIN studprog_verzia_blok spvb ON sp.posledna_verzia = spvb.studprog_verzia
+          INNER JOIN studprog_verzia_blok_infolist spvbi ON sp.posledna_verzia = spvbi.studprog_verzia AND spvb.poradie_blok = spvbi.poradie_blok
+          INNER JOIN infolist i ON spvbi.infolist = i.id
+          INNER JOIN infolist_verzia_vyucujuci ivv ON i.posledna_verzia = ivv.infolist_verzia
+          WHERE sp.id = %s AND ivv.osoba = o.id
+        )
+        ORDER BY o.priezvisko COLLATE "sk_SK", o.meno COLLATE "sk_SK", o.id
+      ''', (sp_id, sp_id, sp_id))
+      return cur.fetchall()
+
+  def save_studprog_skolitelia(self, sp_id, skolitelia):
+    with self.cursor() as cur:
+      cur.execute('DELETE FROM studprog_skolitel WHERE studprog = %s', (sp_id,))
+      for skolitel in skolitelia:
+        cur.execute('INSERT INTO studprog_skolitel(studprog, osoba) VALUES (%s, %s)', (sp_id, skolitel))
+
+  def load_studprog_skolitelia_vpchar(self, sp_id):
+    with self.cursor() as cur:
+      cur.execute('''
+        SELECT DISTINCT o.id as osoba, o.priezvisko COLLATE "sk_SK", o.meno COLLATE "sk_SK", o.cele_meno, o.login,
+          ovp.token
+        FROM studprog sp
+        INNER JOIN studprog_skolitel sps ON sps.studprog = sp.id
+        INNER JOIN osoba o ON sps.osoba = o.id
+        LEFT JOIN osoba_vpchar ovp ON o.id = ovp.osoba
+        WHERE sp.id = %s
+        ORDER BY o.priezvisko COLLATE "sk_SK", o.meno COLLATE "sk_SK", o.id
+      ''',
+      (sp_id,))
+      return cur.fetchall()
