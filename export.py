@@ -531,7 +531,8 @@ def prilohy_pre_studijny_program(context, sp_id):
                                    filename=u'{}_{}.rtf'.format(infolist.skratka, infolist.nazov_predmetu)))
 
   for osoba in g.db.load_studprog_vpchar(sp_id):
-    if not osoba.mame_funkciu and not (u'prof.' in osoba.cele_meno or u'doc.' in osoba.cele_meno):
+    if not osoba.mame_funkciu and not (u'prof.' in osoba.cele_meno.lower() or u'doc.' in osoba.cele_meno.lower()
+                                       or osoba.cele_meno.lower().startswith(u'prof ') or osoba.cele_meno.lower().startswith(u'doc ')):
       context.add_warning_by_typ(1, u'V databáze chýba funkcia pre {}, neviem zistiť, či treba prikladať VPCHAR!'.format(osoba.cele_meno))
       continue
     if osoba.token:

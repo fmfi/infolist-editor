@@ -1624,8 +1624,8 @@ class DataStore(object):
         LEFT JOIN osoba_uvazok ou ON ivv.osoba = ou.osoba
         LEFT JOIN osoba_vpchar ovp ON ivv.osoba = ovp.osoba
         WHERE sp.id = %s AND spvb.typ in ('A', 'B') AND ivp.jazyk_prekladu = 'sk'
-          AND (ou.funkcia IS NULL or ou.funkcia IN ('1P', '1H', '2D') or position('prof.' in o.cele_meno) <> 0 or position('doc.' in o.cele_meno) <> 0)
+          AND (ou.funkcia IS NULL or ou.funkcia IN ('1P', '1H', '2D') or o.cele_meno ilike %s or o.cele_meno ilike %s or o.cele_meno ilike %s or o.cele_meno ilike %s)
         ORDER BY o.priezvisko COLLATE "sk_SK", o.meno COLLATE "sk_SK", o.id
       ''',
-      (sp_id,))
+      (sp_id, '%prof.%', '%doc.%', 'prof %', 'doc %'))
       return cur.fetchall()
