@@ -557,6 +557,18 @@ def studijny_program_priloha_stiahni(id, subor):
   
   return prilohy.podla_nazvu_suboru[subor].send()
 
+@app.route('/studijny-program/<int:id>/dokumenty/typ/<int:typ_prilohy>/zmaz/<int:subor>', methods=['POST'])
+@restrict()
+def studijny_program_priloha_zmaz(id, typ_prilohy, subor):
+  if not g.user.moze_mazat_dokumenty():
+    abort(403)
+
+  if g.db.zmaz_dokument(id, typ_prilohy, subor):
+    flash(u'Príloha bola úspešne odstránená', 'success')
+    g.db.commit()
+
+  return redirect(url_for('studijny_program_prilohy', id=id))
+
 @app.route('/studijny-program/<int:id>/dokumenty/vsetky.zip')
 @restrict()
 def studijny_program_priloha_stiahni_zip(id):

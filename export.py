@@ -79,6 +79,7 @@ class Priloha(object):
     self.context = context
     self._nazov = nazov
     self.url_aktualizacie = None
+    self.url_zmazania = None
     if filename is not None:
       self._filename = secure_filename(filename)
     else:

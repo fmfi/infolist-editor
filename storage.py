@@ -70,6 +70,9 @@ class User(object):
   def vidi_exporty(self):
     return self.opravnenie('FMFI', 'admin')
 
+  def moze_mazat_dokumenty(self):
+    return self.opravnenie('FMFI', 'admin')
+
 class SQLBuilder(object):
   def __init__(self, join_with=' ', item_format='{}'):
     self.parts = []
@@ -1478,10 +1481,12 @@ class DataStore(object):
       for row in cur:
         if row.typ_prilohy not in subory:
           subory[row.typ_prilohy] = []
-        subory[row.typ_prilohy].append(PrilohaSubor(context=context, id=row.subor_id,
+        priloha = PrilohaSubor(context=context, id=row.subor_id,
           posledna_verzia=row.posledna_verzia, nazov=row.nazov, filename=row.filename,
           sha256=row.sha256, modifikoval=row.modifikoval, modifikovane=row.modifikovane,
-          predosla_verzia=row.predosla_verzia, studprog_id=studprog_id, mimetype=row.mimetype))
+          predosla_verzia=row.predosla_verzia, studprog_id=studprog_id, mimetype=row.mimetype)
+        priloha.url_zmazania = url_for('studijny_program_priloha_zmaz', id=studprog_id, typ_prilohy=row.typ_prilohy, subor=row.subor_id)
+        subory[row.typ_prilohy].append(priloha)
       return subory
   
   def add_subor(self, sha256, nazov_suboru, filename, mimetype, osoba_id, subor_id=None):
@@ -1695,3 +1700,11 @@ class DataStore(object):
       ''',
       (sp_id,))
       return cur.fetchall()
+
+  def zmaz_dokument(self, sp_id, typ_prilohy, subor_id):
+    with self.cursor() as cur:
+      cur.execute('''
+        DELETE FROM studprog_priloha
+        WHERE studprog=%s AND typ_prilohy = %s AND subor = %s''',
+        (sp_id, typ_prilohy, subor_id))
+      return cur.rowcount > 0
