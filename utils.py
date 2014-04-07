@@ -6,6 +6,77 @@ import colander
 from markupsafe import soft_unicode
 from decimal import Decimal
 
+class PodmienkaASTGroup(object):
+  def __init__(self, typ, *nodes):
+    self.typ = typ
+    if not self.typ in ['AND', 'OR']:
+      raise ValueError('Unknown typ')
+    self.nodes = nodes
+
+  def __eq__(self, other):
+    if not isinstance(other, PodmienkaASTGroup):
+      return NotImplemented
+    return self.typ == other.typ and self.nodes == other.nodes
+
+  def __ne__(self, other):
+    if not isinstance(other, PodmienkaASTGroup):
+      return NotImplemented
+    return not self.__eq__(other)
+
+  def __repr__(self):
+    return 'PodmienkaASTGroup({})'.format(', '.join(repr(x) for x in [self.typ] + list(self.nodes)))
+
+  def vyhodnot(self, predmety):
+    hodnoty = [x.vyhodnot(predmety) for x in self.nodes]
+    return any(hodnoty) if self.typ == 'OR' else all(hodnoty)
+
+
+class PodmienkaASTLiteral(object):
+  def __init__(self, predmet_id):
+    self.predmet_id = predmet_id
+    self._predmet = None
+
+  def __eq__(self, other):
+    if not isinstance(other, PodmienkaASTLiteral):
+      return NotImplemented
+    return self.predmet_id == other.predmet_id
+
+  def __ne__(self, other):
+    if not isinstance(other, PodmienkaASTLiteral):
+      return NotImplemented
+    return not self.__eq__(other)
+
+  def __repr__(self):
+    return 'PodmienkaASTLiteral({!r})'.format(self.predmet_id)
+
+  def vyhodnot(self, predmety):
+    return self.predmet_id in predmety
+
+  @property
+  def predmet(self):
+    if self._predmet is None:
+      self._predmet = g.db.load_predmet_simple(self.predmet_id)
+    return self._predmet
+
+
+class PodmienkaASTEmpty(object):
+  def __eq__(self, other):
+    if not isinstance(other, PodmienkaASTEmpty):
+      return NotImplemented
+    return True
+
+  def __ne__(self, other):
+    if not isinstance(other, PodmienkaASTEmpty):
+      return NotImplemented
+    return not self.__eq__(other)
+
+  def __repr__(self):
+    return 'PodmienkaASTEmpty()'
+
+  def vyhodnot(self, predmety):
+    return True
+
+
 class Podmienka(object):
   symbols = ('(', ')', 'OR', 'AND')
   
@@ -15,9 +86,10 @@ class Podmienka(object):
     rawtok = self._tokenize(text)
     if len(rawtok) == 0:
       self._tokens = []
+      self._ast = PodmienkaASTEmpty()
     else:
-      self._tokens = Podmienka._parse_expr_in(rawtok)
-  
+      self._tokens, self._ast = Podmienka._parse_expr_in(rawtok)
+
   @classmethod
   def _parse_expr(cls, tokens):
     if len(tokens) == 0:
@@ -25,34 +97,39 @@ class Podmienka(object):
     
     if tokens[0] == '(':
       ret = [tokens.pop(0)]
-      ret.extend(cls._parse_expr_in(tokens))
+      expr_tok, expr_ast = cls._parse_expr_in(tokens)
+      ret.extend(expr_tok)
       if not tokens or tokens[0] != ')':
         raise ValueError('Expecting )')
       ret.append(tokens.pop(0))
-      return ret
+      return ret, expr_ast
     elif re.match('^[0-9]+$', tokens[0]):
-      return [int(tokens.pop(0))]
+      predmet_id = int(tokens.pop(0))
+      return [predmet_id], PodmienkaASTLiteral(predmet_id)
     else:
       raise ValueError('Expecting ID or (')
   
   @classmethod
   def _parse_expr_in(cls, tokens):
-    ret = cls._parse_expr(tokens)
+    ret, ast = cls._parse_expr(tokens)
     
     if not tokens or tokens[0] == ')':
-      return ret
+      return ret, ast
     
     if tokens[0].upper() not in ['OR', 'AND']:
       raise ValueError('Expecting AND or OR')
-    
+
     typ = tokens.pop(0).upper()
     ret.append(typ)
+    nodes = [ast]
     
     while True:
-      ret.extend(cls._parse_expr(tokens))
+      subexpr_tokens, subexpr_ast = cls._parse_expr(tokens)
+      ret.extend(subexpr_tokens)
+      nodes.append(subexpr_ast)
       
       if not tokens or tokens[0] == ')':
-        return ret
+        return ret, PodmienkaASTGroup(typ, *nodes)
       
       if tokens[0].upper() != typ:
         raise ValueError('Expecting ' + typ)
@@ -143,6 +220,14 @@ class Podmienka(object):
   
   def __len__(self):
     return len(self._tokens)
+
+  def vyhodnot(self, predmety):
+    return self._ast.vyhodnot(predmety)
+
+  @property
+  def ast(self):
+    return self._ast
+
 
 def kod2skratka(kod):
   return re.match(r'^[^/]+/(.+)/[^/]+$', kod).group(1)
@@ -431,3 +516,25 @@ def prilohy_podla_typu(prilohy):
     podla_typu[typ][1].append([filename, priloha])
 
   return podla_typu2
+
+class LevelSet(object):
+  def __init__(self):
+    self.commited = set()
+    self.new_level = set()
+    self.level = None
+
+  def add(self, level, value):
+    if self.level != level:
+      self.commit()
+      self.level = level
+      self.new_level = set()
+    self.new_level.add(value)
+
+  def commit(self):
+    self.commited.update(self.new_level)
+
+  def __contains__(self, item):
+    return item in self.commited
+
+  def current_set(self):
+    return self.commited.copy()

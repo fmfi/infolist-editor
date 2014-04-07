@@ -1374,6 +1374,11 @@ class DataStore(object):
           i.id as infolist_id,
           p.id as predmet_id, p.skratka as skratka_predmetu,
           ivp.nazov_predmetu,
+          iv.podmienujuce_predmety,
+          spvbi.rocnik,
+          spvbi.semester,
+          CASE spvbi.semester WHEN 'Z' THEN 0 WHEN 'L' THEN 1 ELSE 2 END as semester_poradie,
+          spvb.typ as typ_bloku,
           (NOT iv.finalna_verzia) as w_finalna,
           (spv.stupen_studia <> iv.predpokladany_stupen_studia) as w_stupen_studia,
           (spvbi.semester <> iv.predpokladany_semester) as w_semester,
@@ -1401,8 +1406,7 @@ class DataStore(object):
         AND (ivp.jazyk_prekladu = 'sk' OR ivp.jazyk_prekladu IS NULL)
         {}
         ) AS sq
-        WHERE (w_finalna OR w_stupen_studia OR w_semester OR w_finalna2 OR w_zahodeny OR w_pov OR w_varovania)
-        ORDER BY id, infolist_id
+        ORDER BY id, rocnik NULLS LAST, semester_poradie, infolist_id
       '''
       if limit_sp is not None:
         sql = sql.format(' AND sp.id = %s')
@@ -1412,22 +1416,28 @@ class DataStore(object):
         params = []
       cur.execute(sql, params)
       sp = []
+      splnene_predmety = {'A': utils.LevelSet(), 'B': utils.LevelSet(), 'C': utils.LevelSet()}
       for row in cur:
         if len(sp) == 0 or row.id != sp[-1]['id']:
+          if len(sp) > 0 and len(sp[-1]['messages']) == 0:
+            sp.pop()
           sp.append({
             'id': row.id,
             'skratka': row.skratka,
             'nazov': row.nazov,
             'messages': []
           })
-        def add_infolist_warning(typ):
-          sp[-1]['messages'].append({
+          splnene_predmety = {'A': utils.LevelSet(), 'B': utils.LevelSet(), 'C': utils.LevelSet()}
+        def add_infolist_warning(typ, **kwargs):
+          d = {
             'typ': typ,
             'infolist': row.infolist_id,
             'nazov_predmetu': row.nazov_predmetu,
             'skratka_predmetu': row.skratka_predmetu,
             'predmet_id': row.predmet_id,
-          })
+          }
+          d.update(kwargs)
+          sp[-1]['messages'].append(d)
         if row.w_finalna:
           add_infolist_warning('finalna')
         if row.w_finalna2:
@@ -1442,6 +1452,14 @@ class DataStore(object):
           add_infolist_warning('pov')
         if row.w_varovania:
           add_infolist_warning('varovania')
+
+        for ityp in ['A', 'B', 'C']:
+          if row.typ_bloku <= ityp:
+            splnene_predmety[ityp].add((row.rocnik, row.semester), row.predmet_id)
+        podm = Podmienka(row.podmienujuce_predmety)
+        print row.skratka_predmetu, podm, splnene_predmety[row.typ_bloku].current_set(), podm.vyhodnot(splnene_predmety)
+        if not podm.vyhodnot(splnene_predmety[row.typ_bloku]):
+          add_infolist_warning('nesplnitelne', podmienky=podm, splnene=splnene_predmety[row.typ_bloku].current_set())
       return sp
   
   def load_studprog_prilohy_subory(self, context, studprog_id):

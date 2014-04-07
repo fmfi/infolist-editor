@@ -62,3 +62,26 @@
 {% macro odporucany_semester(rocnik, semester) -%}
   {%- if rocnik or semester != 'N' %}{{ rocnik or ''}}{{ semester }}{% endif -%}
 {%- endmacro %}
+
+{% macro splnitelnost_podmienky(ast, predmety) %}
+  <span class="{{ 'splnene' if ast.vyhodnot(predmety) else 'nesplnene' }}">
+    {%- if ast.nodes is defined -%}
+      (
+      {%- for node in ast.nodes %}
+        {% if not loop.first %}
+          {% if ast.typ == 'OR' %}
+            alebo
+          {% elif ast.typ == 'AND' %}
+            a
+          {% else %}
+            {{ ast.typ }}
+          {% endif %}
+        {% endif %}
+        {{ splnitelnost_podmienky(node, predmety) }}
+      {% endfor -%}
+      )
+    {% elif ast.predmet_id is defined %}
+        {{ ast.predmet.skratka }} {{ ast.predmet.nazvy_predmetu|join('/') }}
+    {% endif %}
+  </span>
+{% endmacro %}

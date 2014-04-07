@@ -363,3 +363,18 @@ span.podmienka-predmet {
 .skolitelia .dalsie-osoby {
     width: 20em;
 }
+
+.splnene, .nesplnene {
+    padding: 1px 5px;
+    border-radius: 2px;
+}
+
+.nesplnene {
+    background: #f2dede;
+    color: #b94a48;
+}
+
+.splnene {
+    background: #dff0d8;
+    color: #468847;
+}
