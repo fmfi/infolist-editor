@@ -1384,10 +1384,13 @@ class DataStore(object):
             WHERE pi.predmet = pi2.predmet
             AND pi2.infolist <> pi.infolist AND pi2.infolist = i2.id AND
             i2.posledna_verzia = iv2.id AND iv2.finalna_verzia)) as w_finalna2,
-          (i.zahodeny) as w_zahodeny
+          (i.zahodeny) as w_zahodeny,
+          (spvb.typ IN ('A', 'B') AND NOT iv.bude_v_povinnom) as w_pov,
+          (iv.obsahuje_varovania) as w_varovania
         FROM studprog sp
         INNER JOIN studprog_verzia spv ON sp.posledna_verzia = spv.id
-        INNER JOIN studprog_verzia_blok_infolist spvbi ON spv.id = spvbi.studprog_verzia
+        INNER JOIN studprog_verzia_blok spvb ON spv.id = spvb.studprog_verzia
+        INNER JOIN studprog_verzia_blok_infolist spvbi ON spv.id = spvbi.studprog_verzia AND spvb.poradie_blok = spvbi.poradie_blok
         INNER JOIN infolist i ON spvbi.infolist = i.id
         INNER JOIN infolist_verzia iv ON i.posledna_verzia = iv.id
         LEFT JOIN studprog_verzia_preklad spvp ON spvp.studprog_verzia = spv.id
@@ -1398,7 +1401,7 @@ class DataStore(object):
         AND (ivp.jazyk_prekladu = 'sk' OR ivp.jazyk_prekladu IS NULL)
         {}
         ) AS sq
-        WHERE (w_finalna OR w_stupen_studia OR w_semester OR w_finalna2 OR w_zahodeny)
+        WHERE (w_finalna OR w_stupen_studia OR w_semester OR w_finalna2 OR w_zahodeny OR w_pov OR w_varovania)
         ORDER BY id, infolist_id
       '''
       if limit_sp is not None:
@@ -1435,6 +1438,10 @@ class DataStore(object):
           add_infolist_warning('stupen_studia')
         if row.w_zahodeny:
           add_infolist_warning('zahodeny')
+        if row.w_pov:
+          add_infolist_warning('pov')
+        if row.w_varovania:
+          add_infolist_warning('varovania')
       return sp
   
   def load_studprog_prilohy_subory(self, context, studprog_id):
