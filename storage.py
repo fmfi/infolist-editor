@@ -1105,6 +1105,7 @@ class DataStore(object):
       cur.execute('''SELECT spvb.poradie_blok, spvb.typ, spvbp.nazov, spvbp.podmienky,
           spvbi.infolist, spvbi.semester, spvbi.rocnik, spvbi.poznamka, spvbi.predmet_jadra,
           p.kod_predmetu, p.skratka, ivp.nazov_predmetu, i.posledna_verzia as infolist_verzia, iv.pocet_kreditov,
+          iv.obsahuje_varovania,
           CASE spvbi.semester WHEN 'Z' THEN 0 WHEN 'L' THEN 1 ELSE 2 END as semester_poradie
         FROM studprog_verzia_blok spvb
         LEFT JOIN studprog_verzia_blok_preklad spvbp ON spvbp.studprog_verzia = spvb.studprog_verzia AND spvbp.poradie_blok = spvb.poradie_blok
@@ -1143,6 +1144,7 @@ class DataStore(object):
             'nazov_predmetu': row.nazov_predmetu,
             'pocet_kreditov': row.pocet_kreditov,
             'predmet_jadra': row.predmet_jadra,
+            'obsahuje_varovania': row.obsahuje_varovania
           }
           with self.cursor() as cur2:
             infolist['vyucujuci'] = self._load_iv_vyucujuci(cur2, row.infolist_verzia)

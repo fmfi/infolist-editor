@@ -67,7 +67,7 @@
           </thead>
           <tbody>
             {% for infolist in blok.infolisty %}
-              <tr>
+              <tr{% if infolist.obsahuje_varovania %} class="warning"{% endif %}>
                 <td><a href="{{ url_for('show_infolist', id=infolist.infolist, edit=False) }}">
                     {{ infolist.skratka_predmetu }} {{ infolist.nazov_predmetu }}
                     </a>
