@@ -691,11 +691,19 @@ def download_subor(id):
                              attachment_filename=s.nazov)
 
 @app.route('/osoba/<int:osoba_id>/upload/vpchar', methods=['GET', 'POST'])
+@app.route('/osoba/upload/vpchar', methods=['GET', 'POST'], defaults={'osoba_id': None})
 @restrict()
 def osoba_upload_vpchar(osoba_id):
-  osoba=g.db.load_osoba(osoba_id)
-  if osoba is None:
-    abort(404)
+  route_osoba_id = osoba_id
+  if osoba_id is None:
+    if request.method == 'POST':
+      osoba_id = request.form['osoba_id']
+  if osoba_id is not None:
+    osoba=g.db.load_osoba(osoba_id)
+    if osoba is None:
+      abort(404)
+  else:
+    osoba = None
   subor_id = g.db.osoba_load_vpchar_subor_id(osoba_id)
 
   nazov = 'vpchar-{}'.format(osoba_id)
@@ -707,11 +715,11 @@ def osoba_upload_vpchar(osoba_id):
         g.db.osoba_save_vpchar_subor_id(osoba_id, novy_subor_id)
       g.db.commit()
       flash(u'VPCHAR bola úspešne nahratá', 'success')
-      return redirect(url_for('osoba_upload_vpchar', osoba_id=osoba_id))
+      return redirect(url_for('osoba_upload_vpchar', osoba_id=route_osoba_id))
     else:
       flash(u'VPCHAR sa nepodarilo nahrať, nezabudli ste vybrať súbor?', 'danger')
 
-  return render_template('osoba-vpchar-upload.html', subor_id=subor_id, osoba=osoba)
+  return render_template('osoba-vpchar-upload.html', subor_id=subor_id, osoba=osoba, osoba_id=route_osoba_id)
 
 @app.route('/studprog/<int:id>/lock', methods=['POST'], defaults={'lock': True})
 @app.route('/studprog/<int:id>/unlock', methods=['POST'], defaults={'lock': False})

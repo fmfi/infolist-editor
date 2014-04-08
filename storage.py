@@ -73,6 +73,9 @@ class User(object):
   def moze_mazat_dokumenty(self):
     return self.opravnenie('FMFI', 'admin')
 
+  def moze_uploadovat_vpchar(self):
+    return self.opravnenie('FMFI', 'admin')
+
 class SQLBuilder(object):
   def __init__(self, join_with=' ', item_format='{}'):
     self.parts = []
