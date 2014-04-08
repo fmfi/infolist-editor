@@ -610,15 +610,9 @@ def studijny_program_upload_formular(studprog_id, konverzny):
     subor_id = formular_konverzny
 
   studprog = g.db.load_studprog(studprog_id)
-  nazov_dokumentu = u'Formulár pre študijný program '
-  if studprog['skratka']:
-    nazov_dokumentu += u'{} '.format(studprog['skratka'])
-  nazov_dokumentu += studprog['nazov']
-  if konverzny:
-    nazov_dokumentu += u' (konverzný program)'
 
-  nazov_suboru = u'2a_SP_{}_{}_{}{}.rtf'.format(studprog['oblast_vyskumu'], utils.stupen_studia_titul.get(studprog['stupen_studia']),
-    secure_filename(studprog['nazov']), (u'_konverzny_program' if konverzny else u''))
+  nazov_dokumentu = export.formular_nazov(studprog, konverzny=konverzny)
+  nazov_suboru = export.formular_filename(studprog, konverzny=konverzny)
 
   if request.method == 'POST':
     novy_subor_id = upload_subor(subor_id, nazov=nazov_dokumentu, filename=nazov_suboru)

@@ -215,6 +215,19 @@ class PrilohaSubor(PrilohaUploadnutySubor):
   def url_zmazania(self):
     return url_for('studijny_program_priloha_zmaz', id=self.studprog_id, typ_prilohy=self.typ_prilohy, subor=self.id)
 
+def formular_nazov(studprog, konverzny=False):
+  nazov_dokumentu = u'Formulár pre študijný program '
+  if studprog['skratka']:
+    nazov_dokumentu += u'{} '.format(studprog['skratka'])
+  nazov_dokumentu += studprog['nazov']
+  if konverzny:
+    nazov_dokumentu += u' (konverzný program)'
+  return nazov_dokumentu
+
+def formular_filename(studprog, konverzny=False):
+  return u'2a_SP_{}_{}_{}{}_formular.rtf'.format(studprog['oblast_vyskumu'], stupen_studia_titul.get(studprog['stupen_studia']),
+    secure_filename(studprog['nazov']), (u'_konverzny_program' if konverzny else u''))
+
 class PrilohaFormularSP(PrilohaUploadnutySubor):
   def __init__(self, konverzny, **kwargs):
     super(PrilohaFormularSP, self).__init__(**kwargs)
@@ -231,19 +244,12 @@ class PrilohaFormularSP(PrilohaUploadnutySubor):
   @property
   def filename(self):
     studprog = self.context.studprog(self.studprog_id)
-    return u'2a_SP_{}_{}_{}{}.rtf'.format(studprog['oblast_vyskumu'], stupen_studia_titul.get(studprog['stupen_studia']),
-      secure_filename(studprog['nazov']), (u'_konverzny_program' if self.konverzny else u''))
+    return formular_filename(studprog, self.konverzny)
 
   @property
   def nazov(self):
     studprog = self.context.studprog(self.studprog_id)
-    nazov_dokumentu = u'Formulár pre študijný program '
-    if studprog['skratka']:
-      nazov_dokumentu += u'{} '.format(studprog['skratka'])
-    nazov_dokumentu += studprog['nazov']
-    if self.konverzny:
-      nazov_dokumentu += u' (konverzný program)'
-    return nazov_dokumentu
+    return formular_nazov(studprog, self.konverzny)
 
 class PrilohaVPChar(PrilohaSuborBase):
   def __init__(self, osoba, rtfname, **kwargs):
