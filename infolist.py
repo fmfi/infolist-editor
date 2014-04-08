@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from flask import Flask, Blueprint
+from flask import Flask
 app = Flask(__name__)
 
 from flask import render_template, url_for, redirect, jsonify, abort, flash
@@ -9,9 +9,6 @@ from flask import request, Request, g
 from flask import Response, send_from_directory
 from werkzeug.exceptions import BadRequest
 from werkzeug.datastructures import OrderedMultiDict
-from werkzeug.routing import BaseConverter
-import re
-import os
 import deform
 deform.widget.SequenceWidget.category = 'structural' #monkey patch fix
 from deform import Form
@@ -19,15 +16,12 @@ from deform.exception import ValidationFailure
 import json
 import os
 import os.path
-from pkg_resources import resource_filename, resource_string
+from pkg_resources import resource_filename
 import colander
-import time
-import jinja2
 from utils import filter_osoba, format_datetime
 from utils import recursive_replace, recursive_update
-from utils import render_rtf, filter_typ_bloku
 import utils
-from markupsafe import Markup, soft_unicode
+from markupsafe import Markup
 from functools import wraps
 import psycopg2
 # postgres unicode
@@ -35,8 +29,6 @@ psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 from psycopg2.extras import NamedTupleCursor
 from decimal import Decimal, ROUND_HALF_EVEN
-from utils import Podmienka
-from itertools import groupby
 from itsdangerous import URLSafeSerializer
 import hashlib
 from werkzeug import secure_filename

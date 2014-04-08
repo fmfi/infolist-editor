@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from colander import MappingSchema, SchemaNode, String, Integer, Bool, Sequence, Length, Email, Set
+from colander import MappingSchema, SchemaNode, String, Integer, Bool, Sequence, Set
 import colander
 import deform
 from chameleon.utils import Markup

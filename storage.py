@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import utils
-from werkzeug.exceptions import BadRequest, NotFound
+from werkzeug.exceptions import NotFound
 from utils import Podmienka
 from export import *
 
