@@ -76,7 +76,6 @@ class Priloha(object):
   def __init__(self, context, nazov=None, filename=None, **kwargs):
     self.context = context
     self._nazov = nazov
-    self.url_zmazania = None
     if filename is not None:
       self._filename = secure_filename(filename)
     else:
@@ -112,6 +111,10 @@ class Priloha(object):
 
   @property
   def url_aktualizacie(self):
+    return None
+
+  @property
+  def url_zmazania(self):
     return None
 
 class PrilohaZoznam(Priloha):
@@ -179,10 +182,10 @@ class PrilohaSuborBase(Priloha):
   def real_filename(self):
     return safe_join(*self.location)
 
-class PrilohaSubor(PrilohaSuborBase):
+class PrilohaUploadnutySubor(PrilohaSuborBase):
   def __init__(self, id, posledna_verzia, sha256, modifikoval, modifikovane, predosla_verzia, studprog_id,
                **kwargs):
-    super(PrilohaSubor, self).__init__(**kwargs)
+    super(PrilohaUploadnutySubor, self).__init__(**kwargs)
     self.id = id
     self.posledna_verzia = posledna_verzia
     self.sha256 = sha256
@@ -203,7 +206,16 @@ class PrilohaSubor(PrilohaSuborBase):
   def url_aktualizacie(self):
     return url_for('studijny_program_prilohy_upload', studprog_id=self.studprog_id, subor_id=self.id)
 
-class PrilohaFormularSP(PrilohaSubor):
+class PrilohaSubor(PrilohaUploadnutySubor):
+  def __init__(self, typ_prilohy, **kwargs):
+    super(PrilohaSubor, self).__init__(**kwargs)
+    self.typ_prilohy = typ_prilohy
+
+  @property
+  def url_zmazania(self):
+    return url_for('studijny_program_priloha_zmaz', id=self.studprog_id, typ_prilohy=self.typ_prilohy, subor=self.id)
+
+class PrilohaFormularSP(PrilohaUploadnutySubor):
   def __init__(self, konverzny, **kwargs):
     super(PrilohaFormularSP, self).__init__(**kwargs)
     self.konverzny = konverzny
@@ -211,6 +223,10 @@ class PrilohaFormularSP(PrilohaSubor):
   @property
   def url_aktualizacie(self):
     return url_for('studijny_program_upload_formular', studprog_id=self.studprog_id, konverzny=self.konverzny)
+
+  @property
+  def url_zmazania(self):
+    return url_for('studijny_program_zmaz_formular', studprog_id=self.studprog_id, konverzny=self.konverzny)
 
   @property
   def filename(self):

@@ -636,6 +636,17 @@ def studijny_program_upload_formular(studprog_id, konverzny):
     konverzny=konverzny
   )
 
+@app.route('/studijny-program/<int:studprog_id>/dokumenty/formular/zmaz', methods=['POST'], defaults={'konverzny': False})
+@app.route('/studijny-program/<int:studprog_id>/dokumenty/formular-konverzny/zmaz', methods=['POST'], defaults={'konverzny': True})
+@restrict()
+def studijny_program_zmaz_formular(studprog_id, konverzny):
+  if not g.user.moze_mazat_dokumenty():
+    abort(403)
+  g.db.save_studprog_formular_id(studprog_id, None, konverzny=konverzny)
+  g.db.commit()
+  flash(u'Formulár úspešne zmazaný', 'success')
+  return redirect(url_for('studijny_program_prilohy', id=studprog_id))
+
 @app.route('/studijny-program/<int:studprog_id>/dokumenty/upload', methods=['GET','POST'], defaults={'subor_id': None})
 @app.route('/studijny-program/<int:studprog_id>/dokumenty/<int:subor_id>/upload', methods=['GET','POST'])
 @restrict()

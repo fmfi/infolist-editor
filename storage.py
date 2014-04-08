@@ -1528,8 +1528,9 @@ class DataStore(object):
         priloha = PrilohaSubor(context=context, id=row.subor_id,
           posledna_verzia=row.posledna_verzia, nazov=row.nazov, filename=row.filename,
           sha256=row.sha256, modifikoval=row.modifikoval, modifikovane=row.modifikovane,
-          predosla_verzia=row.predosla_verzia, studprog_id=studprog_id, mimetype=row.mimetype)
-        priloha.url_zmazania = url_for('studijny_program_priloha_zmaz', id=studprog_id, typ_prilohy=row.typ_prilohy, subor=row.subor_id)
+          predosla_verzia=row.predosla_verzia, studprog_id=studprog_id, mimetype=row.mimetype,
+          typ_prilohy=row.typ_prilohy)
+
         subory[row.typ_prilohy].append(priloha)
       return subory
   
