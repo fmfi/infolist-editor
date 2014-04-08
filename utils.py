@@ -538,3 +538,20 @@ class LevelSet(object):
 
   def current_set(self):
     return self.commited.copy()
+
+def register_filters(app):
+  app.jinja_env.filters['skratka'] = kod2skratka
+  app.jinja_env.filters['fakulta'] = filter_fakulta
+  app.jinja_env.filters['druh_cinnosti'] = filter_druh_cinnosti
+  app.jinja_env.filters['obdobie'] = filter_obdobie
+  app.jinja_env.filters['typ_vyucujuceho'] = filter_typ_vyucujuceho
+  app.jinja_env.filters['typ_bloku'] = filter_typ_bloku
+  app.jinja_env.filters['metoda_vyucby'] = filter_metoda_vyucby
+  app.jinja_env.filters['jazyk_vyucby'] = filter_jazyk_vyucby
+  app.jinja_env.filters['literatura'] = filter_literatura
+  app.jinja_env.filters['osoba'] = filter_osoba
+  app.jinja_env.filters['any'] = any
+  app.jinja_env.filters['datetime'] = format_datetime
+  app.jinja_env.filters['space2nbsp'] = space2nbsp
+  app.jinja_env.filters['nl2br'] = nl2br
+  app.jinja_env.filters['stupen_studia'] = filter_stupen_studia

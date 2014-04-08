@@ -23,10 +23,7 @@ from pkg_resources import resource_filename, resource_string
 import colander
 import time
 import jinja2
-from utils import kod2skratka, filter_fakulta, filter_druh_cinnosti
-from utils import filter_obdobie, filter_typ_vyucujuceho, filter_metoda_vyucby
-from utils import filter_jazyk_vyucby, filter_literatura
-from utils import filter_osoba, format_datetime, space2nbsp, nl2br
+from utils import filter_osoba, format_datetime
 from utils import recursive_replace, recursive_update
 from utils import render_rtf, filter_typ_bloku
 import utils
@@ -65,21 +62,7 @@ form_my_templates = resource_filename(__name__, 'templates')
 form_template_path = (form_my_templates, form_deform_templates)
 Form.set_zpt_renderer(form_template_path)
 
-app.jinja_env.filters['skratka'] = kod2skratka
-app.jinja_env.filters['fakulta'] = filter_fakulta
-app.jinja_env.filters['druh_cinnosti'] = filter_druh_cinnosti
-app.jinja_env.filters['obdobie'] = filter_obdobie
-app.jinja_env.filters['typ_vyucujuceho'] = filter_typ_vyucujuceho
-app.jinja_env.filters['typ_bloku'] = filter_typ_bloku
-app.jinja_env.filters['metoda_vyucby'] = filter_metoda_vyucby
-app.jinja_env.filters['jazyk_vyucby'] = filter_jazyk_vyucby
-app.jinja_env.filters['literatura'] = filter_literatura
-app.jinja_env.filters['osoba'] = filter_osoba
-app.jinja_env.filters['any'] = any
-app.jinja_env.filters['datetime'] = format_datetime
-app.jinja_env.filters['space2nbsp'] = space2nbsp
-app.jinja_env.filters['nl2br'] = nl2br
-app.jinja_env.filters['stupen_studia'] = utils.filter_stupen_studia
+utils.register_filters(app)
 
 def restrict(api=False):
   def decorator(f):
