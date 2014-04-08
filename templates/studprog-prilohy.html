@@ -52,6 +52,8 @@
         {% if data.aj_konverzny_program %}
         <a class="btn btn-default" href="{{ url_for('studijny_program_upload_formular', studprog_id=studprog_id, konverzny=True) }}">Nahrať formulár konverzného študijného programu</a>
         {% endif %}
+      {% elif typ_prilohy.id == 8 %}
+        <a class="btn btn-default" href="{{ url_for('studijny_program_priloha_stiahni_infolisty_v_jednom_subore', id=studprog_id) }}"><span class="glyphicon glyphicon-download"></span> Stiahnuť všetky infolisty v jednom RTF súbore</a>
       {% endif %}
     {% endfor %}
   {% else %}

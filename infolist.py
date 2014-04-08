@@ -545,6 +545,17 @@ def studijny_program_priloha_zmaz(id, typ_prilohy, subor):
 
   return redirect(url_for('studijny_program_prilohy', id=id))
 
+@app.route('/studijny-program/<int:id>/dokumenty/infolisty.rtf')
+@restrict()
+def studijny_program_priloha_stiahni_infolisty_v_jednom_subore(id):
+  if not g.user.vidi_dokumenty_sp():
+    abort(403)
+
+  infolisty = g.db.load_studprog_infolisty(id)
+  priloha = export.PrilohaInfolisty([x.infolist for x in infolisty], context=export.PrilohaContext(config), nazov='Infolisty', filename=u'infolisty.rtf')
+
+  return priloha.send()
+
 @app.route('/studijny-program/<int:id>/dokumenty/vsetky.zip')
 @restrict()
 def studijny_program_priloha_stiahni_zip(id):
