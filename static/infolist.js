@@ -2,6 +2,12 @@ $(document).ready(function(){
   $(".filter-field select").select2({
     minimumResultsForSearch: 5
   });
+  $("form.document-delete").on('submit', function(e) {
+    var doc = $(e.target).data('delete-doc');
+    if (!window.confirm('Naozaj zmazať ' + doc + '?')) {
+      e.preventDefault();
+    }
+  });
 });
 (function() {
   var TokenStream = function(text) {

@@ -37,7 +37,7 @@
             <a class="btn btn-xs btn-default" href="{{ subor.url_aktualizacie }}">Aktualizovať</a>
             {% endif %}
             {% if g.user.moze_mazat_dokumenty() and subor.url_zmazania %}
-            <form action="{{ subor.url_zmazania }}" method="POST"><button type="submit" class="btn btn-xs btn-danger">Zmazať</button></form>
+            <form data-delete-doc="{{ subor.nazov }}" class="document-delete" action="{{ subor.url_zmazania }}" method="POST"><button type="submit" class="btn btn-xs btn-danger">Zmazať</button></form>
             {% endif %}
             </tr>
           </tr>
