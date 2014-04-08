@@ -1,0 +1,37 @@
+{% extends 'studprog.html' %}
+{% block studprog %}
+<div class="body">
+{% if konverzny %}
+  <h4>Nahrať formulár pre konverzný študijný program</h4>
+{% else %}
+  <h4>Nahrať formulár pre študijný program</h4>
+{% endif %}
+<form action="{{ url_for('studijny_program_upload_formular', studprog_id=studprog_id, konverzny=konverzny) }}"
+  method="POST" enctype="multipart/form-data" class="form-horizontal" role="form">
+  <div class="form-group">
+    <label for="dokument" class="col-sm-2 control-label">Súbor</label>
+    <div class="col-sm-10">
+      <input type="file" name="dokument" id="dokument" />
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Názov dokumentu</label>
+    <div class="col-sm-10">
+      <p class="form-control-static">{{ nazov_dokumentu }}</p>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Názov súboru</label>
+    <div class="col-sm-10">
+      <p class="form-control-static">{{ nazov_suboru }}</p>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-sm-offset-2 col-sm-10">
+      <button type="submit" class="btn btn-primary">Nahrať</button>
+      <a class="btn btn-default" href="{{ url_for('studijny_program_prilohy', id=studprog_id) }}">Zrušiť</a>
+    </div>
+  </div>
+</form>
+</div>
+{% endblock %}

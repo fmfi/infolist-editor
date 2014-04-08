@@ -44,8 +44,12 @@
         {% endfor %}
         </tbody>
       </table>
-      {% elif typ_prilohy.id not in [2]  %}
+      {% elif typ_prilohy.id not in [0, 2]  %}
         <p>Žiaden priložený dokument.</p>
+      {% endif %}
+      {% if typ_prilohy.id == 0 %}
+        <a class="btn btn-primary" href="{{ url_for('studijny_program_upload_formular', studprog_id=studprog_id, konverzny=False) }}">Nahrať formulár študijného programu</a>
+        <a class="btn btn-default" href="{{ url_for('studijny_program_upload_formular', studprog_id=studprog_id, konverzny=True) }}">Nahrať formulár konverzného študijného programu</a>
       {% endif %}
     {% endfor %}
   {% else %}

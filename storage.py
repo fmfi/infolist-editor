@@ -1464,7 +1464,51 @@ class DataStore(object):
         if not podm.vyhodnot(splnene_predmety[row.typ_bloku]):
           add_infolist_warning('nesplnitelne', podmienky=podm, splnene=splnene_predmety[row.typ_bloku].current_set())
       return sp
-  
+
+  def load_studprog_formulare_id(self, studprog_id):
+    with self.cursor() as cur:
+      cur.execute('''
+        SELECT formular, formular_konverzny
+        FROM studprog
+        WHERE id = %s
+      ''', (studprog_id,))
+      return cur.fetchone()
+
+  def save_studprog_formular_id(self, studprog_id, subor_id, konverzny=False):
+    if konverzny:
+      column = 'formular_konverzny'
+    else:
+      column = 'formular'
+    with self.cursor() as cur:
+      cur.execute('''
+        UPDATE studprog SET {} = %s WHERE id = %s
+      '''.format(column), (subor_id, studprog_id))
+
+  def load_studprog_formulare(self, context, studprog_id):
+    with self.cursor() as cur:
+      formular, formular_konverzny = self.load_studprog_formulare_id(studprog_id)
+      def nacitaj_subor(subor_id, konverzny):
+        cur.execute('''
+          SELECT s.id as subor_id, s.posledna_verzia,
+            sv.id as subor_verzia_id, sv.nazov, sv.sha256, sv.modifikoval, sv.modifikovane,
+            sv.predosla_verzia, sv.filename, sv.mimetype
+          FROM subor s
+          INNER JOIN subor_verzia sv ON sv.id = s.posledna_verzia
+          WHERE s.id = %s
+        ''', (subor_id,))
+        row = cur.fetchone()
+        priloha = PrilohaFormularSP(context=context, id=row.subor_id,
+          posledna_verzia=row.posledna_verzia, nazov=row.nazov, filename=row.filename,
+          sha256=row.sha256, modifikoval=row.modifikoval, modifikovane=row.modifikovane,
+          predosla_verzia=row.predosla_verzia, studprog_id=studprog_id, mimetype=row.mimetype,
+          konverzny=konverzny)
+        return priloha
+      if formular is not None:
+        formular = nacitaj_subor(formular, False)
+      if formular_konverzny is not None:
+        formular_konverzny = nacitaj_subor(formular_konverzny, True)
+      return formular, formular_konverzny
+
   def load_studprog_prilohy_subory(self, context, studprog_id):
     with self.cursor() as cur:
       cur.execute('''SELECT sp.typ_prilohy,

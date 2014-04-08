@@ -55,6 +55,7 @@ form_template_path = (form_my_templates, form_deform_templates)
 Form.set_zpt_renderer(form_template_path)
 
 utils.register_filters(app)
+app.jinja_env.filters['secure_filename'] = secure_filename
 
 def restrict(api=False):
   def decorator(f):
@@ -562,6 +563,79 @@ def spracuj_subor(f):
   f.save(os.path.join(config.files_dir, sha256))
   return sha256
 
+def upload_subor(subor_id, nazov=None, filename=None):
+  if subor_id is not None:
+    subor = g.db.load_subor(subor_id)
+  else:
+    subor = None
+
+  f = request.files['dokument']
+  if f:
+    sha256 = spracuj_subor(f)
+    mimetype = f.mimetype
+  else:
+    if subor_id is None:
+      return None
+    sha256 = subor.sha256
+    mimetype = subor.mimetype
+
+  if nazov is None:
+    nazov = request.form['nazov']
+  if not nazov:
+    nazov = f.filename
+
+  if filename is None:
+    filename = request.form.get('filename')
+  if not filename:
+    filename = f.filename
+  filename = secure_filename(filename)
+  if not '.' in filename:
+    filename += '.rtf'
+
+  filename_len_limit = 100
+  if len(filename) > filename_len_limit:
+    parts = filename.rsplit('.', 1)
+    filename = '{}.{}'.format(parts[:filename_len_limit-len(parts[1])-1])
+
+  return g.db.add_subor(sha256, nazov, filename, mimetype, g.user.id, subor_id=subor_id)
+
+@app.route('/studijny-program/<int:studprog_id>/dokumenty/formular/upload', methods=['GET', 'POST'], defaults={'konverzny': False})
+@app.route('/studijny-program/<int:studprog_id>/dokumenty/formular-konverzny/upload', methods=['GET', 'POST'], defaults={'konverzny': True})
+@restrict()
+def studijny_program_upload_formular(studprog_id, konverzny):
+  formular, formular_konverzny = g.db.load_studprog_formulare_id(studprog_id)
+  if not konverzny:
+    subor_id = formular
+  else:
+    subor_id = formular_konverzny
+
+  studprog = g.db.load_studprog(studprog_id)
+  nazov_dokumentu = u'Formulár pre študijný program '
+  if studprog['skratka']:
+    nazov_dokumentu += u'{} '.format(studprog['skratka'])
+  nazov_dokumentu += studprog['nazov']
+  if konverzny:
+    nazov_dokumentu += u' (konverzný program)'
+
+  nazov_suboru = u'2a_SP_{}_{}_{}{}.rtf'.format(studprog['oblast_vyskumu'], utils.stupen_studia_titul.get(studprog['stupen_studia']),
+    secure_filename(studprog['nazov']), (u'_konverzny_program' if konverzny else u''))
+
+  if request.method == 'POST':
+    novy_subor_id = upload_subor(subor_id, nazov=nazov_dokumentu, filename=nazov_suboru)
+    if novy_subor_id is not None:
+      g.db.save_studprog_formular_id(studprog_id, novy_subor_id, konverzny=konverzny)
+      g.db.commit()
+      flash(u'Formulár bol úspešne nahratý', 'success')
+      return redirect(url_for('studijny_program_prilohy', id=studprog_id))
+    else:
+      flash(u'Formulár sa nepodarilo nahrať, nezabudli ste vybrať súbor?', 'danger')
+
+  return render_template('studprog-formular-upload.html', data=studprog,
+    studprog_id=studprog_id, editing=True, subor_id=subor_id,
+    subor=g.db.load_subor(subor_id), nazov_dokumentu=nazov_dokumentu, nazov_suboru=nazov_suboru,
+    konverzny=konverzny
+  )
+
 @app.route('/studijny-program/<int:studprog_id>/dokumenty/upload', methods=['GET','POST'], defaults={'subor_id': None})
 @app.route('/studijny-program/<int:studprog_id>/dokumenty/<int:subor_id>/upload', methods=['GET','POST'])
 @restrict()
@@ -570,56 +644,32 @@ def studijny_program_prilohy_upload(studprog_id, subor_id):
     abort(403)
 
   typ_prilohy = None
-  if subor_id is not None:
-    subor = g.db.load_subor(subor_id)
-  else:
-    subor = None
   
   if request.method == 'POST':
-    f = request.files['dokument']
-    if f:
-      sha256 = spracuj_subor(f)
-      mimetype = f.mimetype
-    else:
-      sha256 = subor.sha256
-      mimetype = subor.mimetype
-
     if 'typ_prilohy' in request.form:
       typ_prilohy = int(request.form['typ_prilohy'])
 
-    nazov = request.form['nazov']
-    if not nazov:
-      nazov = f.filename
+    novy_subor_id = upload_subor(subor_id)
+    if novy_subor_id is not None:
+      if subor_id is None:
+        if typ_prilohy is None:
+          raise BadRequest()
+        g.db.add_studprog_priloha(studprog_id, typ_prilohy, novy_subor_id)
+      g.db.commit()
 
-    filename = request.form.get('filename')
-    if not filename:
-      filename = f.filename
-    filename = secure_filename(filename)
-    if not '.' in filename:
-      filename += '.rtf'
+      if subor_id is None:
+        flash(u'Dokument bol úspešne nahratý', 'success')
+      else:
+        flash(u'Dokument bol úspešne aktualizovaný', 'success')
 
-    filename_len_limit = 100
-    if len(filename) > filename_len_limit:
-      parts = filename.rsplit('.', 1)
-      filename = '{}.{}'.format(parts[:filename_len_limit-len(parts[1])-1])
-
-    novy_subor_id = g.db.add_subor(sha256, nazov, filename, mimetype, g.user.id, subor_id=subor_id)
-
-    if subor_id is None:
-      if typ_prilohy is None:
-        raise BadRequest()
-      g.db.add_studprog_priloha(studprog_id, typ_prilohy, novy_subor_id)
-      flash(u'Dokument bol úspešne nahratý', 'success')
+      return redirect(url_for('studijny_program_prilohy', id=studprog_id))
     else:
-      flash(u'Dokument bol úspešne aktualizovaný', 'success')
-    g.db.commit()
-
-    return redirect(url_for('studijny_program_prilohy', id=studprog_id, subor_id=subor_id))
+      flash(u'Súbor sa nepodarilo nahrať, nezabudli ste vybrať súbor?', 'danger')
   
   studprog = g.db.load_studprog(studprog_id)
   return render_template('studprog-priloha-upload.html', data=studprog,
     studprog_id=studprog_id, editing=True, subor_id=subor_id,
-    typy_priloh=g.db.load_typy_priloh(iba_moze_vybrat=True), subor=subor
+    typy_priloh=g.db.load_typy_priloh(iba_moze_vybrat=True), subor=g.db.load_subor(subor_id)
   )
 
 @app.route('/subor/<int:id>')

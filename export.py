@@ -76,7 +76,6 @@ class Priloha(object):
   def __init__(self, context, nazov=None, filename=None, **kwargs):
     self.context = context
     self._nazov = nazov
-    self.url_aktualizacie = None
     self.url_zmazania = None
     if filename is not None:
       self._filename = secure_filename(filename)
@@ -110,6 +109,10 @@ class Priloha(object):
   @property
   def nazov(self):
     return self._nazov
+
+  @property
+  def url_aktualizacie(self):
+    return None
 
 class PrilohaZoznam(Priloha):
   def __init__(self, prilohy, **kwargs):
@@ -186,7 +189,7 @@ class PrilohaSubor(PrilohaSuborBase):
     self.modifikoval = modifikoval
     self._modifikovane = modifikovane
     self.predosla_verzia = predosla_verzia
-    self.url_aktualizacie = url_for('studijny_program_prilohy_upload', studprog_id=studprog_id, subor_id=id)
+    self.studprog_id = studprog_id
 
   @property
   def modifikovane(self):
@@ -195,6 +198,36 @@ class PrilohaSubor(PrilohaSuborBase):
   @property
   def location(self):
     return self.context.config.files_dir, self.sha256
+
+  @property
+  def url_aktualizacie(self):
+    return url_for('studijny_program_prilohy_upload', studprog_id=self.studprog_id, subor_id=self.id)
+
+class PrilohaFormularSP(PrilohaSubor):
+  def __init__(self, konverzny, **kwargs):
+    super(PrilohaFormularSP, self).__init__(**kwargs)
+    self.konverzny = konverzny
+
+  @property
+  def url_aktualizacie(self):
+    return url_for('studijny_program_upload_formular', studprog_id=self.studprog_id, konverzny=self.konverzny)
+
+  @property
+  def filename(self):
+    studprog = self.context.studprog(self.studprog_id)
+    return u'2a_SP_{}_{}_{}{}.rtf'.format(studprog['oblast_vyskumu'], stupen_studia_titul.get(studprog['stupen_studia']),
+      secure_filename(studprog['nazov']), (u'_konverzny_program' if self.konverzny else u''))
+
+  @property
+  def nazov(self):
+    studprog = self.context.studprog(self.studprog_id)
+    nazov_dokumentu = u'Formulár pre študijný program '
+    if studprog['skratka']:
+      nazov_dokumentu += u'{} '.format(studprog['skratka'])
+    nazov_dokumentu += studprog['nazov']
+    if self.konverzny:
+      nazov_dokumentu += u' (konverzný program)'
+    return nazov_dokumentu
 
 class PrilohaVPChar(PrilohaSuborBase):
   def __init__(self, osoba, rtfname, **kwargs):
@@ -520,7 +553,13 @@ def stream_zip(entries, filename):
 
 def prilohy_pre_studijny_program(context, sp_id):
   prilohy = Prilohy(context)
-  
+
+  formular, formular_konverzny = g.db.load_studprog_formulare(context, sp_id)
+  if formular:
+    prilohy.add(0, formular)
+  if formular_konverzny:
+    prilohy.add(0, formular_konverzny)
+
   for typ, subory in g.db.load_studprog_prilohy_subory(context, sp_id).iteritems():
     for subor in subory:
       prilohy.add(typ, subor)

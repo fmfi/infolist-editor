@@ -823,6 +823,11 @@ CREATE TABLE studprog_verzia_modifikovali (
   primary key (studprog_verzia, osoba)
 );
 
+CREATE TABLE subor (
+  id serial not null primary key,
+  posledna_verzia integer references subor_verzia(id)
+);
+
 CREATE TABLE studprog (
   id serial not null primary key,
   skratka varchar(200) unique,
@@ -831,7 +836,9 @@ CREATE TABLE studprog (
   zamkol integer references osoba(id),
   vytvorene timestamp not null default now(),
   vytvoril integer references osoba(id),
-  oblast_vyskumu varchar(20)
+  oblast_vyskumu varchar(20),
+  formular integer references subor(id),
+  formular_konverzny integer references subor(id)
 );
 
 CREATE TABLE subor_verzia (
@@ -843,11 +850,6 @@ CREATE TABLE subor_verzia (
   nazov varchar(150) not null,
   filename varchar(100) not null,
   mimetype varchar(100)
-);
-
-CREATE TABLE subor (
-  id serial not null primary key,
-  posledna_verzia integer references subor_verzia(id)
 );
 
 CREATE TABLE studprog_priloha_typ (
