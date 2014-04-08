@@ -690,6 +690,28 @@ def download_subor(id):
   return send_from_directory(config.files_dir, s.sha256, as_attachment=True,
                              attachment_filename=s.nazov)
 
+@app.route('/osoba/<int:osoba_id>/upload/vpchar', methods=['GET', 'POST'])
+@restrict()
+def osoba_upload_vpchar(osoba_id):
+  osoba=g.db.load_osoba(osoba_id)
+  if osoba is None:
+    abort(404)
+  subor_id = g.db.osoba_load_vpchar_subor_id(osoba_id)
+
+  nazov = 'vpchar-{}'.format(osoba_id)
+
+  if request.method == 'POST':
+    novy_subor_id = upload_subor(subor_id, nazov=nazov)
+    if novy_subor_id is not None:
+      if subor_id is None:
+        g.db.osoba_save_vpchar_subor_id(osoba_id, novy_subor_id)
+      g.db.commit()
+      flash(u'VPCHAR bola úspešne nahratá', 'success')
+      return redirect(url_for('osoba_upload_vpchar', osoba_id=osoba_id))
+    else:
+      flash(u'VPCHAR sa nepodarilo nahrať, nezabudli ste vybrať súbor?', 'danger')
+
+  return render_template('osoba-vpchar-upload.html', subor_id=subor_id, osoba=osoba)
 
 @app.route('/studprog/<int:id>/lock', methods=['POST'], defaults={'lock': True})
 @app.route('/studprog/<int:id>/unlock', methods=['POST'], defaults={'lock': False})

@@ -899,7 +899,8 @@ CREATE TABLE osoba_uvazok (
 
 CREATE TABLE osoba_vpchar (
   osoba integer not null references osoba(id),
-  token varchar(32) not null
+  token varchar(32),
+  uploadnuty_subor integer references subor(id)
 );
 
 COMMIT;

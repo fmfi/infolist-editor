@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+{% from 'macros.html' import flashes %}
+{% block title %}Osoba{% endblock %}
+{% block content %}
+<div class="content-100">
+  {{ flashes() }}
+  <div class="body">
+  <h4>Nahrať vedecko-pedagogickú charakteristiku pre osobu: {{ osoba.cele_meno }}</h4>
+  <form action="{{ url_for('osoba_upload_vpchar', osoba_id=osoba.id) }}"
+    method="POST" enctype="multipart/form-data" class="form-horizontal" role="form">
+    <div class="form-group">
+      <label for="dokument" class="col-sm-2 control-label">Súbor</label>
+      <div class="col-sm-10">
+        <input type="file" name="dokument" id="dokument"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button type="submit" class="btn btn-primary">Nahrať</button>
+      </div>
+    </div>
+  </form>
+  </div>
+</div>
+{% endblock %}

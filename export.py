@@ -202,10 +202,6 @@ class PrilohaUploadnutySubor(PrilohaSuborBase):
   def location(self):
     return self.context.config.files_dir, self.sha256
 
-  @property
-  def url_aktualizacie(self):
-    return url_for('studijny_program_prilohy_upload', studprog_id=self.studprog_id, subor_id=self.id)
-
 class PrilohaSubor(PrilohaUploadnutySubor):
   def __init__(self, typ_prilohy, **kwargs):
     super(PrilohaSubor, self).__init__(**kwargs)
@@ -214,6 +210,10 @@ class PrilohaSubor(PrilohaUploadnutySubor):
   @property
   def url_zmazania(self):
     return url_for('studijny_program_priloha_zmaz', id=self.studprog_id, typ_prilohy=self.typ_prilohy, subor=self.id)
+
+  @property
+  def url_aktualizacie(self):
+    return url_for('studijny_program_prilohy_upload', studprog_id=self.studprog_id, subor_id=self.id)
 
 def formular_nazov(studprog, konverzny=False):
   nazov_dokumentu = u'Formulár pre študijný program '
@@ -251,15 +251,10 @@ class PrilohaFormularSP(PrilohaUploadnutySubor):
     studprog = self.context.studprog(self.studprog_id)
     return formular_nazov(studprog, self.konverzny)
 
-class PrilohaVPChar(PrilohaSuborBase):
-  def __init__(self, osoba, rtfname, **kwargs):
-    super(PrilohaVPChar, self).__init__(mimetype='application/rtf', **kwargs)
+class VPCharMixin(object):
+  def __init__(self, osoba, **kwargs):
     self.osoba = osoba
-    self.rtfname = rtfname
-
-  @property
-  def location(self):
-    return self.context.config.vpchar_dir, self.rtfname
+    super(VPCharMixin, self).__init__(**kwargs)
 
   @property
   def filename(self):
@@ -268,6 +263,18 @@ class PrilohaVPChar(PrilohaSuborBase):
   @property
   def nazov(self):
     return self.osoba.cele_meno
+
+class PrilohaVPChar(VPCharMixin, PrilohaSuborBase):
+  def __init__(self, rtfname, **kwargs):
+    super(PrilohaVPChar, self).__init__(mimetype='application/rtf', **kwargs)
+    self.rtfname = rtfname
+
+  @property
+  def location(self):
+    return self.context.config.vpchar_dir, self.rtfname
+
+class PrilohaUploadnutaVPChar(VPCharMixin, PrilohaUploadnutySubor):
+  pass
 
 class PrilohaInfolist(Priloha):
   def __init__(self, infolist_id, **kwargs):
@@ -591,6 +598,13 @@ def prilohy_pre_studijny_program(context, sp_id):
                                    filename=u'{}_{}.rtf'.format(infolist.skratka, infolist.nazov_predmetu)))
 
   def pridaj_vpchar(typ, osoba):
+    if osoba.uploadnuty_subor is not None:
+      usubor = g.db.load_subor(osoba.uploadnuty_subor)
+      prilohy.add(typ, PrilohaUploadnutaVPChar(osoba=osoba, id=osoba.uploadnuty_subor,
+          posledna_verzia=usubor.posledna_verzia, sha256=usubor.sha256, modifikoval=usubor.modifikoval,
+          modifikovane=usubor.modifikovane,predosla_verzia=usubor.predosla_verzia, studprog_id=sp_id,
+          mimetype=usubor.mimetype, context=context))
+      return
     if osoba.token:
       rtfname = 'token-{}.rtf'.format(osoba.token)
     elif osoba.login:

@@ -1574,7 +1574,7 @@ class DataStore(object):
   
   def load_subor(self, subor_id):
     with self.cursor() as cur:
-      cur.execute('''SELECT sv.id as subor_verzia, sv.predosla_verzia,
+      cur.execute('''SELECT sv.id as subor_verzia, s.posledna_verzia, sv.predosla_verzia,
         sv.modifikovane, sv.modifikoval, sv.sha256, sv.nazov, sv.filename, sv.mimetype
         FROM subor s
         INNER JOIN subor_verzia sv ON s.posledna_verzia = sv.id
@@ -1690,7 +1690,7 @@ class DataStore(object):
     with self.cursor() as cur:
       cur.execute('''
         SELECT DISTINCT o.id as osoba, o.priezvisko COLLATE "sk_SK", o.meno COLLATE "sk_SK", o.cele_meno, o.login,
-          ou.funkcia IS NOT NULL as mame_funkciu, ovp.token
+          ou.funkcia IS NOT NULL as mame_funkciu, ovp.token, ovp.uploadnuty_subor
         FROM studprog sp
         INNER JOIN studprog_verzia_blok spvb ON sp.posledna_verzia = spvb.studprog_verzia
         INNER JOIN studprog_verzia_blok_infolist spvbi ON sp.posledna_verzia = spvbi.studprog_verzia AND spvb.poradie_blok = spvbi.poradie_blok
@@ -1737,7 +1737,7 @@ class DataStore(object):
     with self.cursor() as cur:
       cur.execute('''
         SELECT DISTINCT o.id as osoba, o.priezvisko COLLATE "sk_SK", o.meno COLLATE "sk_SK", o.cele_meno, o.login,
-          ovp.token
+          ovp.token, ovp.uploadnuty_subor
         FROM studprog sp
         INNER JOIN studprog_skolitel sps ON sps.studprog = sp.id
         INNER JOIN osoba o ON sps.osoba = o.id
@@ -1755,3 +1755,24 @@ class DataStore(object):
         WHERE studprog=%s AND typ_prilohy = %s AND subor = %s''',
         (sp_id, typ_prilohy, subor_id))
       return cur.rowcount > 0
+
+  def osoba_load_vpchar_subor_id(self, osoba_id):
+    with self.cursor() as cur:
+      cur.execute('''
+       SELECT uploadnuty_subor FROM osoba_vpchar WHERE osoba = %s
+      ''', (osoba_id,))
+      row = cur.fetchone()
+      if row is None:
+        return None
+      return row.uploadnuty_subor
+
+  def osoba_save_vpchar_subor_id(self, osoba_id, subor_id):
+    with self.cursor() as cur:
+      cur.execute('SELECT 1 FROM osoba_vpchar WHERE osoba = %s', (osoba_id,))
+      row = cur.fetchone()
+      if row is None:
+        cur.execute('INSERT INTO osoba_vpchar (osoba, uploadnuty_subor) VALUES (%s, %s)',
+          (osoba_id, subor_id))
+      else:
+        cur.execute('UPDATE osoba_vpchar SET uploadnuty_subor = %s WHERE osoba = %s',
+          (subor_id, osoba_id))
