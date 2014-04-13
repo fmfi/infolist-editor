@@ -12,7 +12,7 @@ from utils import Podmienka
 try:
   from termcolor import colored
 except ImportError:
-  def colored(text, *args):
+  def colored(text, *args, **kwargs):
     return text
 
 parser = argparse.ArgumentParser()
