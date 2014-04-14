@@ -1412,7 +1412,8 @@ class DataStore(object):
               )
           ) as w_nova_literatura
         FROM studprog sp
-        INNER JOIN studprog_verzia spv ON sp.posledna_verzia = spv.id
+        LEFT JOIN studprog sp2 ON sp2.id = sp.spolocne_bloky
+        INNER JOIN studprog_verzia spv ON sp.posledna_verzia = spv.id OR sp2.posledna_verzia = spv.id
         INNER JOIN studprog_verzia_blok spvb ON spv.id = spvb.studprog_verzia
         INNER JOIN studprog_verzia_blok_infolist spvbi ON spv.id = spvbi.studprog_verzia AND spvb.poradie_blok = spvbi.poradie_blok
         INNER JOIN infolist i ON spvbi.infolist = i.id
