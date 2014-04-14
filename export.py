@@ -755,6 +755,8 @@ def prilohy_vsetky(context):
     root.add_adresar(adresar, subory)
 
   for studprog in g.db.fetch_studijne_programy():
+    if not studprog['finalna_verzia']:
+      continue
     pridaj_normalny(studprog)
     if studprog['aj_konverzny_program']:
       pridaj_konverzny(studprog)
