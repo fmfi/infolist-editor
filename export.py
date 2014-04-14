@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from decimal import ROUND_HALF_EVEN, Decimal
 from itertools import groupby
+import json
 from utils import filter_fakulta, filter_druh_cinnosti, filter_obdobie, filter_metoda_vyucby, \
   filter_literatura, filter_jazyk_vyucby, filter_typ_vyucujuceho, render_rtf, stupen_studia_titul, filter_typ_bloku, \
   prilohy_podla_typu
@@ -16,6 +17,7 @@ import zipfile
 import os.path
 from werkzeug.utils import secure_filename
 from pkg_resources import resource_string
+from datetime import datetime
 
 
 class ZipBuffer(object):
@@ -117,6 +119,9 @@ class Priloha(object):
   def url_zmazania(self):
     return None
 
+  def check_if_exists(self):
+    return True
+
 class PrilohaZoznam(Priloha):
   def __init__(self, prilohy, **kwargs):
     super(PrilohaZoznam, self).__init__(**kwargs)
@@ -153,6 +158,10 @@ class PrilohaZoznam(Priloha):
       section.append(table)
     
     doc.write(to_file)
+
+  @property
+  def modifikovane(self):
+    return datetime.now()
 
 class PrilohaSuborBase(Priloha):
   def __init__(self, mimetype=None, **kwargs):
@@ -265,13 +274,57 @@ class VPCharMixin(object):
     return self.osoba.cele_meno
 
 class PrilohaVPChar(VPCharMixin, PrilohaSuborBase):
-  def __init__(self, rtfname, **kwargs):
+  def __init__(self, **kwargs):
     super(PrilohaVPChar, self).__init__(mimetype='application/rtf', **kwargs)
-    self.rtfname = rtfname
+    if self.osoba.token:
+      self._vpchar_name = 'token-{}'.format(self.osoba.token)
+    elif self.osoba.login:
+      self._vpchar_name = 'user-{}'.format(self.osoba.login)
+    else:
+      self._vpchar_name = None
+    self._modifikovane = None
 
   @property
   def location(self):
     return self.context.config.vpchar_dir, self.rtfname
+
+  @staticmethod
+  def _json_object_hook(obj):
+    if '__colander' in obj and obj['__colander'] == 'null':
+      return None
+    return obj
+
+  @property
+  def modifikovane(self):
+    if self._modifikovane is not None:
+      return self._modifikovane
+    json_filename = safe_join(self.context.config.vpchar_dir, self.jsonname)
+    try:
+      with open(json_filename, 'r') as f:
+        data = json.load(f, object_hook=PrilohaVPChar._json_object_hook)
+        timestamp = data.get('metadata', {}).get('updated') or data.get('metadata', {}).get('created')
+        if timestamp is None:
+          return None
+        self._modifikovane = datetime.fromtimestamp(timestamp)
+        return self._modifikovane
+    except IOError:
+      return None
+    except ValueError:
+      return None
+
+  @property
+  def rtfname(self):
+    return '{}.rtf'.format(self._vpchar_name)
+
+  @property
+  def jsonname(self):
+    return '{}.json'.format(self._vpchar_name)
+
+  def check_if_exists(self):
+    if self._vpchar_name is None:
+      return False
+    return os.path.exists(safe_join(self.context.config.vpchar_dir, self.rtfname))
+
 
 class PrilohaUploadnutaVPChar(VPCharMixin, PrilohaUploadnutySubor):
   pass
@@ -416,9 +469,10 @@ def infolist_tdata(infolist):
   return tdata
 
 class PrilohaInfolist(Priloha):
-  def __init__(self, infolist_id, **kwargs):
+  def __init__(self, infolist_id, modifikovane, **kwargs):
     super(PrilohaInfolist, self).__init__(**kwargs)
     self.infolist_id = infolist_id
+    self._modifikovane = modifikovane
 
   def render(self, to_file):
     infolist = self.context.infolist(self.infolist_id)
@@ -429,6 +483,10 @@ class PrilohaInfolist(Priloha):
   @property
   def mimetype(self):
     return 'application/rtf'
+
+  @property
+  def modifikovane(self):
+    return self._modifikovane
 
 class PrilohaInfolisty(Priloha):
   def __init__(self, infolisty, **kwargs):
@@ -555,6 +613,8 @@ class Prilohy(object):
     self.context = context
   
   def add(self, typ, priloha, adresar=None):
+    if not priloha.check_if_exists():
+      return
     filename = ''
     if adresar is not None:
       filename = adresar + '/'
@@ -619,7 +679,8 @@ def prilohy_pre_studijny_program(context, sp_id, spolocne):
 
   infolisty = g.db.load_studprog_infolisty(sp_id, spolocne=spolocne)
   for infolist in infolisty:
-    prilohy.add(8, PrilohaInfolist(infolist.infolist, context=context, nazov=infolist.nazov_predmetu,
+    prilohy.add(8, PrilohaInfolist(infolist.infolist, modifikovane=infolist.modifikovane,
+                                   context=context, nazov=infolist.nazov_predmetu,
                                    filename=u'{}_{}.rtf'.format(infolist.skratka, infolist.nazov_predmetu)))
   #prilohy.add(8, PrilohaInfolisty([x.infolist for x in infolisty], context=context, nazov='Infolisty', filename=u'infolisty.rtf'))
 
@@ -631,16 +692,12 @@ def prilohy_pre_studijny_program(context, sp_id, spolocne):
           modifikovane=usubor.modifikovane,predosla_verzia=usubor.predosla_verzia, studprog_id=sp_id,
           mimetype=usubor.mimetype, context=context))
       return
-    if osoba.token:
-      rtfname = 'token-{}.rtf'.format(osoba.token)
-    elif osoba.login:
-      rtfname = 'user-{}.rtf'.format(osoba.login)
-    else:
-      rtfname = None
-    if not rtfname or not os.path.exists(safe_join(context.config.vpchar_dir, rtfname)):
+
+    vpchar = PrilohaVPChar(osoba=osoba, context=context)
+    if not vpchar.check_if_exists():
       context.add_warning_by_typ(typ, u'Chýba VPCHAR pre {}!'.format(osoba.cele_meno))
       return
-    prilohy.add(typ, PrilohaVPChar(osoba=osoba, rtfname=rtfname, context=context))
+    prilohy.add(typ, vpchar)
 
   for osoba in g.db.load_studprog_vpchar(sp_id, spolocne=spolocne):
     if not osoba.mame_funkciu and not (u'prof.' in osoba.cele_meno.lower() or u'doc.' in osoba.cele_meno.lower()

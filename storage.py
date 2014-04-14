@@ -1705,11 +1705,12 @@ class DataStore(object):
     with self.cursor() as cur:
       cur.execute('''
         SELECT DISTINCT spvbi.predmet_jadra, i.id as infolist, ivp.nazov_predmetu COLLATE "sk_SK" as nazov_predmetu,
-          p.skratka
+          p.skratka, iv.modifikovane
         FROM studprog sp
         INNER JOIN studprog_verzia_blok spvb ON sp.posledna_verzia = spvb.studprog_verzia
         INNER JOIN studprog_verzia_blok_infolist spvbi ON sp.posledna_verzia = spvbi.studprog_verzia AND spvb.poradie_blok = spvbi.poradie_blok
         INNER JOIN infolist i ON spvbi.infolist = i.id
+        INNER JOIN infolist_verzia iv ON i.posledna_verzia = iv.id
         INNER JOIN infolist_verzia_preklad ivp ON i.posledna_verzia = ivp.infolist_verzia
         INNER JOIN predmet_infolist pi ON pi.infolist = i.id
         INNER JOIN predmet p ON p.id = pi.predmet
