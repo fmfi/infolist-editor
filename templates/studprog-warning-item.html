@@ -17,4 +17,6 @@
   <li>Pre predmet <a href="{{ url_for('show_infolist', id=warn.infolist, edit=False) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> nie je možné splniť podmienky na zapísanie predmetu vrámci odporúčaného študijného plánu:
     {{ splnitelnost_podmienky(warn.podmienky.ast, warn.splnene) }}
   </li>
+{% elif warn.typ == 'automaticky' %}
+  <li>Informačný list <a href="{{ url_for('show_infolist', id=warn.infolist, edit=False) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> obsahuje marker o automaticky importovanom texte!</li>
 {% endif %}

@@ -1399,7 +1399,8 @@ class DataStore(object):
             i2.posledna_verzia = iv2.id AND iv2.finalna_verzia)) as w_finalna2,
           (i.zahodeny) as w_zahodeny,
           (spvb.typ IN ('A', 'B') AND NOT iv.bude_v_povinnom) as w_pov,
-          (iv.obsahuje_varovania) as w_varovania
+          (iv.obsahuje_varovania) as w_varovania,
+          (unaccent(ivp.vysledky_vzdelavania) ILIKE '%%tento obsah bol automaticky importovany%%') as w_automaticky
         FROM studprog sp
         INNER JOIN studprog_verzia spv ON sp.posledna_verzia = spv.id
         INNER JOIN studprog_verzia_blok spvb ON spv.id = spvb.studprog_verzia
@@ -1460,6 +1461,8 @@ class DataStore(object):
           add_infolist_warning('pov')
         if row.w_varovania:
           add_infolist_warning('varovania')
+        if row.w_automaticky:
+          add_infolist_warning('automaticky')
 
         for ityp in ['A', 'B', 'C']:
           if row.typ_bloku <= ityp:
