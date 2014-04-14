@@ -149,7 +149,7 @@
     </thead>
     <tbody>
       {% for row in zoznam %}
-        <tr{% if not row.funkcia or not row.kvalifikacia or not row.uvazok or not row.typy_vyucujuceho %} class="danger"{% endif %}>
+        <tr{% if not row.funkcia or not row.kvalifikacia or row.uvazok == None or not row.typy_vyucujuceho %} class="danger"{% endif %}>
           <td>{{ row.nazov_predmetu }}</td>
           <td>{{ row.priezvisko }} {{ row.meno }}</td>
           <td>{{ row.funkcia or '??' }}</td>
