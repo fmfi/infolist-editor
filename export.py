@@ -2,6 +2,7 @@
 from decimal import ROUND_HALF_EVEN, Decimal
 from itertools import groupby
 import json
+from rtfng.Renderer import Renderer
 from utils import filter_fakulta, filter_druh_cinnosti, filter_obdobie, filter_metoda_vyucby, \
   filter_literatura, filter_jazyk_vyucby, filter_typ_vyucujuceho, render_rtf, stupen_studia_titul, filter_typ_bloku, \
   prilohy_podla_typu
@@ -497,9 +498,29 @@ class PrilohaInfolisty(Priloha):
     rtf_skin = resource_string(__name__, 'templates/infolist-skin.rtf').split('INFOLIST_CORE')
     rtf_core = resource_string(__name__, 'templates/infolist-core.rtf')
     to_file.write(rtf_skin[0])
-    for index, infolist_id in enumerate(self.infolisty):
-      if index > 0:
-        to_file.write('\n\page\n')
+
+    def th(content):
+      return Cell(Paragraph(content))
+
+    def td(content):
+      return Cell(Paragraph(content))
+
+    table = Table(3000, 6450)
+    table.AddRow(th(u'Kód'), th(u'Názov predmetu'))
+    for infolist_id in self.infolisty:
+      infolist = self.context.infolist(infolist_id)
+      table.AddRow(td(infolist['skratka']), td(infolist['nazov_predmetu']))
+
+    with closing(StringIO()) as table_rtf:
+      r = Renderer()
+      r._fout = table_rtf
+      r._CurrentStyle = ''
+      r.paragraph_style_map = {'' :''}
+      r.WriteTableElement(table)
+      to_file.write(table_rtf.getvalue())
+
+    for infolist_id in self.infolisty:
+      to_file.write('\n\page\n')
       infolist = self.context.infolist(infolist_id)
       tdata = infolist_tdata(infolist)
       to_file.write(render_rtf(rtf_core, tdata))
