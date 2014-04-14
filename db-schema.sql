@@ -838,8 +838,13 @@ CREATE TABLE studprog (
   vytvoril integer references osoba(id),
   oblast_vyskumu varchar(20),
   formular integer references subor(id),
-  formular_konverzny integer references subor(id)
+  formular_konverzny integer references subor(id),
+  spolocne_bloky integer references studprog(id),
+  spolocne_bloky_konverzny integer references studprog(id)
 );
+
+COMMENT ON COLUMN studprog.spolocne_bloky IS 'Ucitelske predmety maju spolocne bloky, chceme, aby sa vyklikavali len raz, takze ich umoznime includnut do vypoctov (pouzije sa, ak sa nerobi vystup pre konverzny program)';
+COMMENT ON COLUMN studprog.spolocne_bloky_konverzny IS 'Ucitelske predmety maju spolocne bloky, chceme, aby sa vyklikavali len raz, takze ich umoznime includnut do vypoctov (pouzije sa, ak sa robi vystup pre konverzny program)';
 
 CREATE TABLE subor_verzia (
   id serial not null primary key,

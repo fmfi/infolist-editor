@@ -1514,7 +1514,34 @@ class DataStore(object):
         formular_konverzny = nacitaj_subor(formular_konverzny, True)
       return formular, formular_konverzny
 
-  def load_studprog_prilohy_subory(self, context, studprog_id):
+  def load_studprog_spolocne_bloky(self, studprog_id, konverzny):
+    if konverzny:
+      col = 'spolocne_bloky_konverzny'
+    else:
+      col = 'spolocne_bloky'
+
+    with self.cursor() as cur:
+      cur.execute('SELECT {} FROM studprog WHERE id = %s'.format(col), (studprog_id,))
+      row = cur.fetchone()
+      if row is None:
+        return None
+      return row[0]
+
+  def resolve_spolocne_bloky(self, sp_id, val):
+    if isinstance(val, int):
+      return val
+    return self.load_studprog_spolocne_bloky(sp_id, val == 'konverzny')
+
+  def cond_spolocne_bloky(self, sp_id, column, val):
+    spolocne = self.resolve_spolocne_bloky(sp_id, val)
+    sp_filter = ConditionBuilder('OR')
+    sp_filter.append('{} = %s'.format(column), sp_id)
+    if spolocne is not None:
+      sp_filter.append('{} = %s'.format(column), spolocne)
+    return sp_filter
+
+  def load_studprog_prilohy_subory(self, context, studprog_id, spolocne='normalny'):
+    sp_filter = self.cond_spolocne_bloky(studprog_id, 'sp.studprog', spolocne)
     with self.cursor() as cur:
       cur.execute('''SELECT sp.typ_prilohy,
         s.id as subor_id, s.posledna_verzia,
@@ -1523,9 +1550,9 @@ class DataStore(object):
         FROM studprog_priloha sp
         INNER JOIN subor s ON sp.subor = s.id
         INNER JOIN subor_verzia sv ON s.posledna_verzia = sv.id
-        WHERE sp.studprog = %s
+        WHERE {}
         ORDER BY typ_prilohy
-        ''', (studprog_id,))
+        '''.format(sp_filter), sp_filter.params)
       subory = {}
       for row in cur:
         if row.typ_prilohy not in subory:
@@ -1598,23 +1625,24 @@ class DataStore(object):
       return [x for x in self._typy_priloh if x.moze_vybrat]
     return self._typy_priloh
 
-  def load_studprog_osoby_struktura(self, sp_id):
+  def load_studprog_osoby_struktura(self, sp_id, spolocne='normalny'):
+    sp_filter = self.cond_spolocne_bloky(sp_id, 'sp.id', spolocne)
     with self.cursor() as cur:
       cur.execute('''
         SELECT o.id, o.cele_meno, ou.funkcia, ou.kvalifikacia, ou.uvazok
-        FROM studprog sp, osoba o
+        FROM osoba o
         LEFT JOIN osoba_uvazok ou ON ou.osoba = o.id
         WHERE EXISTS (SELECT 1
             FROM infolist_verzia_vyucujuci ivv, infolist i, studprog_verzia_blok_infolist spvbi,
-              studprog_verzia_blok spvb
+              studprog_verzia_blok spvb, studprog sp
             WHERE ivv.osoba = o.id AND ivv.infolist_verzia = i.posledna_verzia AND spvbi.infolist = i.id
             AND spvbi.studprog_verzia = sp.posledna_verzia AND spvb.studprog_verzia = sp.posledna_verzia
             AND spvbi.poradie_blok = spvb.poradie_blok AND spvb.typ IN ('A', 'B')
+            AND ({})
           )
-        AND sp.id = %s
         ORDER BY o.priezvisko, o.meno, o.id
-      ''',
-      (sp_id,))
+      '''.format(sp_filter),
+      sp_filter.params)
       result = []
       for row in cur:
         if len(result) == 0 or result[-1]['id'] != row.id:
@@ -1631,7 +1659,8 @@ class DataStore(object):
           })
       return result
 
-  def load_studprog_osoby_zoznam(self, sp_id):
+  def load_studprog_osoby_zoznam(self, sp_id, spolocne='normalny'):
+    sp_filter = self.cond_spolocne_bloky(sp_id, 'sp.id', spolocne)
     with self.cursor() as cur:
       cur.execute('''
         SELECT DISTINCT spvbi.predmet_jadra, i.id as infolist, ivp.nazov_predmetu COLLATE "sk_SK" as nazov_predmetu,
@@ -1646,10 +1675,10 @@ class DataStore(object):
         INNER JOIN infolist_verzia_preklad ivp ON i.posledna_verzia = ivp.infolist_verzia
         LEFT JOIN osoba_uvazok ou ON ivv.osoba = ou.osoba
         LEFT JOIN infolist_verzia_vyucujuci_typ ivvt ON ivvt.infolist_verzia = ivv.infolist_verzia AND ivvt.osoba = ivv.osoba
-        WHERE sp.id = %s AND spvb.typ in ('A', 'B') AND ivp.jazyk_prekladu = 'sk'
+        WHERE ({}) AND spvb.typ in ('A', 'B') AND ivp.jazyk_prekladu = 'sk'
         ORDER BY spvb.typ, nazov_predmetu, i.id, ivv.poradie, ivvt.typ_vyucujuceho
-      ''',
-      (sp_id,))
+      '''.format(sp_filter),
+      sp_filter.params)
       result = []
       for row in cur:
         if (len(result) == 0 or result[-1]['infolist'] != row.infolist or result[-1]['osoba'] != row.osoba or
@@ -1671,7 +1700,8 @@ class DataStore(object):
           result[-1]['typy_vyucujuceho'].append(row.typ_vyucujuceho)
       return result
 
-  def load_studprog_infolisty(self, sp_id):
+  def load_studprog_infolisty(self, sp_id, spolocne='normalny'):
+    sp_filter = self.cond_spolocne_bloky(sp_id, 'sp.id', spolocne)
     with self.cursor() as cur:
       cur.execute('''
         SELECT DISTINCT spvbi.predmet_jadra, i.id as infolist, ivp.nazov_predmetu COLLATE "sk_SK" as nazov_predmetu,
@@ -1683,13 +1713,14 @@ class DataStore(object):
         INNER JOIN infolist_verzia_preklad ivp ON i.posledna_verzia = ivp.infolist_verzia
         INNER JOIN predmet_infolist pi ON pi.infolist = i.id
         INNER JOIN predmet p ON p.id = pi.predmet
-        WHERE sp.id = %s AND ivp.jazyk_prekladu = 'sk'
+        WHERE ({}) AND ivp.jazyk_prekladu = 'sk'
         ORDER BY nazov_predmetu, i.id
-      ''',
-      (sp_id,))
+      '''.format(sp_filter),
+      sp_filter.params)
       return cur.fetchall()
 
-  def load_studprog_vpchar(self, sp_id):
+  def load_studprog_vpchar(self, sp_id, spolocne='normalny'):
+    sp_filter = self.cond_spolocne_bloky(sp_id, 'sp.id', spolocne)
     with self.cursor() as cur:
       cur.execute('''
         SELECT DISTINCT o.id as osoba, o.priezvisko COLLATE "sk_SK", o.meno COLLATE "sk_SK", o.cele_meno, o.login,
@@ -1703,11 +1734,11 @@ class DataStore(object):
         INNER JOIN infolist_verzia_preklad ivp ON i.posledna_verzia = ivp.infolist_verzia
         LEFT JOIN osoba_uvazok ou ON ivv.osoba = ou.osoba
         LEFT JOIN osoba_vpchar ovp ON ivv.osoba = ovp.osoba
-        WHERE sp.id = %s AND spvb.typ in ('A', 'B') AND ivp.jazyk_prekladu = 'sk'
+        WHERE ({}) AND spvb.typ in ('A', 'B') AND ivp.jazyk_prekladu = 'sk'
           AND (ou.funkcia IS NULL or ou.funkcia IN ('1P', '1H', '2D') or o.cele_meno ilike %s or o.cele_meno ilike %s or o.cele_meno ilike %s or o.cele_meno ilike %s)
         ORDER BY o.priezvisko COLLATE "sk_SK", o.meno COLLATE "sk_SK", o.id
-      ''',
-      (sp_id, '%prof.%', '%doc.%', 'prof %', 'doc %'))
+      '''.format(sp_filter),
+      sp_filter.params + ['%prof.%', '%doc.%', 'prof %', 'doc %'])
       return cur.fetchall()
 
   def load_studprog_skolitelia(self, sp_id):
