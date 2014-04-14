@@ -378,3 +378,7 @@ span.podmienka-predmet {
     background: #dff0d8;
     color: #468847;
 }
+
+.table.dokumenty small {
+    margin-left: 2em;
+}

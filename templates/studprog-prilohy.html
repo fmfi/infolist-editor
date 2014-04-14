@@ -17,11 +17,13 @@
         </div>
       {% endif %}
       {% if subory %}
-      <table class="table">
+      <table class="table dokumenty">
         <thead>
           <tr>
-            <th>Dokument</th>
-            <th>Názov súboru</th>
+            <th>
+              Dokument<br />
+              <small>Názov súboru</small>
+            </th>
             <th>Čas zmeny</th>
             <th></th>
           </tr>
@@ -29,8 +31,11 @@
         <tbody>
         {% for filename, subor in subory %}
           <tr>
-            <td><a href="{{ url_for('studijny_program_priloha_stiahni', id=studprog_id, subor=filename) }}">{{ subor.nazov }}</a></td>
-            <td>{{  filename }}</td>
+            <td>
+              <a href="{{ url_for('studijny_program_priloha_stiahni', id=studprog_id, subor=filename) }}">{{ subor.nazov }}</a>
+              <br />
+              <small>{{  filename }}</small>
+            </td>
             <td>{{ subor.modifikovane|datetime }}</td>
             <td>
             {% if subor.url_aktualizacie %}
