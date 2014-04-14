@@ -149,7 +149,7 @@ class PrilohaZoznam(Priloha):
         continue
 
       p = Paragraph(styles.ParagraphStyles.Heading2)
-      p.append(typ_prilohy.nazov)
+      p.append(u'III.{} {}'.format(typ_prilohy.id, typ_prilohy.nazov))
       section.append(p)
     
       table = Table(4075, 4075, 1300)
