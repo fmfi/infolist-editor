@@ -517,7 +517,7 @@ def studijny_program_prilohy(id):
 
 
   context = export.PrilohaContext(config)
-  prilohy = export.prilohy_pre_studijny_program(context, id)
+  prilohy = export.prilohy_pre_studijny_program(context, id, None)
 
   return render_template('studprog-prilohy.html', prilohy=utils.prilohy_podla_typu(prilohy), data=studprog, studprog_id=id, editing=False,
                          tab='dokumenty', context=context)
@@ -528,7 +528,7 @@ def studijny_program_priloha_stiahni(id, subor):
   if not g.user.vidi_dokumenty_sp():
     abort(403)
   
-  prilohy = export.prilohy_pre_studijny_program(export.PrilohaContext(config), id)
+  prilohy = export.prilohy_pre_studijny_program(export.PrilohaContext(config), id, 'normalny')
   if subor not in prilohy.podla_nazvu_suboru:
     abort(404)
   
@@ -557,13 +557,14 @@ def studijny_program_priloha_stiahni_infolisty_v_jednom_subore(id):
 
   return priloha.send()
 
-@app.route('/studijny-program/<int:id>/dokumenty/vsetky.zip')
+@app.route('/studijny-program/<int:id>/dokumenty/vsetky.zip', defaults={'spolocne': 'normalny'})
+@app.route('/studijny-program/<int:id>/dokumenty/vsetky-konverzny.zip', defaults={'spolocne': 'konverzny'})
 @restrict()
-def studijny_program_priloha_stiahni_zip(id):
+def studijny_program_priloha_stiahni_zip(id, spolocne):
   if not g.user.vidi_dokumenty_sp():
     abort(403)
-  
-  prilohy = export.prilohy_pre_studijny_program(export.PrilohaContext(config), id)
+
+  prilohy = export.prilohy_pre_studijny_program(export.PrilohaContext(config), id, spolocne)
   
   return prilohy.send_zip()
 

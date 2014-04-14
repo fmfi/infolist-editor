@@ -604,20 +604,20 @@ def stream_zip(entries, filename):
   response.headers['Content-Disposition'] = 'attachment; filename={}'.format(filename)
   return response
 
-def prilohy_pre_studijny_program(context, sp_id):
+def prilohy_pre_studijny_program(context, sp_id, spolocne):
   prilohy = Prilohy(context)
 
   formular, formular_konverzny = g.db.load_studprog_formulare(context, sp_id)
-  if formular:
+  if formular and spolocne in ('normalny', None):
     prilohy.add(0, formular)
-  if formular_konverzny:
+  if formular_konverzny and spolocne in ('konverzny', None):
     prilohy.add(0, formular_konverzny)
 
-  for typ, subory in g.db.load_studprog_prilohy_subory(context, sp_id).iteritems():
+  for typ, subory in g.db.load_studprog_prilohy_subory(context, sp_id, spolocne=spolocne).iteritems():
     for subor in subory:
       prilohy.add(typ, subor)
 
-  infolisty = g.db.load_studprog_infolisty(sp_id)
+  infolisty = g.db.load_studprog_infolisty(sp_id, spolocne=spolocne)
   for infolist in infolisty:
     prilohy.add(8, PrilohaInfolist(infolist.infolist, context=context, nazov=infolist.nazov_predmetu,
                                    filename=u'{}_{}.rtf'.format(infolist.skratka, infolist.nazov_predmetu)))
@@ -642,7 +642,7 @@ def prilohy_pre_studijny_program(context, sp_id):
       return
     prilohy.add(typ, PrilohaVPChar(osoba=osoba, rtfname=rtfname, context=context))
 
-  for osoba in g.db.load_studprog_vpchar(sp_id):
+  for osoba in g.db.load_studprog_vpchar(sp_id, spolocne=spolocne):
     if not osoba.mame_funkciu and not (u'prof.' in osoba.cele_meno.lower() or u'doc.' in osoba.cele_meno.lower()
                                        or osoba.cele_meno.lower().startswith(u'prof ') or osoba.cele_meno.lower().startswith(u'doc ')):
       context.add_warning_by_typ(1, u'V databáze chýba funkcia pre {}, neviem zistiť, či treba prikladať VPCHAR!'.format(osoba.cele_meno))
@@ -653,15 +653,32 @@ def prilohy_pre_studijny_program(context, sp_id):
     pridaj_vpchar(2, osoba)
 
   prilohy.add(6, PrilohaStudPlan(sp_id, context=context, nazov=u'Odporúčaný študijný plán', filename='studijny_plan.rtf'))
+  incl_spolocne = g.db.resolve_spolocne_bloky(sp_id, spolocne)
+  if incl_spolocne:
+    prilohy.add(6, PrilohaStudPlan(incl_spolocne, context=context, nazov=u'Odporúčaný študijný plán - spoločný základ', filename='studijny_plan_spolocny.rtf'))
+
   prilohy.add(12, PrilohaZoznam(prilohy, context=context, nazov=u'Zoznam dokumentov priložených k žiadosti', filename='zoznam_priloh.rtf'))
   
   return prilohy
 
 def prilohy_vsetky(context):
   root = Prilohy(context)
-  for studprog in g.db.fetch_studijne_programy():
+
+  def pridaj_normalny(studprog):
     adresar = secure_filename(u'SP_{}_{}_{}'.format(studprog['oblast_vyskumu'],stupen_studia_titul.get(studprog['stupen_studia']),
       studprog['nazov']))
-    subory = prilohy_pre_studijny_program(context, studprog['id'])
+    subory = prilohy_pre_studijny_program(context, studprog['id'], spolocne='normalny')
     root.add_adresar(adresar, subory)
+
+  def pridaj_konverzny(studprog):
+    adresar = secure_filename(u'SP_{}_{}_{}_konverzny_program'.format(studprog['oblast_vyskumu'],stupen_studia_titul.get(studprog['stupen_studia']),
+      studprog['nazov']))
+    subory = prilohy_pre_studijny_program(context, studprog['id'], spolocne='konverzny')
+    root.add_adresar(adresar, subory)
+
+  for studprog in g.db.fetch_studijne_programy():
+    pridaj_normalny(studprog)
+    if studprog['aj_konverzny_program']:
+      pridaj_konverzny(studprog)
+
   return root
