@@ -3,7 +3,7 @@
 <div class="body">
   {% if prilohy %}
     {% for typ_prilohy, subory in prilohy %}
-      <h4>{{ typ_prilohy.nazov }}{% if typ_prilohy.kriterium %} ({{ typ_prilohy.kriterium }}){% endif %}</h4>
+      <h4>{% if typ_prilohy.id > 0 %}III.{{ typ_prilohy.id }} {% endif %}{{ typ_prilohy.nazov }}{% if typ_prilohy.kriterium %} ({{ typ_prilohy.kriterium }}){% endif %}</h4>
       {% if typ_prilohy.id == 2 %}
         <p>Prílohy v tejto kategórii prikladá systém podľa osôb vybraných v záložke "Školitelia".</p>
       {% endif %}
