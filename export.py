@@ -146,10 +146,10 @@ class PrilohaZoznam(Priloha):
       p.append(typ_prilohy.nazov)
       section.append(p)
     
-      table = Table(TabPropertySet.DEFAULT_WIDTH * 7, TabPropertySet.DEFAULT_WIDTH * 3)
-      table.AddRow(th(u'Príloha'), th(u'Dátum modifikácie'))
+      table = Table(4075, 4075, 1300)
+      table.AddRow(th(u'Príloha'), th(u'Súbor'), th(u'Dátum modifikácie'))
       for filename, priloha in entries:
-        table.AddRow(td(filename), td(format_datetime(priloha.modifikovane, iba_datum=True)))
+        table.AddRow(td(priloha.nazov), td(filename), td(format_datetime(priloha.modifikovane, iba_datum=True)))
       section.append(table)
     
     doc.write(to_file)
