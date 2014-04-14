@@ -475,8 +475,9 @@ def studijny_program_statistiky(id):
 
   chybajuci = set()
   for osoba in osoby:
-    if len(osoba['uvazky']) == 0:
+    if len(osoba['uvazky']) == 0 or osoba['uvazky'][0]['uvazok'] is None:
       chybajuci.add(osoba['cele_meno'])
+      continue
     for uvazok in osoba['uvazky']:
       # pridaj(id, funkcia, kvalifikacia, vaha)
       ps.pridaj(osoba['id'], uvazok['funkcia'], osoba['kvalifikacia'],
