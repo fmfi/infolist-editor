@@ -19,4 +19,6 @@
   </li>
 {% elif warn.typ == 'automaticky' %}
   <li>Informačný list <a href="{{ url_for('show_infolist', id=warn.infolist, edit=False) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> obsahuje marker o automaticky importovanom texte!</li>
+{% elif warn.typ == 'nova_literatura' %}
+  <li>Informačný list <a href="{{ url_for('show_infolist', id=warn.infolist, edit=False) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> má príliš veľa novej literatúry! Počet kusov: {{ warn.pocet }}</li>
 {% endif %}

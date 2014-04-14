@@ -1400,7 +1400,17 @@ class DataStore(object):
           (i.zahodeny) as w_zahodeny,
           (spvb.typ IN ('A', 'B') AND NOT iv.bude_v_povinnom) as w_pov,
           (iv.obsahuje_varovania) as w_varovania,
-          (unaccent(ivp.vysledky_vzdelavania) ILIKE '%%tento obsah bol automaticky importovany%%') as w_automaticky
+          (unaccent(ivp.vysledky_vzdelavania) ILIKE '%%tento obsah bol automaticky importovany%%') as w_automaticky,
+          (SELECT COUNT(*)
+            FROM infolist_verzia_nova_literatura ivnl
+            WHERE ivnl.infolist_verzia = iv.id AND NOT (
+              unaccent(popis) ilike '%%vyucujuc%%' or unaccent(popis) ilike 'vlastn%%'
+              or popis like '%%fmph.uniba.sk%%' or unaccent(popis) ilike '%%vyber aktualnych%%'
+              or popis like '%%www.%%' or unaccent(popis) ilike '%%clanky%%'
+              or popis ilike '%%online%%' or unaccent(popis) ilike '%%literatura%%'
+              or unaccent(popis) ilike '%%elektronicke%%' or popis like '%%.com'
+              )
+          ) as w_nova_literatura
         FROM studprog sp
         INNER JOIN studprog_verzia spv ON sp.posledna_verzia = spv.id
         INNER JOIN studprog_verzia_blok spvb ON spv.id = spvb.studprog_verzia
@@ -1463,6 +1473,8 @@ class DataStore(object):
           add_infolist_warning('varovania')
         if row.w_automaticky:
           add_infolist_warning('automaticky')
+        if row.w_nova_literatura > 2:
+          add_infolist_warning('nova_literatura', pocet=row.w_nova_literatura)
 
         for ityp in ['A', 'B', 'C']:
           if row.typ_bloku <= ityp:
