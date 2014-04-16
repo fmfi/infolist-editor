@@ -470,7 +470,7 @@ def infolist_tdata(infolist):
   return tdata
 
 class PrilohaInfolist(Priloha):
-  def __init__(self, infolist_id, modifikovane, **kwargs):
+  def __init__(self, infolist_id, modifikovane=None, **kwargs):
     super(PrilohaInfolist, self).__init__(**kwargs)
     self.infolist_id = infolist_id
     self._modifikovane = modifikovane
