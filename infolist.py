@@ -528,7 +528,7 @@ def studijny_program_priloha_stiahni(id, subor):
   if not g.user.vidi_dokumenty_sp():
     abort(403)
   
-  prilohy = export.prilohy_pre_studijny_program(export.PrilohaContext(config), id, 'normalny')
+  prilohy = export.prilohy_pre_studijny_program(export.PrilohaContext(config), id, None)
   if subor not in prilohy.podla_nazvu_suboru:
     abort(404)
   
