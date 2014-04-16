@@ -8,6 +8,7 @@ import argparse
 import psycopg2
 # postgres unicode
 import re
+import sys
 
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
@@ -41,13 +42,13 @@ with psycopg2.connect(config.conn_str, cursor_factory=NamedTupleCursor) as conn:
           cur.execute('SELECT o.id, o.cele_meno FROM osoba o, osoba_vpchar ovp WHERE o.id = ovp.osoba AND ovp.token = %s', (tokmatch.group(1),))
           row = cur.fetchone()
           if row is None:
-            print 'VP charakteristika s tokenom {} nie je priradena k ziadnej osobe'.format(tokmatch.group(1))
+            sys.stderr.write('VP charakteristika s tokenom {} nie je priradena k ziadnej osobe\n'.format(tokmatch.group(1)))
             continue
         else:
           cur.execute('SELECT o.id, o.cele_meno FROM osoba o WHERE o.login = %s', (loginmatch.group(1),))
           row = cur.fetchone()
           if row is None:
-            print 'Nenasiel som osobu s loginom {}'.format(loginmatch.group(1,))
+            sys.stderr.write('Nenasiel som osobu s loginom {}'.format(loginmatch.group(1,)))
             continue
         if row.cele_meno != cele_meno:
           print u'{} | {} | {} | {}'.format(row.id, row.cele_meno, cele_meno, filename).encode('UTF-8')
