@@ -608,7 +608,7 @@ def upload_subor(subor_id, nazov=None, filename=None):
   filename_len_limit = 100
   if len(filename) > filename_len_limit:
     parts = filename.rsplit('.', 1)
-    filename = '{}.{}'.format(parts[:filename_len_limit-len(parts[1])-1])
+    filename = '{}.{}'.format(parts[0][:filename_len_limit-len(parts[1])-1], parts[1])
 
   return g.db.add_subor(sha256, nazov, filename, mimetype, g.user.id, subor_id=subor_id)
 
