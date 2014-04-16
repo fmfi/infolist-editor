@@ -27,28 +27,32 @@ args = parser.parse_args()
 
 with psycopg2.connect(config.conn_str, cursor_factory=NamedTupleCursor) as conn:
   with conn.cursor() as cur:
-     charakteristiky = [x for x in os.listdir(config.vpchar_dir) if x.endswith('.json')]
-     for filename in charakteristiky:
-        tokmatch = re.match(r'^token-(.*)\.json$', filename)
-        loginmatch = re.match(r'^user-(.*)\.json$', filename)
-        if not (tokmatch or loginmatch):
+    charakteristiky = [x for x in os.listdir(config.vpchar_dir) if x.endswith('.json')]
+    vysledky = []
+    for filename in charakteristiky:
+      tokmatch = re.match(r'^token-(.*)\.json$', filename)
+      loginmatch = re.match(r'^user-(.*)\.json$', filename)
+      if not (tokmatch or loginmatch):
+        continue
+      with open(os.path.join(config.vpchar_dir, filename), 'r') as f:
+        doc = json.load(f, object_hook=PrilohaVPChar._json_object_hook)
+      cele_meno = u' '.join(unicode(doc['cstruct'][x]) for x in ['titul_pred', 'meno', 'priezvisko'] if doc['cstruct'][x] is not None)
+      if doc['cstruct']['titul_za'] is not None:
+        cele_meno = u', '.join([cele_meno, doc['cstruct']['titul_za']])
+      if tokmatch:
+        cur.execute('SELECT o.id, o.cele_meno, o.priezvisko FROM osoba o, osoba_vpchar ovp WHERE o.id = ovp.osoba AND ovp.token = %s', (tokmatch.group(1),))
+        row = cur.fetchone()
+        if row is None:
+          sys.stderr.write('VP charakteristika s tokenom {} nie je priradena k ziadnej osobe\n'.format(tokmatch.group(1)))
           continue
-        with open(os.path.join(config.vpchar_dir, filename), 'r') as f:
-         doc = json.load(f, object_hook=PrilohaVPChar._json_object_hook)
-        cele_meno = u' '.join(unicode(doc['cstruct'][x]) for x in ['titul_pred', 'meno', 'priezvisko'] if doc['cstruct'][x] is not None)
-        if doc['cstruct']['titul_za'] is not None:
-          cele_meno = u', '.join([cele_meno, doc['cstruct']['titul_za']])
-        if tokmatch:
-          cur.execute('SELECT o.id, o.cele_meno FROM osoba o, osoba_vpchar ovp WHERE o.id = ovp.osoba AND ovp.token = %s', (tokmatch.group(1),))
-          row = cur.fetchone()
-          if row is None:
-            sys.stderr.write('VP charakteristika s tokenom {} nie je priradena k ziadnej osobe\n'.format(tokmatch.group(1)))
-            continue
-        else:
-          cur.execute('SELECT o.id, o.cele_meno FROM osoba o WHERE o.login = %s', (loginmatch.group(1),))
-          row = cur.fetchone()
-          if row is None:
-            sys.stderr.write('Nenasiel som osobu s loginom {}'.format(loginmatch.group(1,)))
-            continue
-        if row.cele_meno != cele_meno:
-          print u'{} | {} | {} | {}'.format(row.id, row.cele_meno, cele_meno, filename).encode('UTF-8')
+      else:
+        cur.execute('SELECT o.id, o.cele_meno, o.priezvisko FROM osoba o WHERE o.login = %s', (loginmatch.group(1),))
+        row = cur.fetchone()
+        if row is None:
+          sys.stderr.write('Nenasiel som osobu s loginom {}'.format(loginmatch.group(1,)))
+          continue
+      if row.cele_meno != cele_meno:
+        vysledky.append([row.id, row.cele_meno, cele_meno, filename, row.priezvisko])
+    vysledky.sort(key=lambda x: x[4])
+    for x in vysledky:
+      print u'{} | {} | {} | {}'.format(*x[:4]).encode('UTF-8')
