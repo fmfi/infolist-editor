@@ -50,4 +50,4 @@ with psycopg2.connect(config.conn_str, cursor_factory=NamedTupleCursor) as conn:
             print 'Nenasiel som osobu s loginom {}'.format(loginmatch.group(1,))
             continue
         if row.cele_meno != cele_meno:
-          print u'{} | {} | {} | {}'.format(row.id, row.cele_meno, cele_meno, filename)
+          print u'{} | {} | {} | {}'.format(row.id, row.cele_meno, cele_meno, filename).encode('UTF-8')
