@@ -868,7 +868,7 @@ INSERT INTO studprog_priloha_typ (id, nazov, kriterium, moze_vybrat) VALUES
   ( 0, 'Vyplnený RTF formulár študijného programu', NULL, true),
   ( 1, 'Vedecko-pedagogické alebo umelecko-pedagogické charakteristiky profesorov a docentov pôsobiacich v študijnom programe', 'KSP-A3', false),
   ( 2, 'Vedecko-pedagogické alebo umelecko-pedagogické charakteristiky školiteľov v doktorandskom štúdiu', 'KSP-A4', false),
-  ( 3, 'Zoznam vedúcich záverečných prác  a tém záverečných prác za obdobie dvoch rokov', 'KSP-A4', true),
+  ( 3, 'Zoznam vedúcich záverečných prác a tém záverečných prác za obdobie dvoch rokov', 'KSP-A4', true),
   ( 4, 'Zloženie skúšobných komisií na vykonanie štátnych skúšok v študijnom programe za posledné dva roky', 'KSP-A5', true),
   ( 5, 'Kritériá na obsadzovanie funkcií profesor a docent', 'KSP-A6', true),
   ( 6, 'Odporúčaný študijný plán', 'KSP-B1', true),
