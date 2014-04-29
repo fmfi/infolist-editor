@@ -511,8 +511,8 @@ def my_rtf_elements(renderer, element):
   if isinstance(element, RTFHyperlink):
     renderer._write(r'{\field{\*\fldinst HYPERLINK \\l "')
     renderer._write(element.target)
-    renderer._write(r'" }{\fldrslt ')
-    renderer.WriteParagraphElement(element.content, tag_prefix='\intbl', tag_suffix='', opening='', closing='')
+    renderer._write(r'" }{\fldrslt \plain \ul ')
+    renderer.writeUnicodeElement(element.content)
     renderer._write('}}')
   elif isinstance(element, RTFBookmark):
     renderer._write(element.to_rtf())
@@ -542,7 +542,7 @@ class PrilohaInfolisty(Priloha):
       target = 'infolist{}'.format(infolist_id)
       table.AddRow(
         td(infolist['skratka']),
-        td(RTFHyperlink(target, Paragraph(infolist['nazov_predmetu'])))
+        td(RTFHyperlink(target, infolist['nazov_predmetu']))
       )
 
     with closing(StringIO()) as table_rtf:
