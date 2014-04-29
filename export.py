@@ -489,6 +489,36 @@ class PrilohaInfolist(Priloha):
   def modifikovane(self):
     return self._modifikovane
 
+class RTFHyperlink():
+  def __init__(self, target, content):
+    self.target = target
+    self.content = content
+
+class RTFBookmark():
+  def  __init__(self, name):
+    self.name = name
+
+  def to_rtf(self):
+    ret = ''
+    ret += r'{\*\bkmkstart '
+    ret += self.name
+    ret += r'}{\*\bkmkend '
+    ret += self.name
+    ret += '}'
+    return ret
+
+def my_rtf_elements(renderer, element):
+  if isinstance(element, RTFHyperlink):
+    renderer._write(r'{\field{\*\fldinst HYPERLINK \\l "')
+    renderer._write(element.target)
+    renderer._write(r'" }{\fldrslt ')
+    renderer.WriteParagraphElement(element.content, tag_prefix='\intbl', tag_suffix='', opening='', closing='')
+    renderer._write('}}')
+  elif isinstance(element, RTFBookmark):
+    renderer._write(element.to_rtf())
+  else:
+    raise TypeError()
+
 class PrilohaInfolisty(Priloha):
   def __init__(self, infolisty, **kwargs):
     super(PrilohaInfolisty, self).__init__(**kwargs)
@@ -509,18 +539,23 @@ class PrilohaInfolisty(Priloha):
     table.AddRow(th(u'Kód'), th(u'Názov predmetu'))
     for infolist_id in self.infolisty:
       infolist = self.context.infolist(infolist_id)
-      table.AddRow(td(infolist['skratka']), td(infolist['nazov_predmetu']))
+      target = 'infolist{}'.format(infolist_id)
+      table.AddRow(
+        td(infolist['skratka']),
+        td(RTFHyperlink(target, Paragraph(infolist['nazov_predmetu'])))
+      )
 
     with closing(StringIO()) as table_rtf:
-      r = Renderer()
+      r = Renderer(write_custom_element_callback=my_rtf_elements)
       r._fout = table_rtf
-      r._CurrentStyle = ''
+      r._CurrentStyle = r'\infolistemptystyle'
       r.paragraph_style_map = {'' :''}
       r.WriteTableElement(table)
       to_file.write(table_rtf.getvalue())
 
     for infolist_id in self.infolisty:
       to_file.write('\n\page\n')
+      to_file.write(RTFBookmark('infolist{}'.format(infolist_id)).to_rtf())
       infolist = self.context.infolist(infolist_id)
       tdata = infolist_tdata(infolist)
       to_file.write(render_rtf(rtf_core, tdata))
