@@ -5,6 +5,7 @@
 <div class="content-100">
   {{ flashes() }}
   <h1>Exporty</h1>
-  <a class="btn btn-primary" href="{{ url_for('export_vsetkych_sp') }}">Export všetkých ŠP</a>
+  <a class="btn btn-primary" href="{{ url_for('export_vsetkych_sp', infolisty_samostatne=True) }}">Export všetkých ŠP</a>
+  <a class="btn btn-primary" href="{{ url_for('export_vsetkych_sp', infolisty_samostatne=False) }}">Export všetkých ŠP, infolisty v jednom RTF</a>
 </div>
 {% endblock %}

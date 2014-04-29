@@ -685,7 +685,7 @@ def stream_zip(entries, filename):
   response.headers['Content-Disposition'] = 'attachment; filename={}'.format(filename)
   return response
 
-def prilohy_pre_studijny_program(context, sp_id, spolocne):
+def prilohy_pre_studijny_program(context, sp_id, spolocne, infolisty_samostatne=True):
   prilohy = Prilohy(context)
 
   formular, formular_konverzny = g.db.load_studprog_formulare(context, sp_id)
@@ -699,11 +699,13 @@ def prilohy_pre_studijny_program(context, sp_id, spolocne):
       prilohy.add(typ, subor)
 
   infolisty = g.db.load_studprog_infolisty(sp_id, spolocne=spolocne)
-  for infolist in infolisty:
-    prilohy.add(8, PrilohaInfolist(infolist.infolist, modifikovane=infolist.modifikovane,
-                                   context=context, nazov=infolist.nazov_predmetu,
-                                   filename=u'{}_{}.rtf'.format(infolist.skratka, infolist.nazov_predmetu)))
-  #prilohy.add(8, PrilohaInfolisty([x.infolist for x in infolisty], context=context, nazov='Infolisty', filename=u'infolisty.rtf'))
+  if infolisty_samostatne:
+    for infolist in infolisty:
+      prilohy.add(8, PrilohaInfolist(infolist.infolist, modifikovane=infolist.modifikovane,
+                                     context=context, nazov=infolist.nazov_predmetu,
+                                     filename=u'{}_{}.rtf'.format(infolist.skratka, infolist.nazov_predmetu)))
+  else:
+    prilohy.add(8, PrilohaInfolisty([x.infolist for x in infolisty], context=context, nazov='Infolisty', filename=u'infolisty.rtf'))
 
   def pridaj_vpchar(typ, osoba):
     if osoba.uploadnuty_subor is not None:
@@ -739,19 +741,19 @@ def prilohy_pre_studijny_program(context, sp_id, spolocne):
   
   return prilohy
 
-def prilohy_vsetky(context):
+def prilohy_vsetky(context, infolisty_samostatne=True):
   root = Prilohy(context)
 
   def pridaj_normalny(studprog):
     adresar = secure_filename(u'SP_{}_{}_{}'.format(studprog['oblast_vyskumu'],stupen_studia_titul.get(studprog['stupen_studia']),
       studprog['nazov']))
-    subory = prilohy_pre_studijny_program(context, studprog['id'], spolocne='normalny')
+    subory = prilohy_pre_studijny_program(context, studprog['id'], spolocne='normalny', infolisty_samostatne=infolisty_samostatne)
     root.add_adresar(adresar, subory)
 
   def pridaj_konverzny(studprog):
     adresar = secure_filename(u'SP_{}_{}_{}_konverzny_program'.format(studprog['oblast_vyskumu'],stupen_studia_titul.get(studprog['stupen_studia']),
       studprog['nazov']))
-    subory = prilohy_pre_studijny_program(context, studprog['id'], spolocne='konverzny')
+    subory = prilohy_pre_studijny_program(context, studprog['id'], spolocne='konverzny', infolisty_samostatne=infolisty_samostatne)
     root.add_adresar(adresar, subory)
 
   for studprog in g.db.fetch_studijne_programy():

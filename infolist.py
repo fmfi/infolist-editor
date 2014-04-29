@@ -778,15 +778,19 @@ def exporty():
     abort(401)
   return render_template('exporty.html')
 
-@app.route('/exporty/vsetky-sp.zip')
+@app.route('/exporty/vsetky-sp.zip', defaults={'infolisty_samostatne': True})
+@app.route('/exporty/vsetky-sp-spojene-infolisty.zip', defaults={'infolisty_samostatne': False})
 @restrict()
-def export_vsetkych_sp():
+def export_vsetkych_sp(infolisty_samostatne):
   if not g.user.vidi_exporty():
     abort(401)
 
-  prilohy = export.prilohy_vsetky(export.PrilohaContext(config))
+  prilohy = export.prilohy_vsetky(export.PrilohaContext(config), infolisty_samostatne=infolisty_samostatne)
 
-  return prilohy.send_zip('vsetky-sp.zip')
+  if infolisty_samostatne:
+    return prilohy.send_zip('vsetky-sp.zip')
+  else:
+    return prilohy.send_zip('vsetky-sp-spojene-infolisty.zip')
 
 @app.route('/pouzivatelia')
 @restrict()
