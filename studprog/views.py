@@ -161,7 +161,7 @@ def prilohy(id):
   studprog = g.db.load_studprog(id)
 
 
-  context = export.PrilohaContext(current_app.config['_CONFIG'])
+  context = export.PrilohaContext()
   prilohy = export.prilohy_pre_studijny_program(context, id, None)
 
   return render_template('studprog-prilohy.html', prilohy=utils.prilohy_podla_typu(prilohy), data=studprog, studprog_id=id, editing=False,
@@ -173,7 +173,7 @@ def priloha_stiahni(id, subor):
   if not g.user.vidi_dokumenty_sp():
     abort(403)
   
-  prilohy = export.prilohy_pre_studijny_program(export.PrilohaContext(current_app.config['_CONFIG']), id, None)
+  prilohy = export.prilohy_pre_studijny_program(export.PrilohaContext(), id, None)
   if subor not in prilohy.podla_nazvu_suboru:
     abort(404)
   
@@ -198,7 +198,7 @@ def priloha_stiahni_infolisty_v_jednom_subore(id):
     abort(403)
 
   infolisty = g.db.load_studprog_infolisty(id)
-  priloha = export.PrilohaInfolisty([x.infolist for x in infolisty], context=export.PrilohaContext(current_app.config['_CONFIG']), nazov='Infolisty', filename=u'infolisty.rtf')
+  priloha = export.PrilohaInfolisty([x.infolist for x in infolisty], context=export.PrilohaContext(), nazov='Infolisty', filename=u'infolisty.rtf')
 
   return priloha.send()
 
@@ -209,7 +209,7 @@ def priloha_stiahni_zip(id, spolocne):
   if not g.user.vidi_dokumenty_sp():
     abort(403)
 
-  prilohy = export.prilohy_pre_studijny_program(export.PrilohaContext(current_app.config['_CONFIG']), id, spolocne)
+  prilohy = export.prilohy_pre_studijny_program(export.PrilohaContext(), id, spolocne)
   
   return prilohy.send_zip()
 
@@ -331,5 +331,5 @@ def lock(id, lock):
 @blueprint.route('/studijny-program/<int:id>.rtf')
 @restrict()
 def export_rtf(id):
-  studplan_rtf = export.PrilohaStudPlan(id, context=export.PrilohaContext(current_app.config['_CONFIG']), filename='studprog-{}.rtf'.format(id))
+  studplan_rtf = export.PrilohaStudPlan(id, context=export.PrilohaContext(), filename='studprog-{}.rtf'.format(id))
   return studplan_rtf.send()

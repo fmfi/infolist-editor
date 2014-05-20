@@ -12,9 +12,6 @@ from flask.ext.script import Manager, Server
 import infolist
 import predmet
 import studprog
-
-app = Flask(__name__)
-
 from flask import render_template, url_for, redirect, jsonify, abort, flash
 from flask import request, Request, g, Response
 from werkzeug.exceptions import BadRequest
@@ -33,6 +30,7 @@ import export
 class MyRequest(Request):
   parameter_storage_class = OrderedMultiDict
 
+app = Flask(__name__, instance_relative_config=True)
 app.request_class = MyRequest
 app.register_blueprint(infolist.blueprint)
 app.register_blueprint(studprog.blueprint)
@@ -41,13 +39,30 @@ app.register_blueprint(predmet.blueprint)
 if 'INFOLIST_DEBUG' in os.environ:
   app.debug = True
 
-from local_settings import active_config
-config = active_config(app)
-app.secret_key = config.secret
-app.config['DATABASE'] = config.conn_str
-app.config['FILES_DIR'] = config.files_dir
-app.config['VPCHAR_DIR'] = config.vpchar_dir
-app.config['_CONFIG'] = config
+app.config.from_pyfile('local_settings.py')
+
+if not app.debug and app.config['ADMIN_EMAILS']:
+  import logging
+  from logging.handlers import SMTPHandler
+  from logging import Formatter
+
+  mail_handler = SMTPHandler(app.config['SMTP_SERVER'],
+                            app.config['EMAIL_FROM'],
+                            app.config['ADMIN_EMAILS'],
+                            'ILSP - error')
+  mail_handler.setLevel(logging.ERROR)
+  mail_handler.setFormatter(Formatter('''
+Message type:       %(levelname)s
+Location:           %(pathname)s:%(lineno)d
+Module:             %(module)s
+Function:           %(funcName)s
+Time:               %(asctime)s
+
+Message:
+
+%(message)s
+'''))
+  app.logger.addHandler(mail_handler)
 
 template_packages = [__name__] + [bp.import_name for _, bp in app.blueprints.iteritems()] + ['deform']
 Form.set_zpt_renderer([resource_filename(x, 'templates') for x in template_packages])
@@ -85,7 +100,7 @@ def login_get_next_url():
   if 'next' not in request.args:
     return None
   try:
-    serializer = URLSafeSerializer(config.secret)
+    serializer = URLSafeSerializer(app.secret_key)
     goto = serializer.loads(request.args['next'])
     goto = request.url_root + goto
     return goto
@@ -172,7 +187,7 @@ def export_vsetkych_sp(infolisty_samostatne):
   if not g.user.vidi_exporty():
     abort(401)
 
-  prilohy = export.prilohy_vsetky(export.PrilohaContext(config), infolisty_samostatne=infolisty_samostatne)
+  prilohy = export.prilohy_vsetky(export.PrilohaContext(), infolisty_samostatne=infolisty_samostatne)
 
   if infolisty_samostatne:
     return prilohy.send_zip('vsetky-sp.zip')

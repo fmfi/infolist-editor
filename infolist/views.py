@@ -92,7 +92,7 @@ def show(id, edit, predmet_id=None):
 @blueprint.route('/infolist/<int:id>.rtf')
 @restrict()
 def export_rtf(id):
-  infolist_rtf = export.PrilohaInfolist(id, context=export.PrilohaContext(current_app.config['_CONFIG']), filename='infolist-{}.rtf'.format(id))
+  infolist_rtf = export.PrilohaInfolist(id, context=export.PrilohaContext(), filename='infolist-{}.rtf'.format(id))
   return infolist_rtf.send()
 
 @blueprint.route('/infolist/<int:id>/fork', methods=['POST'])

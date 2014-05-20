@@ -18,3 +18,6 @@ Editor informačných listov
     # Upgraduje sa potom
     pip install --upgrade git+https://github.com/fmfi/python-rtfng.git
 
+    mkdir instance
+    cp local_settings.py.example instance/local_settings.py
+    # upravit instance/local_settings.py

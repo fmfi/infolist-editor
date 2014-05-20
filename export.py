@@ -11,7 +11,7 @@ from contextlib import closing
 from rtfng.Elements import Document, Section
 from rtfng.document.paragraph import Cell, Paragraph, Table
 from rtfng.PropertySets import TabPropertySet
-from flask import send_from_directory, stream_with_context, safe_join
+from flask import send_from_directory, stream_with_context, safe_join, current_app
 from flask import g, url_for, Response
 import zipfile
 import os.path
@@ -45,8 +45,7 @@ class ZipBuffer(object):
         return result
 
 class PrilohaContext(object):
-  def __init__(self, config):
-    self.config = config
+  def __init__(self):
     self._studprog_cache = {}
     self._infolist_cache = {}
     self._typy_priloh = {}
@@ -209,7 +208,7 @@ class PrilohaUploadnutySubor(PrilohaSuborBase):
 
   @property
   def location(self):
-    return self.context.config.files_dir, self.sha256
+    return current_app.config['FILES_DIR'], self.sha256
 
 class PrilohaSubor(PrilohaUploadnutySubor):
   def __init__(self, typ_prilohy, **kwargs):
@@ -286,7 +285,7 @@ class PrilohaVPChar(VPCharMixin, PrilohaSuborBase):
 
   @property
   def location(self):
-    return self.context.config.vpchar_dir, self.rtfname
+    return current_app.config['VPCHAR_DIR'], self.rtfname
 
   @staticmethod
   def _json_object_hook(obj):
@@ -298,7 +297,7 @@ class PrilohaVPChar(VPCharMixin, PrilohaSuborBase):
   def modifikovane(self):
     if self._modifikovane is not None:
       return self._modifikovane
-    json_filename = safe_join(self.context.config.vpchar_dir, self.jsonname)
+    json_filename = safe_join(current_app.config['VPCHAR_DIR'], self.jsonname)
     try:
       with open(json_filename, 'r') as f:
         data = json.load(f, object_hook=PrilohaVPChar._json_object_hook)
@@ -323,7 +322,7 @@ class PrilohaVPChar(VPCharMixin, PrilohaSuborBase):
   def check_if_exists(self):
     if self._vpchar_name is None:
       return False
-    return os.path.exists(safe_join(self.context.config.vpchar_dir, self.rtfname))
+    return os.path.exists(safe_join(current_app.config['VPCHAR_DIR'], self.rtfname))
 
 
 class PrilohaUploadnutaVPChar(VPCharMixin, PrilohaUploadnutySubor):
