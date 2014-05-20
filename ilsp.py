@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from common import storage
 from common.decorators import restrict
 from common.filters import register_filters
 from common.proxies import db, register_proxies
@@ -34,8 +35,6 @@ app.request_class = MyRequest
 app.register_blueprint(infolist.blueprint)
 app.register_blueprint(studprog.blueprint)
 app.register_blueprint(predmet.blueprint)
-
-import storage
 
 if 'INFOLIST_DEBUG' in os.environ:
   app.debug = True

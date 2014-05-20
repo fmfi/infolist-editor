@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import argparse
+
+from common import storage
 from common.podmienka import Podmienka
 from ilsp import config
-import argparse
 import psycopg2
+
 # postgres unicode
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 from psycopg2.extras import NamedTupleCursor
-import storage
 import re
 
 stlpce = ['podmienujuce_predmety', 'vylucujuce_predmety', 'odporucane_predmety']
