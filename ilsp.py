@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from common.filters import filter_osoba, format_datetime, register_filters
+from common.schema import warning_schema
 
 from flask import Flask
 import infolist
+from infolist.schema import Infolist
 import studprog
+from studprog.schema import Studprog
 from studprog.statistiky import PocitadloStruktura
 
 app = Flask(__name__)
@@ -45,7 +48,6 @@ app.request_class = MyRequest
 app.register_blueprint(infolist.blueprint)
 app.register_blueprint(studprog.blueprint)
 
-import schema
 import storage
 
 if 'INFOLIST_DEBUG' in os.environ:
@@ -265,7 +267,7 @@ def show_infolist(id, edit, predmet_id=None):
   if infolist['zamknute'] and edit and request.method != 'POST':
     flash(u'Informačný list je zamknutý proti úpravám, vytvorte si vlastnú kópiu', 'danger')
     return redirect(url_for('show_infolist', id=id, edit=False))
-  form = Form(schema.Infolist(infolist), buttons=('submit',),
+  form = Form(Infolist(infolist), buttons=('submit',),
               appstruct=recursive_replace(infolist, None, colander.null))
   error_saving = False
   msg_ns = type("", (), {})() # http://bit.ly/1cPX3G5
@@ -273,7 +275,7 @@ def show_infolist(id, edit, predmet_id=None):
   msg_ns.has_warnings = False
   def check_warnings():
     try:
-      schema.warning_schema(schema.Infolist(infolist)).deserialize(form.cstruct)
+      warning_schema(Infolist(infolist)).deserialize(form.cstruct)
     except colander.Invalid as e:
       form.widget.handle_error(form, e)
       msg_ns.messages_type = 'warning'
@@ -412,7 +414,7 @@ def studijny_program_show(id, edit, spv_id):
   if edit and not g.user.moze_menit_studprog():
     abort(401)
   
-  form = Form(schema.Studprog(), buttons=('submit',),
+  form = Form(Studprog(), buttons=('submit',),
               appstruct=recursive_replace(studprog, None, colander.null))
   error_saving = False
   msg_ns = type("", (), {})() # http://bit.ly/1cPX3G5
@@ -421,7 +423,7 @@ def studijny_program_show(id, edit, spv_id):
   msg_ns.add_warnings = {}
   def check_warnings():
     try:
-      schema.warning_schema(schema.Studprog()).deserialize(form.cstruct)
+      warning_schema(Studprog()).deserialize(form.cstruct)
     except colander.Invalid as e:
       form.widget.handle_error(form, e)
       msg_ns.messages_type = 'warning'
