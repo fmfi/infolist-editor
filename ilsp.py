@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from common.filters import filter_osoba, format_datetime, register_filters
 
 from flask import Flask
 import infolist
@@ -21,7 +22,6 @@ import os
 import os.path
 from pkg_resources import resource_filename
 import colander
-from utils import filter_osoba, format_datetime
 from utils import recursive_replace, recursive_update
 import utils
 from markupsafe import Markup
@@ -57,7 +57,7 @@ app.secret_key = config.secret
 template_packages = [__name__] + [bp.import_name for _, bp in app.blueprints.iteritems()] + ['deform']
 Form.set_zpt_renderer([resource_filename(x, 'templates') for x in template_packages])
 
-utils.register_filters(app)
+register_filters(app)
 app.jinja_env.filters['secure_filename'] = secure_filename
 
 def restrict(api=False):

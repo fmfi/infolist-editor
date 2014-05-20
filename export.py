@@ -2,16 +2,15 @@
 from decimal import ROUND_HALF_EVEN, Decimal
 from itertools import groupby
 import json
+from common.filters import filter_fakulta, filter_druh_cinnosti, filter_obdobie, filter_metoda_vyucby, \
+  filter_typ_vyucujuceho, filter_jazyk_vyucby, filter_typ_bloku, filter_literatura, format_datetime
 from rtfng.Renderer import Renderer
-from utils import filter_fakulta, filter_druh_cinnosti, filter_obdobie, filter_metoda_vyucby, \
-  filter_literatura, filter_jazyk_vyucby, filter_typ_vyucujuceho, render_rtf, stupen_studia_titul, filter_typ_bloku, \
-  prilohy_podla_typu
+from utils import render_rtf, stupen_studia_titul, prilohy_podla_typu
 from StringIO import StringIO
 from contextlib import closing
 from rtfng.Elements import Document, Section
 from rtfng.document.paragraph import Cell, Paragraph, Table
 from rtfng.PropertySets import TabPropertySet
-from utils import format_datetime
 from flask import send_from_directory, stream_with_context, safe_join
 from flask import g, url_for, Response
 import zipfile
