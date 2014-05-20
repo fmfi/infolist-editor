@@ -218,11 +218,11 @@ class PrilohaSubor(PrilohaUploadnutySubor):
 
   @property
   def url_zmazania(self):
-    return url_for('studijny_program_priloha_zmaz', id=self.studprog_id, typ_prilohy=self.typ_prilohy, subor=self.id)
+    return url_for('studprog.priloha_zmaz', id=self.studprog_id, typ_prilohy=self.typ_prilohy, subor=self.id)
 
   @property
   def url_aktualizacie(self):
-    return url_for('studijny_program_prilohy_upload', studprog_id=self.studprog_id, subor_id=self.id)
+    return url_for('studprog.prilohy_upload', studprog_id=self.studprog_id, subor_id=self.id)
 
 def formular_nazov(studprog, konverzny=False):
   nazov_dokumentu = u'Formulár pre študijný program '
@@ -244,11 +244,11 @@ class PrilohaFormularSP(PrilohaUploadnutySubor):
 
   @property
   def url_aktualizacie(self):
-    return url_for('studijny_program_upload_formular', studprog_id=self.studprog_id, konverzny=self.konverzny)
+    return url_for('studprog.upload_formular', studprog_id=self.studprog_id, konverzny=self.konverzny)
 
   @property
   def url_zmazania(self):
-    return url_for('studijny_program_zmaz_formular', studprog_id=self.studprog_id, konverzny=self.konverzny)
+    return url_for('studprog.zmaz_formular', studprog_id=self.studprog_id, konverzny=self.konverzny)
 
   @property
   def filename(self):

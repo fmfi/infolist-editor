@@ -1,9 +1,9 @@
 <div title="{{ predmet.kod_predmetu }}" class="clearfix">{{ predmet.skratka }}
   <span class="pull-right">
     {% if not predmet.oblubeny %}
-    <form method="POST" action="{{ url_for('predmet_watch', predmet_id=predmet.id) }}"><button class="btn btn-default btn-xs">Pridať do obľúbených</button></form>
+    <form method="POST" action="{{ url_for('predmet.watch', predmet_id=predmet.id) }}"><button class="btn btn-default btn-xs">Pridať do obľúbených</button></form>
     {% else %}
-    <form method="POST" action="{{ url_for('predmet_unwatch', predmet_id=predmet.id) }}"><button class="btn btn-default btn-xs">Odstrániť z obľúbených</button></form>
+    <form method="POST" action="{{ url_for('predmet.unwatch', predmet_id=predmet.id) }}"><button class="btn btn-default btn-xs">Odstrániť z obľúbených</button></form>
     {% endif %}
   </span>
 </div>
@@ -13,7 +13,7 @@
       {%- if infolist.zahodeny -%}
       <del>
       {%- endif -%}
-      <a href="{{ url_for('show_infolist', id=infolist.id, edit=False) }}">{{ infolist.nazov_predmetu }}</a>
+      <a href="{{ url_for('infolist.show', id=infolist.id, edit=False) }}">{{ infolist.nazov_predmetu }}</a>
       {%- if infolist.zahodeny -%}
       </del>
       {%- endif -%}

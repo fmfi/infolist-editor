@@ -7,7 +7,7 @@
   <h1>Zoznam študijných programov</h1>
   <ul class="studijne-programy">
   {% for studprog in studijne_programy %}
-    <li><a href="{{ url_for('studijny_program_show', id=studprog.id, edit=False) }}">{{ studprog.skratka or '' }} {{ studprog.nazov }} ({{ studprog.stupen_studia }})</a>
+    <li><a href="{{ url_for('studprog.show', id=studprog.id, edit=False) }}">{{ studprog.skratka or '' }} {{ studprog.nazov }} ({{ studprog.stupen_studia }})</a>
       <ul class="inline-label">
         {% if studprog.aj_konverzny_program %}
         <li class="aj-konverzny-program">aj konverzný program</li>
@@ -42,7 +42,7 @@
   
   {% if g.user.moze_vytvarat_studijne_programy() %}
   <p>
-  <a href="{{ url_for('studijny_program_show', id=None, edit=True) }}"
+  <a href="{{ url_for('studprog.show', id=None, edit=True) }}"
     class="btn btn-primary">Vytvoriť úplne nový študijný program</a>
   </p>
   {% endif %}

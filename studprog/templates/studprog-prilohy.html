@@ -32,7 +32,7 @@
         {% for filename, subor in subory %}
           <tr>
             <td>
-              <a href="{{ url_for('studijny_program_priloha_stiahni', id=studprog_id, subor=filename) }}">{{ subor.nazov }}</a>
+              <a href="{{ url_for('studprog.priloha_stiahni', id=studprog_id, subor=filename) }}">{{ subor.nazov }}</a>
               <br />
               <small>{{  filename }}</small>
             </td>
@@ -53,21 +53,21 @@
         <p>Žiaden priložený dokument.</p>
       {% endif %}
       {% if typ_prilohy.id == 0 %}
-        <a class="btn btn-primary" href="{{ url_for('studijny_program_upload_formular', studprog_id=studprog_id, konverzny=False) }}">Nahrať formulár študijného programu</a>
+        <a class="btn btn-primary" href="{{ url_for('studprog.upload_formular', studprog_id=studprog_id, konverzny=False) }}">Nahrať formulár študijného programu</a>
         {% if data.aj_konverzny_program %}
-        <a class="btn btn-default" href="{{ url_for('studijny_program_upload_formular', studprog_id=studprog_id, konverzny=True) }}">Nahrať formulár konverzného študijného programu</a>
+        <a class="btn btn-default" href="{{ url_for('studprog.upload_formular', studprog_id=studprog_id, konverzny=True) }}">Nahrať formulár konverzného študijného programu</a>
         {% endif %}
       {% elif typ_prilohy.id == 8 %}
-        <a class="btn btn-default" href="{{ url_for('studijny_program_priloha_stiahni_infolisty_v_jednom_subore', id=studprog_id) }}"><span class="glyphicon glyphicon-download"></span> Stiahnuť všetky infolisty v jednom RTF súbore</a>
+        <a class="btn btn-default" href="{{ url_for('studprog.priloha_stiahni_infolisty_v_jednom_subore', id=studprog_id) }}"><span class="glyphicon glyphicon-download"></span> Stiahnuť všetky infolisty v jednom RTF súbore</a>
       {% endif %}
     {% endfor %}
   {% else %}
     <p>K tomuto študijnému programu nie sú priložené žiadne dokumenty</p>
   {% endif %}
-  <a class="btn btn-primary" href="{{ url_for('studijny_program_prilohy_upload', studprog_id=studprog_id) }}">Pridať dokument</a>
-  <a class="btn btn-default" href="{{ url_for('studijny_program_priloha_stiahni_zip', id=studprog_id, spolocne='normalny') }}"><span class="glyphicon glyphicon-download"></span> Stiahnuť všetky prílohy</a>
+  <a class="btn btn-primary" href="{{ url_for('studprog.prilohy_upload', studprog_id=studprog_id) }}">Pridať dokument</a>
+  <a class="btn btn-default" href="{{ url_for('studprog.priloha_stiahni_zip', id=studprog_id, spolocne='normalny') }}"><span class="glyphicon glyphicon-download"></span> Stiahnuť všetky prílohy</a>
   {% if data['aj_konverzny_program'] %}
-    <a class="btn btn-default" href="{{ url_for('studijny_program_priloha_stiahni_zip', id=studprog_id, spolocne='konverzny') }}"><span class="glyphicon glyphicon-download"></span> Stiahnuť všetky prílohy (konverzný program)</a>
+    <a class="btn btn-default" href="{{ url_for('studprog.priloha_stiahni_zip', id=studprog_id, spolocne='konverzny') }}"><span class="glyphicon glyphicon-download"></span> Stiahnuť všetky prílohy (konverzný program)</a>
   {% endif %}
   <hr />
   <table class="table">

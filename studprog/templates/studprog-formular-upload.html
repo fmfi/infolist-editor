@@ -6,7 +6,7 @@
 {% else %}
   <h4>Nahrať formulár pre študijný program</h4>
 {% endif %}
-<form action="{{ url_for('studijny_program_upload_formular', studprog_id=studprog_id, konverzny=konverzny) }}"
+<form action="{{ url_for('studprog.upload_formular', studprog_id=studprog_id, konverzny=konverzny) }}"
   method="POST" enctype="multipart/form-data" class="form-horizontal" role="form">
   <div class="form-group">
     <label for="dokument" class="col-sm-2 control-label">Súbor</label>
@@ -29,7 +29,7 @@
   <div class="form-group">
     <div class="col-sm-offset-2 col-sm-10">
       <button type="submit" class="btn btn-primary">Nahrať</button>
-      <a class="btn btn-default" href="{{ url_for('studijny_program_prilohy', id=studprog_id) }}">Zrušiť</a>
+      <a class="btn btn-default" href="{{ url_for('studprog.prilohy', id=studprog_id) }}">Zrušiť</a>
     </div>
   </div>
 </form>

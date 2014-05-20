@@ -1,38 +1,28 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from common.decorators import restrict
-from common.filters import filter_osoba, format_datetime, register_filters
+from common.filters import register_filters
 from common.proxies import db, register_proxies
-from common.schema import warning_schema, form_messages, zorad_osoby
 from common.upload import upload_subor
 
 from flask import Flask
 import infolist
-from infolist.schema import Infolist
+import predmet
 import studprog
-from studprog.schema import Studprog
-from studprog.statistiky import PocitadloStruktura
 
 app = Flask(__name__)
 
 from flask import render_template, url_for, redirect, jsonify, abort, flash
-from flask import request, Request, g
-from flask import Response, send_from_directory
+from flask import request, Request, g, Response
 from werkzeug.exceptions import BadRequest
 from werkzeug.datastructures import OrderedMultiDict
 import deform
 deform.widget.SequenceWidget.category = 'structural' #monkey patch fix
 from deform import Form
-from deform.exception import ValidationFailure
 import json
 import os
 import os.path
 from pkg_resources import resource_filename
-import colander
-from utils import recursive_replace, recursive_update
-import utils
-
-from decimal import Decimal
 from itsdangerous import URLSafeSerializer
 from werkzeug import secure_filename
 import export
@@ -43,6 +33,7 @@ class MyRequest(Request):
 app.request_class = MyRequest
 app.register_blueprint(infolist.blueprint)
 app.register_blueprint(studprog.blueprint)
+app.register_blueprint(predmet.blueprint)
 
 import storage
 
@@ -54,6 +45,7 @@ config = active_config(app)
 app.secret_key = config.secret
 app.config['DATABASE'] = config.conn_str
 app.config['FILES_DIR'] = config.files_dir
+app.config['_CONFIG'] = config
 
 template_packages = [__name__] + [bp.import_name for _, bp in app.blueprints.iteritems()] + ['deform']
 Form.set_zpt_renderer([resource_filename(x, 'templates') for x in template_packages])
@@ -82,7 +74,7 @@ def index():
     if goto is not None:
       goto_enc = request.args['next']
     return render_template('login.html', next=goto_enc, next_url=goto)
-  return redirect(url_for('predmet_index', tab='moje'))
+  return redirect(url_for('predmet.index', tab='moje'))
 
 def login_get_next_url():
   if 'next' not in request.args:
@@ -119,498 +111,6 @@ def ping():
 def ping_js():
   return Response(render_template('ping.js'), mimetype='text/javascript')
 
-@app.route('/predmet/', defaults={'tab': 'vsetky'})
-@app.route('/predmet/moje', defaults={'tab': 'moje'})
-@app.route('/predmet/moje-upravy', defaults={'tab': 'moje-upravy'})
-@app.route('/predmet/vyucujem', defaults={'tab': 'vyucujem'})
-@app.route('/predmet/oblubene', defaults={'tab': 'oblubene'})
-@restrict()
-def predmet_index(tab):
-  def get_bool(name):
-    val = request.args.get(name, None)
-    if val != None:
-      if val == 'ano':
-        val = True
-      elif val == 'nie':
-        val = False
-      elif val == '' or val == 'vsetky':
-        val = None
-      else:
-        raise BadRequest()
-    return val
-  f = {}
-  for name in ['import_z_aisu', 'finalna_verzia', 'obsahuje_varovania', 'zamknute']:
-    f[name] = get_bool(name)
-  if tab == 'vsetky':
-    predmety = g.db.fetch_moje_predmety(g.user.id, **f)
-  elif tab == 'moje':
-    predmety = g.db.fetch_moje_predmety(g.user.id, upravy=True, uci=True, oblubene=True, **f)
-  elif tab == 'moje-upravy':
-    predmety = g.db.fetch_moje_predmety(g.user.id, upravy=True, **f)
-  elif tab == 'vyucujem':
-    predmety = g.db.fetch_moje_predmety(g.user.id, uci=True, **f)
-  elif tab == 'oblubene':
-    predmety = g.db.fetch_moje_predmety(g.user.id, oblubene=True, **f)
-  return render_template('predmet-index.html',
-    predmety=predmety,
-    tab=tab,
-    filtruj=f
-  )
-
-@app.route('/predmet/<int:id>')
-@restrict()
-def show_predmet(id):
-  predmet = g.db.load_predmet(id)
-  if predmet is None:
-    abort(404)
-  return render_template('predmet.html', predmet=predmet)
-
-@app.route('/predmet/novy', methods=['POST'])
-@restrict()
-def predmet_novy():
-  id, skratka = g.db.create_predmet(g.user.id)
-  g.db.commit()
-  flash((u'Predmet sme úspešne vytvorili s dočasným kódom {}, ' +
-        u'finálny kód bude pridelený centrálne').format(skratka),
-        'success')
-  return redirect(url_for('show_infolist', id=None, predmet_id=id))
-
-@app.route('/predmet/<int:predmet_id>/watch', methods=['POST'])
-@restrict()
-def predmet_watch(predmet_id):
-  g.db.predmet_watch(predmet_id, g.user.id)
-  g.db.commit()
-  flash(u'Predmet bol pridaný medzi obľúbené', 'success')
-  return redirect(url_for('predmet_index', tab='oblubene'))
-
-@app.route('/predmet/<int:predmet_id>/unwatch', methods=['POST'])
-@restrict()
-def predmet_unwatch(predmet_id):
-  g.db.predmet_unwatch(predmet_id, g.user.id)
-  g.db.commit()
-  flash(u'Predmet bol odobraný z obľúbených', 'success')
-  return redirect(url_for('predmet_index', tab='oblubene'))
-
-
-@app.route('/infolist/<int:id>', defaults={'edit': False})
-@app.route('/infolist/<int:id>/upravit', defaults={'edit': True}, methods=['GET', 'POST'])
-@app.route('/predmet/<int:predmet_id>/novy-infolist', defaults={'id': None, 'edit': True}, methods=['GET', 'POST'])
-@app.route('/infolist/novy', defaults={'id': None, 'edit': True, 'predmet_id': None}, methods=['GET', 'POST'])
-@restrict()
-def show_infolist(id, edit, predmet_id=None):
-  if id != None:
-    infolist = g.db.load_infolist(id)
-  else:
-    infolist = {
-      'zamknute': False,
-      'modifikovali': {},
-      'modifikovane': None,
-      'hodnotenia_pocet': {'A': None, 'B': None, 'C': None, 'D': None, 'E': None, 'Fx': None},
-      'predosla_verzia': None,
-      'podm_absolvovania': {'nahrada': ''},
-      'fakulta': 'FMFI'
-    }
-  if infolist['zamknute'] and edit and request.method != 'POST':
-    flash(u'Informačný list je zamknutý proti úpravám, vytvorte si vlastnú kópiu', 'danger')
-    return redirect(url_for('show_infolist', id=id, edit=False))
-  form = Form(Infolist(infolist), buttons=('submit',),
-              appstruct=recursive_replace(infolist, None, colander.null))
-  error_saving = False
-  msg_ns = type("", (), {})() # http://bit.ly/1cPX3G5
-  msg_ns.messages_type = 'danger';
-  msg_ns.has_warnings = False
-  def check_warnings():
-    try:
-      warning_schema(Infolist(infolist)).deserialize(form.cstruct)
-    except colander.Invalid as e:
-      form.widget.handle_error(form, e)
-      msg_ns.messages_type = 'warning'
-      msg_ns.has_warnings = True
-  if request.method == 'POST':
-    controls = request.form.items(multi=True)
-    try:
-      recursive_update(infolist, recursive_replace(form.validate(controls), colander.null, None))
-    except ValidationFailure:
-      pass
-    else:
-      check_warnings()
-      infolist['obsahuje_varovania'] = msg_ns.has_warnings
-      try:
-        nove_id = g.db.save_infolist(id, infolist, user=g.user)
-        nova_skratka = None
-        if id == None:
-          if predmet_id == None:
-            predmet_id, nova_skratka = g.db.create_predmet(g.user.id)
-          g.db.predmet_add_infolist(predmet_id, nove_id)
-        g.db.commit()
-        if id is not None and nove_id != id:
-          flash(u'Informačný list medzičasom niekto zamkol, vaše zmeny sme uložili do novej kópie', 'warning')
-        else:
-          flash(u'Informačný list bol úspešne uložený', 'success')
-        if nova_skratka:
-          flash((u'Predmet sme úspešne vytvorili s dočasným kódom {}, ' +
-            u'finálny kód bude pridelený centrálne').format(nova_skratka),
-            'success')
-        if msg_ns.has_warnings:
-          flash((u'Formulár bol uložený, ale niektoré položky ešte bude treba doplniť, alebo upraviť. ' + 
-                 u'Ak ich teraz neviete doplniť, môžete tak spraviť aj neskôr.'), 'warning')
-        return redirect(url_for('show_infolist', id=nove_id, edit=msg_ns.has_warnings))
-      except:
-        app.logger.exception('Vynimka pocas ukladania infolistu')
-        g.db.rollback()
-        error_saving = True
-  else: # GET
-    check_warnings()
-    
-  template = 'infolist-form.html' if edit else 'infolist.html'
-  return render_template(template, form=form, data=infolist,
-    messages=form_messages(form), messages_type=msg_ns.messages_type,
-    infolist_id=id, error_saving=error_saving,
-    editing=edit, modifikovali=zorad_osoby(infolist['modifikovali']))
-
-@app.route('/infolist/<int:id>.rtf')
-@restrict()
-def export_infolist(id):
-  infolist_rtf = export.PrilohaInfolist(id, context=export.PrilohaContext(config), filename='infolist-{}.rtf'.format(id))
-  return infolist_rtf.send()
-
-@app.route('/infolist/<int:id>/fork', methods=['POST'])
-@restrict()
-def fork_infolist(id):
-  novy_infolist = g.db.fork_infolist(id, vytvoril=g.user.id)
-  g.db.commit()
-  flash(u'Kópia bola úspešne vytvorená', 'success')
-  return redirect(url_for('show_infolist', id=novy_infolist, edit=False))
-
-@app.route('/infolist/<int:id>/lock', methods=['POST'], defaults={'lock': True})
-@app.route('/infolist/<int:id>/unlock', methods=['POST'], defaults={'lock': False})
-@restrict()
-def lock_infolist(id, lock):
-  try:
-    if lock:
-      g.db.lock_infolist(id, g.user.id)
-    else:
-      g.db.unlock_infolist(id, check_user=g.user)
-    g.db.commit()
-  except:
-    flash(u'Nepodarilo sa {} informačný list!'.format(u'zamknúť' if lock else u'odomknúť'), 'danger')
-    app.logger.exception('Vynimka pocas zamykania/odomykania infolistu')
-    g.db.rollback()
-  else:
-    if lock:
-      flash(u'Informačný list bol zamknutý proti úpravám.', 'success')
-    else:
-      flash(u'Úpravy v informačnom liste boli povolené.', 'success')
-  return redirect(url_for('show_infolist', id=id, edit=False))
-
-@app.route('/infolist/<int:id>/trash', methods=['POST'], defaults={'trash': True})
-@app.route('/infolist/<int:id>/untrash', methods=['POST'], defaults={'trash': False})
-@restrict()
-def trash_infolist(id, trash):
-  if not g.user.moze_zahadzovat_infolisty():
-    abort(401)
-  try:
-    g.db.trash_infolist(id, trash)
-    g.db.commit()
-  except:
-    flash(u'Nepodarilo sa {} informačný list!'.format(u'zahodiť' if trash else u'vrátiť'), 'danger')
-    app.logger.exception('Vynimka pocas zahadzovania/vracania infolistu')
-    g.db.rollback()
-  else:
-    if trash:
-      flash(u'Informačný list bol zahodený.', 'success')
-    else:
-      flash(u'Informačný list bol vrátený', 'success')
-  return redirect(url_for('show_infolist', id=id, edit=False))
-
-@app.route('/studijny-program/')
-@restrict()
-def studijny_program_index():
-  if not g.user.vidi_studijne_programy():
-    abort(401)
-  sp = g.db.fetch_studijne_programy()
-  return render_template('studprog-index.html', studijne_programy=sp)
-
-@app.route('/studijny-program/<int:id>', defaults={'edit': False, 'spv_id': None})
-@app.route('/studijny-program/<int:id>/historia/<int:spv_id>', defaults={'edit': False})
-@app.route('/studijny-program/<int:id>/upravit', defaults={'edit': True, 'spv_id': None}, methods=['GET', 'POST'])
-@app.route('/studijny-program/novy', defaults={'id': None, 'edit': True, 'spv_id': None}, methods=['GET', 'POST'])
-@restrict()
-def studijny_program_show(id, edit, spv_id):
-  if not g.user.vidi_studijne_programy():
-    abort(401)
-  if id != None:
-    studprog = g.db.load_studprog(id, verzia=spv_id)
-  else:
-    if not g.user.moze_vytvarat_studijne_programy():
-      abort(401)
-    studprog = {
-      'zamknute': None,
-      'zamkol': None,
-      'predosla_verzia': None,
-      'bloky': [],
-      'modifikovali': {},
-    }
-  if studprog['zamknute'] and edit:
-    flash(u'Študijný program je zamknutý proti úpravám používateľom {}'
-      .format(filter_osoba(studprog['zamkol']).cele_meno), 'danger')
-    if request.method != 'POST':
-      return redirect(url_for('studijny_program_show', id=id, edit=False))
-  
-  if edit and not g.user.moze_menit_studprog():
-    abort(401)
-  
-  form = Form(Studprog(), buttons=('submit',),
-              appstruct=recursive_replace(studprog, None, colander.null))
-  error_saving = False
-  msg_ns = type("", (), {})() # http://bit.ly/1cPX3G5
-  msg_ns.messages_type = 'danger';
-  msg_ns.has_warnings = False
-  msg_ns.add_warnings = {}
-  def check_warnings():
-    try:
-      warning_schema(Studprog()).deserialize(form.cstruct)
-    except colander.Invalid as e:
-      form.widget.handle_error(form, e)
-      msg_ns.messages_type = 'warning'
-      msg_ns.has_warnings = True
-    for warning in g.db.find_sp_warnings(limit_sp=id):
-      msg_ns.add_warnings = warning['messages']
-  
-  if request.method == 'POST':
-    controls = request.form.items(multi=True)
-    try:
-      recursive_update(studprog, recursive_replace(form.validate(controls), colander.null, None))
-    except ValidationFailure:
-      pass
-    else:
-      check_warnings()
-      studprog['obsahuje_varovania'] = msg_ns.has_warnings
-      if studprog['zamknute']:
-        error_saving = True
-      else:
-        try:
-          nove_id = g.db.save_studprog(id, studprog, user=g.user)
-          g.db.commit()
-          flash(u'Študijný program bol úspešne uložený', 'success')
-          if msg_ns.has_warnings:
-            flash((u'Formulár bol uložený, ale niektoré položky ešte bude treba doplniť, alebo upraviť. ' + 
-                  u'Ak ich teraz neviete doplniť, môžete tak spraviť aj neskôr.'), 'warning')
-          return redirect(url_for('studijny_program_show', id=nove_id, edit=msg_ns.has_warnings))
-        except:
-          app.logger.exception('Vynimka pocas ukladania studijneho programu')
-          g.db.rollback()
-          error_saving = True
-  else: # GET
-    if id is not None:
-      check_warnings()
-  
-
-  
-  template = 'studprog-form.html' if edit else 'studprog.html'
-  return render_template(template, form=form, data=studprog,
-    messages=form_messages(form), messages_type=msg_ns.messages_type,
-    add_warnings=msg_ns.add_warnings,
-    studprog_id=id, error_saving=error_saving, editing=edit,
-    modifikovali=zorad_osoby(studprog['modifikovali']),
-    tab='sp')
-
-@app.route('/studijny-program/<int:id>/statistiky')
-@restrict()
-def studijny_program_statistiky(id):
-  if not g.user.vidi_studijne_programy():
-    abort(403)
-  
-  osoby = g.db.load_studprog_osoby_struktura(id)
-  
-  ps = PocitadloStruktura()
-
-  chybajuci = set()
-  for osoba in osoby:
-    if len(osoba['uvazky']) == 0 or osoba['uvazky'][0]['uvazok'] is None:
-      chybajuci.add(osoba['cele_meno'])
-      continue
-    for uvazok in osoba['uvazky']:
-      # pridaj(id, funkcia, kvalifikacia, vaha)
-      ps.pridaj(osoba['id'], uvazok['funkcia'], osoba['kvalifikacia'],
-        Decimal(uvazok['uvazok']) / Decimal(100))
-
-  zoznam = g.db.load_studprog_osoby_zoznam(id)
-
-  studprog = g.db.load_studprog(id)
-  return render_template('studprog-statistiky.html', pocty_osob=ps, chybajuci=chybajuci,
-      data=studprog, studprog_id=id, editing=False, tab='statistiky', zoznam=zoznam)
-
-@app.route('/studijny-program/<int:id>/skolitelia', methods=['GET', 'POST'])
-@restrict()
-def studijny_program_skolitelia(id):
-  if not g.user.vidi_studijne_programy():
-    abort(403)
-
-  if request.method == 'POST':
-    novi_skolitelia = set(request.form.getlist('skolitelia', type=int))
-    g.db.save_studprog_skolitelia(id, novi_skolitelia)
-    g.db.commit()
-    flash(u'Zoznam školitelov bol úspešne uložený', 'success')
-
-  osoby = g.db.load_studprog_skolitelia(id)
-
-  studprog = g.db.load_studprog(id)
-  return render_template('studprog-skolitelia.html', osoby=osoby,
-      data=studprog, studprog_id=id, editing=False, tab='skolitelia')
-
-@app.route('/studijny-program/<int:id>/dokumenty')
-@restrict()
-def studijny_program_prilohy(id):
-  if not g.user.vidi_dokumenty_sp():
-    abort(403)
-  
-  studprog = g.db.load_studprog(id)
-
-
-  context = export.PrilohaContext(config)
-  prilohy = export.prilohy_pre_studijny_program(context, id, None)
-
-  return render_template('studprog-prilohy.html', prilohy=utils.prilohy_podla_typu(prilohy), data=studprog, studprog_id=id, editing=False,
-                         tab='dokumenty', context=context)
-
-@app.route('/studijny-program/<int:id>/dokumenty/stiahni/<subor>')
-@restrict()
-def studijny_program_priloha_stiahni(id, subor):
-  if not g.user.vidi_dokumenty_sp():
-    abort(403)
-  
-  prilohy = export.prilohy_pre_studijny_program(export.PrilohaContext(config), id, None)
-  if subor not in prilohy.podla_nazvu_suboru:
-    abort(404)
-  
-  return prilohy.podla_nazvu_suboru[subor].send()
-
-@app.route('/studijny-program/<int:id>/dokumenty/typ/<int:typ_prilohy>/zmaz/<int:subor>', methods=['POST'])
-@restrict()
-def studijny_program_priloha_zmaz(id, typ_prilohy, subor):
-  if not g.user.moze_mazat_dokumenty():
-    abort(403)
-
-  if g.db.zmaz_dokument(id, typ_prilohy, subor):
-    flash(u'Príloha bola úspešne odstránená', 'success')
-    g.db.commit()
-
-  return redirect(url_for('studijny_program_prilohy', id=id))
-
-@app.route('/studijny-program/<int:id>/dokumenty/infolisty.rtf')
-@restrict()
-def studijny_program_priloha_stiahni_infolisty_v_jednom_subore(id):
-  if not g.user.vidi_dokumenty_sp():
-    abort(403)
-
-  infolisty = g.db.load_studprog_infolisty(id)
-  priloha = export.PrilohaInfolisty([x.infolist for x in infolisty], context=export.PrilohaContext(config), nazov='Infolisty', filename=u'infolisty.rtf')
-
-  return priloha.send()
-
-@app.route('/studijny-program/<int:id>/dokumenty/vsetky.zip', defaults={'spolocne': 'normalny'})
-@app.route('/studijny-program/<int:id>/dokumenty/vsetky-konverzny.zip', defaults={'spolocne': 'konverzny'})
-@restrict()
-def studijny_program_priloha_stiahni_zip(id, spolocne):
-  if not g.user.vidi_dokumenty_sp():
-    abort(403)
-
-  prilohy = export.prilohy_pre_studijny_program(export.PrilohaContext(config), id, spolocne)
-  
-  return prilohy.send_zip()
-
-
-@app.route('/studijny-program/<int:studprog_id>/dokumenty/formular/upload', methods=['GET', 'POST'], defaults={'konverzny': False})
-@app.route('/studijny-program/<int:studprog_id>/dokumenty/formular-konverzny/upload', methods=['GET', 'POST'], defaults={'konverzny': True})
-@restrict()
-def studijny_program_upload_formular(studprog_id, konverzny):
-  formular, formular_konverzny = g.db.load_studprog_formulare_id(studprog_id)
-  if not konverzny:
-    subor_id = formular
-  else:
-    subor_id = formular_konverzny
-
-  studprog = g.db.load_studprog(studprog_id)
-
-  nazov_dokumentu = export.formular_nazov(studprog, konverzny=konverzny)
-  nazov_suboru = export.formular_filename(studprog, konverzny=konverzny)
-
-  if request.method == 'POST':
-    novy_subor_id = upload_subor(subor_id, nazov=nazov_dokumentu, filename=nazov_suboru)
-    if novy_subor_id is not None:
-      g.db.save_studprog_formular_id(studprog_id, novy_subor_id, konverzny=konverzny)
-      g.db.commit()
-      flash(u'Formulár bol úspešne nahratý', 'success')
-      return redirect(url_for('studijny_program_prilohy', id=studprog_id))
-    else:
-      flash(u'Formulár sa nepodarilo nahrať, nezabudli ste vybrať súbor?', 'danger')
-
-  return render_template('studprog-formular-upload.html', data=studprog,
-    studprog_id=studprog_id, editing=True, subor_id=subor_id,
-    subor=g.db.load_subor(subor_id), nazov_dokumentu=nazov_dokumentu, nazov_suboru=nazov_suboru,
-    konverzny=konverzny
-  )
-
-@app.route('/studijny-program/<int:studprog_id>/dokumenty/formular/zmaz', methods=['POST'], defaults={'konverzny': False})
-@app.route('/studijny-program/<int:studprog_id>/dokumenty/formular-konverzny/zmaz', methods=['POST'], defaults={'konverzny': True})
-@restrict()
-def studijny_program_zmaz_formular(studprog_id, konverzny):
-  if not g.user.moze_mazat_dokumenty():
-    abort(403)
-  g.db.save_studprog_formular_id(studprog_id, None, konverzny=konverzny)
-  g.db.commit()
-  flash(u'Formulár úspešne zmazaný', 'success')
-  return redirect(url_for('studijny_program_prilohy', id=studprog_id))
-
-@app.route('/studijny-program/<int:studprog_id>/dokumenty/upload', methods=['GET','POST'], defaults={'subor_id': None})
-@app.route('/studijny-program/<int:studprog_id>/dokumenty/<int:subor_id>/upload', methods=['GET','POST'])
-@restrict()
-def studijny_program_prilohy_upload(studprog_id, subor_id):
-  if not (g.user.vidi_dokumenty_sp() and g.user.moze_menit_studprog()):
-    abort(403)
-
-  typ_prilohy = None
-  
-  if request.method == 'POST':
-    if 'typ_prilohy' in request.form:
-      typ_prilohy = int(request.form['typ_prilohy'])
-
-    novy_subor_id = upload_subor(subor_id)
-    if novy_subor_id is not None:
-      if subor_id is None:
-        if typ_prilohy is None:
-          raise BadRequest()
-        g.db.add_studprog_priloha(studprog_id, typ_prilohy, novy_subor_id)
-      g.db.commit()
-
-      if subor_id is None:
-        flash(u'Dokument bol úspešne nahratý', 'success')
-      else:
-        flash(u'Dokument bol úspešne aktualizovaný', 'success')
-
-      return redirect(url_for('studijny_program_prilohy', id=studprog_id))
-    else:
-      flash(u'Súbor sa nepodarilo nahrať, nezabudli ste vybrať súbor?', 'danger')
-  
-  studprog = g.db.load_studprog(studprog_id)
-  return render_template('studprog-priloha-upload.html', data=studprog,
-    studprog_id=studprog_id, editing=True, subor_id=subor_id,
-    typy_priloh=g.db.load_typy_priloh(iba_moze_vybrat=True), subor=g.db.load_subor(subor_id)
-  )
-
-@app.route('/subor/<int:id>')
-@restrict()
-def download_subor(id):
-  if not g.user.vidi_dokumenty_sp():
-    abort(403)
-  
-  s = g.db.load_subor(id)
-  if s is None:
-    abort(404)
-  
-  return send_from_directory(config.files_dir, s.sha256, as_attachment=True,
-                             attachment_filename=s.nazov)
 
 @app.route('/osoba/<int:osoba_id>/upload/vpchar', methods=['GET', 'POST'])
 @app.route('/osoba/upload/vpchar', methods=['GET', 'POST'], defaults={'osoba_id': None})
@@ -643,33 +143,6 @@ def osoba_upload_vpchar(osoba_id):
 
   return render_template('osoba-vpchar-upload.html', subor_id=subor_id, osoba=osoba, osoba_id=route_osoba_id)
 
-@app.route('/studprog/<int:id>/lock', methods=['POST'], defaults={'lock': True})
-@app.route('/studprog/<int:id>/unlock', methods=['POST'], defaults={'lock': False})
-@restrict()
-def lock_studprog(id, lock):
-  try:
-    if lock:
-      if not g.user.moze_menit_studprog():
-        abort(401)
-      g.db.lock_studprog(id, g.user.id)
-    else:
-      g.db.unlock_studprog(id, check_user=g.user)
-    g.db.commit()
-  except:
-    flash(u'Nepodarilo sa {} študijný program list!'.format(u'zamknúť' if lock else u'odomknúť'), 'danger')
-    app.logger.exception('Vynimka pocas zamykania/odomykania studprogu')
-    g.db.rollback()
-  if lock:
-    flash(u'Študijný program bol zamknutý proti úpravám.', 'success')
-  else:
-    flash(u'Úpravy v študijnom programe boli povolené.', 'success')
-  return redirect(url_for('studijny_program_show', id=id, edit=False))
-
-@app.route('/studijny-program/<int:id>.rtf')
-@restrict()
-def export_studprog(id):
-  studplan_rtf = export.PrilohaStudPlan(id, context=export.PrilohaContext(config), filename='studprog-{}.rtf'.format(id))
-  return studplan_rtf.send()
 
 @app.route('/stav-vyplnania')
 @restrict()
@@ -778,40 +251,6 @@ def literatura_get():
       signatura=literatura.signatura
     )
 
-@app.route('/predmet/search')
-@restrict(api=True)
-def predmet_search():
-  query = request.args['q']
-  return jsonify(predmety=g.db.search_predmet(query))
-
-@app.route('/infolist/search')
-@restrict(api=True)
-def infolist_search():
-  query = request.args['q']
-  infolisty = g.db.search_infolist(query, finalna=True)
-  vyrob_rozsah = utils.rozsah()
-  for infolist in infolisty:
-    for v in infolist['vyucujuci']:
-      v['typy'] = list(v['typy'])
-    infolist['rozsah'] = vyrob_rozsah(infolist['cinnosti'])
-    infolist['modifikovane'] = format_datetime(infolist['modifikovane'])
-  return jsonify(infolisty=infolisty)
-
-@app.route('/infolist/json')
-@restrict(api=True)
-def infolist_get():
-  try:
-    id = int(request.args['id'])
-  except ValueError:
-    raise BadRequest()
-  infolist = g.db.fetch_infolist(id)
-  if infolist is None:
-    abort(404)
-  for v in infolist['vyucujuci']:
-    v['typy'] = list(v['typy'])
-  infolist['rozsah'] = utils.rozsah()(infolist['cinnosti'])
-  infolist['modifikovane'] = format_datetime(infolist['modifikovane'])
-  return jsonify(**infolist)
 
 if __name__ == '__main__':
   import sys

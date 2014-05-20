@@ -73,7 +73,7 @@ class PodmienkaWidget(Widget):
       options.append(option)
       
     kw['options'] = json.dumps(options)
-    kw['search_url'] = url_for('predmet_search', _external=True)
+    kw['search_url'] = url_for('predmet.search', _external=True)
     tmpl_values = self.get_template_values(field, cstruct, kw)
     return field.renderer(self.template, **tmpl_values)
   

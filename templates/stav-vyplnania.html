@@ -11,7 +11,7 @@
     <p>Nasledovné kontroly konzistencie študijných programov skončili s varovaním:</p>
     <ul>
     {% for sp in sp_warnings %}
-      <li><a href="{{ url_for('studijny_program_show', id=sp.id, edit=False) }}">{{ sp.skratka or '' }} {{ sp.nazov }}</a>
+      <li><a href="{{ url_for('studprog.show', id=sp.id, edit=False) }}">{{ sp.skratka or '' }} {{ sp.nazov }}</a>
         <ul>
           {% for warn in sp.messages %}
             {% include 'studprog-warning-item.html' %}

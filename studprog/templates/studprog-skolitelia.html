@@ -3,7 +3,7 @@
 <div class="body">
   <h4>Školitelia v doktorandskom štúdiu</h4>
   <p>Zaškrtnite osoby, ktoré sú školiteľmi</p>
-  <form action="{{ url_for('studijny_program_skolitelia', id=studprog_id) }}" method="POST">
+  <form action="{{ url_for('studprog.skolitelia', id=studprog_id) }}" method="POST">
 
   <ul class="skolitelia">
   {% for osoba in osoby %}

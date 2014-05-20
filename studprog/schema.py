@@ -50,8 +50,8 @@ def Blok(**kwargs):
     infolistov príslušný informačný list, skontrolujte jeho rozpracovanosť a
     označte ho ako finálna verzia.''',
     widget=widgets.RemoteSelect2Widget(
-      search_url=url_for('infolist_search', _external=True),
-      item_url=url_for('infolist_get', _external=True),
+      search_url=url_for('infolist.search', _external=True),
+      item_url=url_for('infolist.get', _external=True),
       template="infolist"
     )
   ))

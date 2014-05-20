@@ -6,11 +6,11 @@
   {{ flashes() }}
   <h1>Zoznam predmetov a informačných listov</h1>
   <ul class="nav nav-tabs">
-    <li class="{{ 'active' if tab == 'moje' else '' }}"><a href="{{ url_for('predmet_index', tab='moje') }}">Moje</a></li>
-    <li class="{{ 'active' if tab == 'moje-upravy' else '' }}"><a href="{{ url_for('predmet_index', tab='moje-upravy') }}">Moje úpravy</a></li>
-    <li class="{{ 'active' if tab == 'vyucujem' else '' }}"><a href="{{ url_for('predmet_index', tab='vyucujem') }}">Vyučujem</a></li>
-    <li class="{{ 'active' if tab == 'oblubene' else '' }}"><a href="{{ url_for('predmet_index', tab='oblubene') }}">Obľúbené</a></li>
-    <li class="{{ 'active' if tab == 'vsetky' else '' }}"><a href="{{ url_for('predmet_index', tab='vsetky') }}">Všetky</a></li>
+    <li class="{{ 'active' if tab == 'moje' else '' }}"><a href="{{ url_for('predmet.index', tab='moje') }}">Moje</a></li>
+    <li class="{{ 'active' if tab == 'moje-upravy' else '' }}"><a href="{{ url_for('predmet.index', tab='moje-upravy') }}">Moje úpravy</a></li>
+    <li class="{{ 'active' if tab == 'vyucujem' else '' }}"><a href="{{ url_for('predmet.index', tab='vyucujem') }}">Vyučujem</a></li>
+    <li class="{{ 'active' if tab == 'oblubene' else '' }}"><a href="{{ url_for('predmet.index', tab='oblubene') }}">Obľúbené</a></li>
+    <li class="{{ 'active' if tab == 'vsetky' else '' }}"><a href="{{ url_for('predmet.index', tab='vsetky') }}">Všetky</a></li>
   </ul>
   {% if tab == 'moje' %}
     <p class="help-block">Táto záložka zobrazuje predmety, v ktorých ste buď vytvorili alebo upravili nejaký informačný list,
@@ -49,7 +49,7 @@
   </ul>
   
   <p>
-  <a href="{{ url_for('show_infolist', id=None, predmet_id=None, edit=True) }}"
+  <a href="{{ url_for('infolist.show', id=None, predmet_id=None, edit=True) }}"
     class="btn btn-primary">Vytvoriť úplne nový predmet</a>
   </p>
   <p>Predmet, ktorý je logickým pokračovateľom (modifikáciou) existujúceho

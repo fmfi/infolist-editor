@@ -1,24 +1,24 @@
 {% from 'macros.html' import splnitelnost_podmienky %}
 {% if warn.typ == 'finalna' %}
-  <li>Informačný list <a href="{{ url_for('show_infolist', id=warn.infolist, edit=False) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> nie je označený ako finálna verzia!</li>
+  <li>Informačný list <a href="{{ url_for('infolist.show', id=warn.infolist, edit=False) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> nie je označený ako finálna verzia!</li>
 {% elif warn.typ == 'finalna2' %}
-  <li>V predmete <a href="{{ url_for('show_predmet', id=warn.predmet_id) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> existuje ďaľší informačný list označený ako finálna verzia!</li>
+  <li>V predmete <a href="{{ url_for('predmet.show', id=warn.predmet_id) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> existuje ďaľší informačný list označený ako finálna verzia!</li>
 {% elif warn.typ == 'semester' %}
-  <li>Informačný list <a href="{{ url_for('show_infolist', id=warn.infolist, edit=False) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> má nastavený iný predpokladaný semester výučby ako je ten odporúčaný v študijnom pláne!</li>
+  <li>Informačný list <a href="{{ url_for('infolist.show', id=warn.infolist, edit=False) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> má nastavený iný predpokladaný semester výučby ako je ten odporúčaný v študijnom pláne!</li>
 {% elif warn.typ == 'stupen_studia' %}
-  <li>Informačný list <a href="{{ url_for('show_infolist', id=warn.infolist, edit=False) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> má nastavený iný predpokladaný stupeň štúdia ako je nastavený pre študijný program!</li>
+  <li>Informačný list <a href="{{ url_for('infolist.show', id=warn.infolist, edit=False) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> má nastavený iný predpokladaný stupeň štúdia ako je nastavený pre študijný program!</li>
 {% elif warn.typ == 'zahodeny' %}
-  <li>Informačný list <a href="{{ url_for('show_infolist', id=warn.infolist, edit=False) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> je označený ako zahodený!</li>
+  <li>Informačný list <a href="{{ url_for('infolist.show', id=warn.infolist, edit=False) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> je označený ako zahodený!</li>
 {% elif warn.typ == 'pov' %}
-  <li>Informačný list <a href="{{ url_for('show_infolist', id=warn.infolist, edit=False) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> je zaradený ako povinný alebo povinne voliteľný a nemá v sebe nastavené, že bude (zapína to nejaké kontroly)!</li>
+  <li>Informačný list <a href="{{ url_for('infolist.show', id=warn.infolist, edit=False) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> je zaradený ako povinný alebo povinne voliteľný a nemá v sebe nastavené, že bude (zapína to nejaké kontroly)!</li>
 {% elif warn.typ == 'varovania' %}
-  <li>Informačný list <a href="{{ url_for('show_infolist', id=warn.infolist, edit=False) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> obsahuje varovania!</li>
+  <li>Informačný list <a href="{{ url_for('infolist.show', id=warn.infolist, edit=False) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> obsahuje varovania!</li>
 {% elif warn.typ == 'nesplnitelne' %}
-  <li>Pre predmet <a href="{{ url_for('show_infolist', id=warn.infolist, edit=False) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> nie je možné splniť podmienky na zapísanie predmetu vrámci odporúčaného študijného plánu:
+  <li>Pre predmet <a href="{{ url_for('infolist.show', id=warn.infolist, edit=False) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> nie je možné splniť podmienky na zapísanie predmetu vrámci odporúčaného študijného plánu:
     {{ splnitelnost_podmienky(warn.podmienky.ast, warn.splnene) }}
   </li>
 {% elif warn.typ == 'automaticky' %}
-  <li>Informačný list <a href="{{ url_for('show_infolist', id=warn.infolist, edit=False) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> obsahuje marker o automaticky importovanom texte!</li>
+  <li>Informačný list <a href="{{ url_for('infolist.show', id=warn.infolist, edit=False) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> obsahuje marker o automaticky importovanom texte!</li>
 {% elif warn.typ == 'nova_literatura' %}
-  <li>Informačný list <a href="{{ url_for('show_infolist', id=warn.infolist, edit=False) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> má príliš veľa novej literatúry! Počet kusov: {{ warn.pocet }}</li>
+  <li>Informačný list <a href="{{ url_for('infolist.show', id=warn.infolist, edit=False) }}">{{ warn.skratka_predmetu }} {{ warn.nazov_predmetu }}</a> má príliš veľa novej literatúry! Počet kusov: {{ warn.pocet }}</li>
 {% endif %}

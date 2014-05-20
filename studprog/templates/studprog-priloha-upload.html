@@ -2,7 +2,7 @@
 {% block studprog %}
 <div class="body">
 <h4>Nahrať súbor</h4>
-<form action="{{ url_for('studijny_program_prilohy_upload', studprog_id=studprog_id, subor_id=subor_id) }}"
+<form action="{{ url_for('studprog.prilohy_upload', studprog_id=studprog_id, subor_id=subor_id) }}"
   method="POST" enctype="multipart/form-data" class="form-horizontal" role="form">
   <div class="form-group">
     <label for="dokument" class="col-sm-2 control-label">Súbor</label>
@@ -40,7 +40,7 @@
   <div class="form-group">
     <div class="col-sm-offset-2 col-sm-10">
       <button type="submit" class="btn btn-primary">Nahrať</button>
-      <a class="btn btn-default" href="{{ url_for('studijny_program_prilohy', id=studprog_id) }}">Zrušiť</a>
+      <a class="btn btn-default" href="{{ url_for('studprog.prilohy', id=studprog_id) }}">Zrušiť</a>
     </div>
   </div>
 </form>
