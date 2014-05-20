@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import colander
+from markupsafe import Markup
 
 
 class DuplicitnyValidator(object):
@@ -39,3 +40,32 @@ def warning_schema(node):
   for child in node:
     warning_schema(child)
   return node
+
+
+def form_messages(form):
+  if not form.error:
+    return None
+
+  def title(exc):
+    if exc.positional:
+      return u'{}.'.format(exc.pos + 1)
+    if exc.node.title == None or exc.node.title == u'':
+      return None
+    return exc.node.title
+
+  errors = []
+  for path in form.error.paths():
+    titlepath = []
+    messages = []
+    for exc in path:
+      if exc.msg:
+        messages.extend(exc.messages())
+      tit = title(exc)
+      if tit != None:
+        titlepath.append(tit)
+    errors.append((Markup(u' – ').join(titlepath), messages))
+  return errors
+
+
+def zorad_osoby(o):
+  return sorted(o.values(), key=lambda x: x['priezvisko'])

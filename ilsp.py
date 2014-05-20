@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from common.decorators import restrict
 from common.filters import filter_osoba, format_datetime, register_filters
 from common.proxies import db, register_proxies
-from common.schema import warning_schema
+from common.schema import warning_schema, form_messages, zorad_osoby
+from common.upload import upload_subor
 
 from flask import Flask
 import infolist
@@ -29,12 +31,9 @@ from pkg_resources import resource_filename
 import colander
 from utils import recursive_replace, recursive_update
 import utils
-from markupsafe import Markup
-from functools import wraps
 
-from decimal import Decimal, ROUND_HALF_EVEN
+from decimal import Decimal
 from itsdangerous import URLSafeSerializer
-import hashlib
 from werkzeug import secure_filename
 import export
 
@@ -54,6 +53,7 @@ from local_settings import active_config
 config = active_config(app)
 app.secret_key = config.secret
 app.config['DATABASE'] = config.conn_str
+app.config['FILES_DIR'] = config.files_dir
 
 template_packages = [__name__] + [bp.import_name for _, bp in app.blueprints.iteritems()] + ['deform']
 Form.set_zpt_renderer([resource_filename(x, 'templates') for x in template_packages])
@@ -62,27 +62,6 @@ register_filters(app)
 app.jinja_env.filters['secure_filename'] = secure_filename
 
 register_proxies(app)
-
-def restrict(api=False):
-  def decorator(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-      if not g.user:
-        if api:
-          abort(401)
-        else:
-          if g.username:
-            return render_template('unauthorized.html'), 401
-          goto = None
-          if request.method in ['HEAD', 'GET']:
-            if request.url.startswith(request.url_root):
-              goto = request.url[len(request.url_root):]
-              serializer = URLSafeSerializer(config.secret)
-              goto = serializer.dumps(goto)
-          return redirect(url_for('index', next=goto))
-      return f(*args, **kwargs)
-    return wrapper
-  return decorator
 
 @app.before_request
 def before_request():
@@ -212,32 +191,6 @@ def predmet_unwatch(predmet_id):
   flash(u'Predmet bol odobraný z obľúbených', 'success')
   return redirect(url_for('predmet_index', tab='oblubene'))
 
-def form_messages(form):
-  if not form.error:
-    return None
-  
-  def title(exc):
-    if exc.positional:
-      return u'{}.'.format(exc.pos + 1)
-    if exc.node.title == None or exc.node.title == u'':
-      return None
-    return exc.node.title
-  
-  errors = []
-  for path in form.error.paths():
-    titlepath = []
-    messages = []
-    for exc in path:
-      if exc.msg:
-        messages.extend(exc.messages())
-      tit = title(exc)
-      if tit != None:
-        titlepath.append(tit)
-    errors.append((Markup(u' – ').join(titlepath), messages))
-  return errors
-
-def zorad_osoby(o):
-  return sorted(o.values(), key=lambda x: x['priezvisko'])
 
 @app.route('/infolist/<int:id>', defaults={'edit': False})
 @app.route('/infolist/<int:id>/upravit', defaults={'edit': True}, methods=['GET', 'POST'])
@@ -567,49 +520,6 @@ def studijny_program_priloha_stiahni_zip(id, spolocne):
   
   return prilohy.send_zip()
 
-def spracuj_subor(f):
-  h = hashlib.sha256()
-  h.update(f.read())
-  f.seek(0)
-  sha256 = h.hexdigest()
-  f.save(os.path.join(config.files_dir, sha256))
-  return sha256
-
-def upload_subor(subor_id, nazov=None, filename=None):
-  if subor_id is not None:
-    subor = g.db.load_subor(subor_id)
-  else:
-    subor = None
-
-  f = request.files['dokument']
-  if f:
-    sha256 = spracuj_subor(f)
-    mimetype = f.mimetype
-  else:
-    if subor_id is None:
-      return None
-    sha256 = subor.sha256
-    mimetype = subor.mimetype
-
-  if nazov is None:
-    nazov = request.form['nazov']
-  if not nazov:
-    nazov = f.filename
-
-  if filename is None:
-    filename = request.form.get('filename')
-  if not filename:
-    filename = f.filename
-  filename = secure_filename(filename)
-  if not '.' in filename:
-    filename += '.rtf'
-
-  filename_len_limit = 100
-  if len(filename) > filename_len_limit:
-    parts = filename.rsplit('.', 1)
-    filename = '{}.{}'.format(parts[0][:filename_len_limit-len(parts[1])-1], parts[1])
-
-  return g.db.add_subor(sha256, nazov, filename, mimetype, g.user.id, subor_id=subor_id)
 
 @app.route('/studijny-program/<int:studprog_id>/dokumenty/formular/upload', methods=['GET', 'POST'], defaults={'konverzny': False})
 @app.route('/studijny-program/<int:studprog_id>/dokumenty/formular-konverzny/upload', methods=['GET', 'POST'], defaults={'konverzny': True})
