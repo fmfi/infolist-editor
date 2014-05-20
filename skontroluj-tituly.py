@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from common.podmienka import Podmienka
 from export import PrilohaVPChar
 from flask import json
 import os
@@ -13,7 +14,6 @@ import sys
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 from psycopg2.extras import NamedTupleCursor
-from utils import Podmienka
 
 try:
   from termcolor import colored

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-from utils import Podmienka, PodmienkaASTEmpty as E, PodmienkaASTGroup as G, PodmienkaASTLiteral as L
+from common.podmienka import PodmienkaASTGroup as G, PodmienkaASTLiteral as L, PodmienkaASTEmpty as E, Podmienka
 
 good_inputs = [
   ('', [], E()),

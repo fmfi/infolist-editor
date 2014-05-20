@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 from colander import MappingSchema, SchemaNode, String, Integer, Bool, Sequence, Set
 import colander
+from common.podmienka import Podmienka
 import deform
 from chameleon.utils import Markup
 import widgets
 from flask import url_for, g
-from utils import je_profesor_alebo_docent, Podmienka
+from utils import je_profesor_alebo_docent
+
 
 class DuplicitnyValidator(object):
   def __init__(self, idkey, msg):

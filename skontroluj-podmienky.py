@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from common.podmienka import Podmienka
 from ilsp import config
 import argparse
 import psycopg2
@@ -7,7 +8,6 @@ import psycopg2
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 from psycopg2.extras import NamedTupleCursor
-from utils import Podmienka
 
 parser = argparse.ArgumentParser()
 

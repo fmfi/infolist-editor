@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
+from common.podmienka import Podmienka
 import utils
 from werkzeug.exceptions import NotFound
-from utils import Podmienka
 from export import *
 
 def dict_rec_update(d1, d2):

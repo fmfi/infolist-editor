@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
+from common.podmienka import Podmienka
 from deform.widget import Widget
 from colander import null, Invalid
 import json
-from utils import Podmienka
 from flask import g, url_for
 import re
 
