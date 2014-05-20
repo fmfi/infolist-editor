@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from flask import Flask
+import infolist
+import studprog
+
 app = Flask(__name__)
 
 from flask import render_template, url_for, redirect, jsonify, abort, flash
@@ -38,6 +41,8 @@ class MyRequest(Request):
   parameter_storage_class = OrderedMultiDict
 
 app.request_class = MyRequest
+app.register_blueprint(infolist.blueprint)
+app.register_blueprint(studprog.blueprint)
 
 import schema
 import storage
@@ -49,10 +54,8 @@ from local_settings import active_config
 config = active_config(app)
 app.secret_key = config.secret
 
-form_deform_templates = resource_filename('deform', 'templates')
-form_my_templates = resource_filename(__name__, 'templates')
-form_template_path = (form_my_templates, form_deform_templates)
-Form.set_zpt_renderer(form_template_path)
+template_packages = [__name__] + [bp.import_name for _, bp in app.blueprints.iteritems()] + ['deform']
+Form.set_zpt_renderer([resource_filename(x, 'templates') for x in template_packages])
 
 utils.register_filters(app)
 app.jinja_env.filters['secure_filename'] = secure_filename

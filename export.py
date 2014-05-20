@@ -478,7 +478,7 @@ class PrilohaInfolist(Priloha):
   def render(self, to_file):
     infolist = self.context.infolist(self.infolist_id)
     tdata = infolist_tdata(infolist)
-    rtf_template = resource_string(__name__, 'templates/infolist.rtf')
+    rtf_template = resource_string('infolist', 'templates/infolist.rtf')
     to_file.write(render_rtf(rtf_template, tdata))
 
   @property
@@ -525,8 +525,8 @@ class PrilohaInfolisty(Priloha):
     self.infolisty = infolisty
 
   def render(self, to_file):
-    rtf_skin = resource_string(__name__, 'templates/infolist-skin.rtf').split('INFOLIST_CORE')
-    rtf_core = resource_string(__name__, 'templates/infolist-core.rtf')
+    rtf_skin = resource_string('infolist', 'templates/infolist-skin.rtf').split('INFOLIST_CORE')
+    rtf_core = resource_string('infolist', 'templates/infolist-core.rtf')
     to_file.write(rtf_skin[0])
 
     def th(content):
