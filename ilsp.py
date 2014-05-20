@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from common.filters import filter_osoba, format_datetime, register_filters
+from common.proxies import db, register_proxies
 from common.schema import warning_schema
 
 from flask import Flask
@@ -30,11 +31,7 @@ from utils import recursive_replace, recursive_update
 import utils
 from markupsafe import Markup
 from functools import wraps
-import psycopg2
-# postgres unicode
-psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
-psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
-from psycopg2.extras import NamedTupleCursor
+
 from decimal import Decimal, ROUND_HALF_EVEN
 from itsdangerous import URLSafeSerializer
 import hashlib
@@ -56,12 +53,15 @@ if 'INFOLIST_DEBUG' in os.environ:
 from local_settings import active_config
 config = active_config(app)
 app.secret_key = config.secret
+app.config['DATABASE'] = config.conn_str
 
 template_packages = [__name__] + [bp.import_name for _, bp in app.blueprints.iteritems()] + ['deform']
 Form.set_zpt_renderer([resource_filename(x, 'templates') for x in template_packages])
 
 register_filters(app)
 app.jinja_env.filters['secure_filename'] = secure_filename
+
+register_proxies(app)
 
 def restrict(api=False):
   def decorator(f):
@@ -86,7 +86,7 @@ def restrict(api=False):
 
 @app.before_request
 def before_request():
-  g.db = storage.DataStore(psycopg2.connect(config.conn_str, cursor_factory=NamedTupleCursor))
+  g.db = storage.DataStore(db)
   
   username = request.remote_user
   if app.debug and 'REMOTE_USER' in os.environ:
@@ -94,13 +94,6 @@ def before_request():
   
   g.username = username
   g.user = g.db.load_user(username)
-
-@app.teardown_request
-def teardown_request(*args, **kwargs):
-  try:
-    g.db.conn.close()
-  except:
-    app.logger.exception('Vynimka pocas uvolnovania spojenia s DB')
 
 @app.route('/', methods=['POST', 'GET'])
 def index():
