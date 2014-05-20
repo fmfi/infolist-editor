@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from colander import MappingSchema, SchemaNode, String, Integer, Bool, Sequence, Set
 import colander
+from common import widgets
 from common.podmienka import Podmienka
 import deform
 from chameleon.utils import Markup
-import widgets
 from flask import url_for, g
 from utils import je_profesor_alebo_docent
 
