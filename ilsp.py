@@ -5,6 +5,7 @@ from common.filters import filter_osoba, format_datetime, register_filters
 from flask import Flask
 import infolist
 import studprog
+from studprog.statistiky import PocitadloStruktura
 
 app = Flask(__name__)
 
@@ -474,7 +475,7 @@ def studijny_program_statistiky(id):
   
   osoby = g.db.load_studprog_osoby_struktura(id)
   
-  ps = utils.PocitadloStruktura()
+  ps = PocitadloStruktura()
 
   chybajuci = set()
   for osoba in osoby:
