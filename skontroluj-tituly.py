@@ -3,7 +3,7 @@
 from export import PrilohaVPChar
 from flask import json
 import os
-from infolist import config
+from ilsp import config
 import argparse
 import psycopg2
 # postgres unicode

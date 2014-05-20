@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from infolist import config
+from ilsp import config
 import argparse
 import psycopg2
 
