@@ -225,3 +225,20 @@ class Podmienka(object):
   @property
   def ast(self):
     return self._ast
+
+class RawPodmienka(object):
+  def __init__(self, raw):
+    self.raw = raw
+
+  def serialize(self):
+    return self.raw
+
+  def __repr__(self):
+    return 'RawPodmienka({!r})'.format(self.raw)
+
+  def idset(self):
+    ids = set()
+    for token in self.raw.split():
+      if re.match(r'^[0-9]+$', token):
+        ids.add(int(token))
+    return ids

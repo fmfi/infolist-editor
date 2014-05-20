@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from common import storage
+from common.commands import register_commands
 from common.decorators import restrict
 from common.filters import register_filters
 from common.proxies import db, register_proxies
 from common.upload import upload_subor
 
 from flask import Flask
+from flask.ext.script import Manager, Server
 import infolist
 import predmet
 import studprog
@@ -44,6 +46,7 @@ config = active_config(app)
 app.secret_key = config.secret
 app.config['DATABASE'] = config.conn_str
 app.config['FILES_DIR'] = config.files_dir
+app.config['VPCHAR_DIR'] = config.vpchar_dir
 app.config['_CONFIG'] = config
 
 template_packages = [__name__] + [bp.import_name for _, bp in app.blueprints.iteritems()] + ['deform']
@@ -53,6 +56,9 @@ register_filters(app)
 app.jinja_env.filters['secure_filename'] = secure_filename
 
 register_proxies(app)
+
+manager = Manager(app)
+register_commands(manager)
 
 @app.before_request
 def before_request():
@@ -252,15 +258,4 @@ def literatura_get():
 
 
 if __name__ == '__main__':
-  import sys
-
-  if len(sys.argv) == 2 and sys.argv[1] == 'cherry':
-    from cherrypy import wsgiserver
-    d = wsgiserver.WSGIPathInfoDispatcher({'/': app})
-    server = wsgiserver.CherryPyWSGIServer(('127.0.0.1', 5000), d)
-    try:
-        server.start()
-    except KeyboardInterrupt:
-        server.stop()
-  else:
-    app.run() # werkzeug
+  manager.run()
