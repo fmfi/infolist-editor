@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import re
 from flask import g
-import colander
-from markupsafe import soft_unicode
 
 
 def recursive_replace(d, value, replacement):
@@ -32,30 +29,6 @@ def je_profesor_alebo_docent(osoba_id):
   return ('doc.' in parts) or ('prof.' in parts)
 
 
-def escape_rtf(val):
-  if val == colander.null or val == None:
-    val = u''
-  val = soft_unicode(val)
-  r = ''
-  prevc = None
-  for c in val:
-    if (c == '\n' and prevc != '\r') or (c == '\r' and prevc != '\n'):
-      r += '\line '
-    elif (c == '\n' and prevc == '\r') or (c == '\r' and prevc == '\n'):
-      pass
-    elif c in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ':
-      r += c
-    else:
-      r += '\u{}?'.format(ord(c))
-    prevc = c
-  return r
-
-def render_rtf(rtf_template, substitutions):
-  replacements = []
-  for key, value in substitutions.iteritems():
-    replacements.append((key, escape_rtf(value)))
-  return multiple_replace(rtf_template, *replacements)
-
 def rozsah():
   poradie_cinnosti = [x[0] for x in g.db.load_druhy_cinnosti()]
   
@@ -70,17 +43,6 @@ def rozsah():
   
   return worker
 
-# http://stackoverflow.com/a/15221068
-def multiple_replacer(*key_values):
-    replace_dict = dict(key_values)
-    replacement_function = lambda match: replace_dict[match.group(0)]
-    pattern = re.compile("|".join([re.escape(k) for k, v in key_values]), re.M)
-    return lambda string: pattern.sub(replacement_function, string)
-
-def multiple_replace(string, *key_values):
-    return multiple_replacer(*key_values)(string)
-  
-# end http://stackoverflow.com/a/15221068
 
 stupen_studia_titul = {
   '1.': 'Bc',
