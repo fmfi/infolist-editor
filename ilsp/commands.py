@@ -3,12 +3,12 @@ import json
 import sys
 
 from ilsp.export import PrilohaVPChar
+from ilsp.storage import DataStore
 import re
 from flask import current_app
 import os
 from ilsp.common.podmienka import Podmienka, RawPodmienka
 from ilsp.common.proxies import db
-from ilsp.common.storage import DataStore
 from flask.ext.script import Command, Option
 
 

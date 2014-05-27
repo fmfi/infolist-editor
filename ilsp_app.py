@@ -11,6 +11,7 @@ from flask import Flask
 from flask.ext.script import Manager
 from flask import render_template, url_for, redirect, abort
 from flask import Request, g
+from ilsp.storage import DataStore
 from werkzeug.datastructures import OrderedMultiDict
 import deform
 deform.widget.SequenceWidget.category = 'structural' #monkey patch fix
@@ -72,7 +73,7 @@ register_commands(manager)
 
 @app.before_request
 def before_request():
-  g.db = storage.DataStore(db)
+  g.db = DataStore(db)
 
 app.register_blueprint(auth.blueprint)
 
