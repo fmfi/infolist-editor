@@ -17,7 +17,7 @@
           placeholder: "Vyhľadajte osobu, ak nie je v zozname",
           minimumInputLength: 2,
           ajax: {
-            url: "{{ url_for('osoba_search', _external=True) }}",
+            url: "{{ url_for('osoba.search', _external=True) }}",
             data: function (term, page) {
               return {
                 q: term
@@ -33,7 +33,7 @@
           initSelection: function(element, callback) {
             var id=$(element).val();
             if (id !== "") {
-              $.ajax("{{ url_for('osoba_get', _external=True) }}", {
+              $.ajax("{{ url_for('osoba.get', _external=True) }}", {
                 data: {id: id}
               }).done(function(data) { callback({id: data.id, text: data.cele_meno}); });
             }

@@ -103,8 +103,8 @@ def Studprog():
     name=u'garant',
     title=u'Garant študijného programu',
     widget=widgets.RemoteSelect2Widget(
-      search_url=url_for('osoba_search', _external=True),
-      item_url=url_for('osoba_get', _external=True),
+      search_url=url_for('osoba.search', _external=True),
+      item_url=url_for('osoba.get', _external=True),
       template="osoba"
     ),
     missing=colander.null,

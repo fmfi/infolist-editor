@@ -45,7 +45,7 @@
             <li><a href="{{ url_for('stav_vyplnania') }}">Stav vypĺňania</a></li>
           {% endif %}
           {% if g.user.moze_uploadovat_vpchar() %}
-            <li><a href="{{ url_for('osoba_upload_vpchar') }}">Osoby</a></li>
+            <li><a href="{{ url_for('osoba.upload_vpchar') }}">Osoby</a></li>
           {% endif %}
           {% if g.user.vidi_exporty() %}
             <li><a href="{{ url_for('exporty') }}">Exporty</a></li>
