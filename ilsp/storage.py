@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-
+from flask import current_app
 from ilsp.common.podmienka import Podmienka
 from ilsp.common.storage import User
 from ilsp.infolist.storage import InfolistDataStoreMixin
 from ilsp.predmet.storage import PredmetDataStoreMixin
 from ilsp.studprog.storage import StudprogDataStoreMixin
+from ilsp.utils import to_list
 from werkzeug.exceptions import NotFound
 
 
@@ -329,3 +330,10 @@ class DataStore(InfolistDataStoreMixin, PredmetDataStoreMixin, StudprogDataStore
       else:
         cur.execute('UPDATE osoba_vpchar SET uploadnuty_subor = %s WHERE osoba = %s',
           (subor_id, osoba_id))
+
+
+  def resolve_lang(self, lang):
+    if lang is None:
+      return current_app.config['LANGUAGES']
+    else:
+      return to_list(lang)

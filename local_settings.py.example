@@ -5,3 +5,5 @@ VPCHAR_DIR = ''
 ADMIN_EMAILS = ['email@example.com']
 SMTP_SERVER = 'smtp.example.com'
 EMAIL_FROM = 'ilsp@example.com'
+LANGUAGES = ['sk', 'en']
+DEFAULT_LANG = 'sk'

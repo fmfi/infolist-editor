@@ -12,6 +12,7 @@ from flask.ext.script import Manager
 from flask import render_template, url_for, redirect, abort
 from flask import Request, g
 from ilsp.storage import DataStore
+from jinja2 import environmentfunction
 from werkzeug.datastructures import OrderedMultiDict
 import deform
 deform.widget.SequenceWidget.category = 'structural' #monkey patch fix
@@ -74,6 +75,16 @@ register_commands(manager)
 @app.before_request
 def before_request():
   g.db = DataStore(db)
+
+@app.context_processor
+def add_functions():
+  @environmentfunction
+  def translated_key(env, d, key, lang):
+    return env.getitem(d, '{}__{}'.format(key, lang))
+
+  return {
+    'translated_key': translated_key
+  }
 
 app.register_blueprint(auth.blueprint)
 

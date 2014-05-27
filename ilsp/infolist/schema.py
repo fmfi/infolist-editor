@@ -5,7 +5,7 @@ import colander
 from ilsp.common.podmienka import Podmienka
 from ilsp.common.schema import DuplicitnyValidator
 import deform
-from flask import g, url_for
+from flask import g, url_for, current_app
 from ilsp.common import widgets
 from ilsp.utils import je_profesor_alebo_docent
 
@@ -56,26 +56,28 @@ def Vyucujuci(**kwargs):
 
 def PodmienkyAbsolvovania(podm_absolvovania, **kwargs):
   schema = MappingSchema(**kwargs)
-  nahrada = podm_absolvovania.get('nahrada')
+  nahrada = podm_absolvovania.get('nahrada__sk')
   if g.user.moze_pridat_nahradu_hodnotenia() or not nahrada:
-    schema.add(SchemaNode(String(),
-      name='priebezne',
-      title=u'Spôsob priebežného hodnotenia',
-      description=u'Napríklad: domáce úlohy, písomka',
-      missing=''
-    ))
+    for lang in current_app.config['LANGUAGES']:
+      schema.add(SchemaNode(String(),
+        name='priebezne__{}'.format(lang),
+        title=u'Spôsob priebežného hodnotenia ({})'.format(lang),
+        description=u'Napríklad: domáce úlohy, písomka',
+        missing=''
+      ))
     schema.add(SchemaNode(Integer(),
       name='percenta_zapocet',
       title=u'Percentá na pripustenie ku skúške',
       description=u'Zobrazí vetu "Na pripustenie ku skúške je potrebných aspoň X% bodov z priebežného hodnotenia." Ak túto vetu nechcete zobraziť, ponechajte pole prázdne.',
       missing=colander.null,
     ))
-    schema.add(SchemaNode(String(),
-      name='skuska',
-      title=u'Forma skúšky',
-      description=u'Napríklad: písomná, ústna; nevyplňovať ak predmet nemá skúšku',
-      missing=''
-    ))
+    for lang in current_app.config['LANGUAGES']:
+      schema.add(SchemaNode(String(),
+        name='skuska__{}'.format(lang),
+        title=u'Forma skúšky ({})'.format(lang),
+        description=u'Napríklad: písomná, ústna; nevyplňovať ak predmet nemá skúšku',
+        missing=''
+      ))
     schema.add(SchemaNode(Integer(),
       name='percenta_skuska',
       title=u'Váha skúšky v hodnotení (%)',
@@ -101,15 +103,16 @@ def PodmienkyAbsolvovania(podm_absolvovania, **kwargs):
         majú vyplnený nejaký druh vzdelávacej činnosti musia používať stupnicu hodnotenia.''',
     ))
   if g.user.moze_pridat_nahradu_hodnotenia() or nahrada:
-    kwargs = {}
-    if g.user.moze_pridat_nahradu_hodnotenia():
-      kwargs['missing'] = colander.null
-    schema.add(SchemaNode(String(),
-      name='nahrada',
-      title=u'Podmienky absolvovania predmetu (náhradný textový obsah)',
-      widget=deform.widget.TextAreaWidget(rows=5),
-      **kwargs
-    ))
+    for lang in current_app.config['LANGUAGES']:
+      kwargs = {}
+      if g.user.moze_pridat_nahradu_hodnotenia() or lang != current_app.config['DEFAULT_LANG']:
+        kwargs['missing'] = colander.null
+      schema.add(SchemaNode(String(),
+        name='nahrada__{}'.format(lang),
+        title=u'Podmienky absolvovania predmetu (náhradný textový obsah - {})'.format(lang),
+        widget=deform.widget.TextAreaWidget(rows=5),
+        **kwargs
+      ))
   return schema
 
 
@@ -197,10 +200,15 @@ def Infolist(infolist):
     widget=deform.widget.Select2Widget(values=g.db.load_fakulty()),
     description=u'Uvádza sa názov fakulty, ktorá predmet personálne a materiálne zabezpečuje'
   ))
-  schema.add(SchemaNode(String(),
-    name='nazov_predmetu',
-    title=u'Názov predmetu'
-  ))
+  for lang in current_app.config['LANGUAGES']:
+    kwargs = {}
+    if lang != current_app.config['DEFAULT_LANG']:
+      kwargs['missing'] = colander.null
+    schema.add(SchemaNode(String(),
+      name='nazov_predmetu__{}'.format(lang),
+      title=u'Názov predmetu ({})'.format(lang),
+      **kwargs
+    ))
   schema.add(SchemaNode(String(),
     name='povodny_kod_predmetu',
     title=u'Kód predmetu',
@@ -286,32 +294,34 @@ def Infolist(infolist):
     name='podm_absolvovania',
     title=u'Podmienky absolvovania predmetu'
   ))
-  schema.add(SchemaNode(String(),
-    name='vysledky_vzdelavania',
-    title=u'Výsledky vzdelávania',
-    description=Markup(u'''Výsledky vzdelávania určujú, <strong>aké znalosti alebo schopnosti študenti
-      budú mať po absolvovaní tohto predmetu</strong>. Môžu sa týkať obsahových
-      znalostí (po absolvovaní predmetu študenti budú vedieť kategorizovať
-      makroekonomické stratégie na základe ekonomických teórií, z ktorých
-      tieto stratégie vychádzajú), schopností (po absolvovaní predmetu
-      študenti budú schopní počítať jednoduché derivácie), alebo hodnôt a
-      všeobecných schopností (po absolvovaní predmetu budú študenti schopní
-      spolupracovať v rámci malých tímov). <strong>Formulácia typu "oboznámiť
-      študentov s ..." nie je v tomto kontexte vhodná.</strong>'''),
-    widget=deform.widget.TextAreaWidget(rows=5),
-    missing=colander.null,
-    warn_if_missing=True
-  ))
-  schema.add(SchemaNode(String(),
-    name='strucna_osnova',
-    title=u'Stručná osnova predmetu',
-    description=u'''Osnova predmetu určuje postupnosť obsahových tém,
-      ktoré budú v rámci predmetu preberané. Text zbytočne neštrukturujte
-      (ideálne vymenujte postupnosť tém v rámci jedného odstavca).''',
-    widget=deform.widget.TextAreaWidget(rows=5),
-    missing=colander.null,
-    warn_if_missing=True
-  ))
+  for lang in current_app.config['LANGUAGES']:
+    schema.add(SchemaNode(String(),
+      name='vysledky_vzdelavania__{}'.format(lang),
+      title=u'Výsledky vzdelávania ({})'.format(lang),
+      description=Markup(u'''Výsledky vzdelávania určujú, <strong>aké znalosti alebo schopnosti študenti
+        budú mať po absolvovaní tohto predmetu</strong>. Môžu sa týkať obsahových
+        znalostí (po absolvovaní predmetu študenti budú vedieť kategorizovať
+        makroekonomické stratégie na základe ekonomických teórií, z ktorých
+        tieto stratégie vychádzajú), schopností (po absolvovaní predmetu
+        študenti budú schopní počítať jednoduché derivácie), alebo hodnôt a
+        všeobecných schopností (po absolvovaní predmetu budú študenti schopní
+        spolupracovať v rámci malých tímov). <strong>Formulácia typu "oboznámiť
+        študentov s ..." nie je v tomto kontexte vhodná.</strong>'''),
+      widget=deform.widget.TextAreaWidget(rows=5),
+      missing=colander.null,
+      warn_if_missing=(lang == current_app.config['DEFAULT_LANG'])
+    ))
+  for lang in current_app.config['LANGUAGES']:
+    schema.add(SchemaNode(String(),
+      name='strucna_osnova__{}'.format(lang),
+      title=u'Stručná osnova predmetu ({})'.format(lang),
+      description=u'''Osnova predmetu určuje postupnosť obsahových tém,
+        ktoré budú v rámci predmetu preberané. Text zbytočne neštrukturujte
+        (ideálne vymenujte postupnosť tém v rámci jedného odstavca).''',
+      widget=deform.widget.TextAreaWidget(rows=5),
+      missing=colander.null,
+      warn_if_missing=(lang == current_app.config['DEFAULT_LANG'])
+    ))
   schema.add(OdporucanaLiteratura(
     name='odporucana_literatura',
     title=u'Odporúčaná literatúra',

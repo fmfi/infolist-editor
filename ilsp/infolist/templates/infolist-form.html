@@ -31,7 +31,7 @@
 
   <form id="{{ form.formid }}" method="{{ form.method }}" enctype="multipart/form-data" accept-charset="utf-8">
   {{ render_field(form.fakulta) }}
-  {{ render_field(form.nazov_predmetu) }}
+  {{ render_translated_field(form, 'nazov_predmetu', config.LANGUAGES) }}
   {{ render_field(form.povodny_kod_predmetu, readonly=True) }}
   <div class="form-group">
   {{ render_checkbox(form.treba_zmenit_kod) }}
@@ -56,8 +56,8 @@
   {{ render_field(form.odporucane_predmety) }}
   {{ render_field(form.vylucujuce_predmety) }}
   {{ render_field(form.podm_absolvovania) }}
-  {{ render_field(form.vysledky_vzdelavania) }}
-  {{ render_field(form.strucna_osnova) }}
+  {{ render_translated_field(form, 'vysledky_vzdelavania', config.LANGUAGES) }}
+  {{ render_translated_field(form, 'strucna_osnova', config.LANGUAGES) }}
   {{ render_field(form.odporucana_literatura) }}
   {{ render_field(form.potrebny_jazyk) }}
   <div class="panel panel-default">

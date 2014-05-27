@@ -11,7 +11,7 @@ from ilsp.common.filters import filter_fakulta, filter_druh_cinnosti, filter_obd
   filter_typ_vyucujuceho, filter_jazyk_vyucby, filter_typ_bloku, filter_literatura, format_datetime
 from ilsp.common.rtf import render_rtf, RTFHyperlink, RTFBookmark, my_rtf_elements
 from rtfng.Renderer import Renderer
-from ilsp.utils import stupen_studia_titul, prilohy_podla_typu
+from ilsp.utils import stupen_studia_titul, prilohy_podla_typu, from_lang
 from rtfng.Elements import Document, Section
 from rtfng.document.paragraph import Cell, Paragraph, Table
 from flask import send_from_directory, stream_with_context, safe_join, current_app
@@ -46,7 +46,8 @@ class ZipBuffer(object):
         return result
 
 class PrilohaContext(object):
-  def __init__(self):
+  def __init__(self, lang='sk'):
+    self._lang = lang
     self._studprog_cache = {}
     self._infolist_cache = {}
     self._typy_priloh = {}
@@ -62,7 +63,7 @@ class PrilohaContext(object):
 
   def infolist(self, id):
     if id not in self._infolist_cache:
-      self._infolist_cache['id'] = g.db.load_infolist(id)
+      self._infolist_cache['id'] = from_lang(g.db.load_infolist(id, lang=self._lang), self._lang)
     return self._infolist_cache['id']
 
   def typ_prilohy(self, id):
@@ -477,7 +478,7 @@ class PrilohaInfolist(Priloha):
   def render(self, to_file):
     infolist = self.context.infolist(self.infolist_id)
     tdata = infolist_tdata(infolist)
-    rtf_template = resource_string('infolist', 'templates/infolist.rtf')
+    rtf_template = resource_string('ilsp.infolist', 'templates/infolist.rtf')
     to_file.write(render_rtf(rtf_template, tdata))
 
   @property
@@ -495,8 +496,8 @@ class PrilohaInfolisty(Priloha):
     self.infolisty = infolisty
 
   def render(self, to_file):
-    rtf_skin = resource_string('infolist', 'templates/infolist-skin.rtf').split('INFOLIST_CORE')
-    rtf_core = resource_string('infolist', 'templates/infolist-core.rtf')
+    rtf_skin = resource_string('ilsp.infolist', 'templates/infolist-skin.rtf').split('INFOLIST_CORE')
+    rtf_core = resource_string('ilsp.infolist', 'templates/infolist-core.rtf')
     to_file.write(rtf_skin[0])
 
     def th(content):

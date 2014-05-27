@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-from ilsp.common.storage import kratke_meno, SQLBuilder, ConditionBuilder
+from ilsp.common.storage import kratke_meno, SQLBuilder, ConditionBuilder, dict_rec_update
+from ilsp.utils import to_lang, from_lang
 from werkzeug.exceptions import NotFound
 
 
 class InfolistDataStoreMixin(object):
-  def load_infolist(self, id, lang='sk'):
+  def load_infolist(self, id, lang=None):
     with self.cursor() as cur:
       cur.execute('''SELECT i.posledna_verzia, i.import_z_aisu,
         i.forknute_z, i.zamknute, i.zamkol, i.zahodeny,
@@ -60,7 +61,7 @@ class InfolistDataStoreMixin(object):
     i.update(self.load_infolist_verzia(posledna_verzia, lang))
     return i
 
-  def load_infolist_verzia(self, id, lang='sk'):
+  def load_infolist_verzia(self, id, lang=None):
     with self.cursor() as cur:
       data = self._load_iv_data(cur, id)
       data['vyucujuci'] = self._load_iv_vyucujuci(cur, id)
@@ -234,28 +235,27 @@ class InfolistDataStoreMixin(object):
       }
     return osoby
 
-  def _load_iv_trans(self, cur, id, lang='sk'):
+  def _load_iv_trans(self, cur, id, lang=None):
+    lang = self.resolve_lang(lang)
+    trans = {}
     cur.execute('''SELECT nazov_predmetu, podm_absol_priebezne,
       podm_absol_skuska, podm_absol_nahrada, vysledky_vzdelavania,
-      strucna_osnova
+      strucna_osnova, jazyk_prekladu
       FROM infolist_verzia_preklad
-      WHERE infolist_verzia = %s AND jazyk_prekladu = %s''',
-      (id, lang))
-    data = cur.fetchone()
-    if data == None:
-      raise NotFound('infolist_verzia_preklad({}, {})'.format(id, lang))
-
-    return {
-      'nazov_predmetu': data.nazov_predmetu,
-      'podm_absolvovania': {
-        'skuska': data.podm_absol_skuska,
-        'priebezne': data.podm_absol_priebezne,
-        'nahrada': data.podm_absol_nahrada,
-      },
-      'vysledky_vzdelavania': data.vysledky_vzdelavania,
-      'strucna_osnova': data.strucna_osnova,
-      'jazyk_prekladu': lang,
-    }
+      WHERE infolist_verzia = %s AND jazyk_prekladu IN ({})'''.format(', '.join(['%s']*len(lang))),
+      [id] + lang)
+    for data in cur:
+      dict_rec_update(trans, to_lang({
+        'nazov_predmetu': data.nazov_predmetu,
+        'podm_absolvovania': {
+          'skuska': data.podm_absol_skuska,
+          'priebezne': data.podm_absol_priebezne,
+          'nahrada': data.podm_absol_nahrada,
+        },
+        'vysledky_vzdelavania': data.vysledky_vzdelavania,
+        'strucna_osnova': data.strucna_osnova,
+      }, data.jazyk_prekladu))
+    return trans
 
   def save_infolist(self, id, data, user=None, system_update=False):
     with self.cursor() as cur:
@@ -301,7 +301,7 @@ class InfolistDataStoreMixin(object):
         id = cur.fetchone()[0]
       return id
 
-  def save_infolist_verzia(self, predosla_verzia, data, lang='sk', user=None,
+  def save_infolist_verzia(self, predosla_verzia, data, lang=None, user=None,
       system_update=False):
     nove_id = self._save_iv_data(predosla_verzia, data, user=user, system_update=system_update)
     self._save_iv_suvisiace_predmety(nove_id, data)
@@ -398,16 +398,19 @@ class InfolistDataStoreMixin(object):
           (infolist_verzia, osoba) VALUES (%s, %s)''',
           (iv_id, osoba))
 
-  def _save_iv_trans(self, iv_id, data, lang='sk'):
+  def _save_iv_trans(self, iv_id, all_data, lang=None):
+    lang = self.resolve_lang(lang)
     with self.cursor() as cur:
-      podm = data['podm_absolvovania']
-      cur.execute('''INSERT INTO infolist_verzia_preklad
-        (infolist_verzia, jazyk_prekladu,
-         nazov_predmetu, podm_absol_priebezne, podm_absol_skuska,
-         podm_absol_nahrada, vysledky_vzdelavania, strucna_osnova)
-       VALUES (''' + ', '.join(['%s']*8) + ''')''',
-       (iv_id, lang, data['nazov_predmetu'], podm['priebezne'], podm['skuska'],
-        podm['nahrada'], data['vysledky_vzdelavania'], data['strucna_osnova']))
+      for l in lang:
+        data = from_lang(all_data, l)
+        podm = data['podm_absolvovania']
+        cur.execute('''INSERT INTO infolist_verzia_preklad
+          (infolist_verzia, jazyk_prekladu,
+           nazov_predmetu, podm_absol_priebezne, podm_absol_skuska,
+           podm_absol_nahrada, vysledky_vzdelavania, strucna_osnova)
+         VALUES (''' + ', '.join(['%s']*8) + ''')''',
+         (iv_id, l, data['nazov_predmetu'], podm['priebezne'], podm['skuska'],
+          podm['nahrada'], data['vysledky_vzdelavania'], data['strucna_osnova']))
 
   def fork_infolist(self, id, verzia=None, vytvoril=None):
     with self.cursor() as cur:

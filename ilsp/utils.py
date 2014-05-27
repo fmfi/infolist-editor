@@ -21,6 +21,29 @@ def recursive_update(d, otherd):
       recursive_update(d[key], otherd[key])
     else:
       d[key] = otherd[key]
+
+def to_lang(d, lang):
+  ret = {}
+  for key in d:
+    if isinstance(d[key], dict):
+      ret[key] = to_lang(d[key], lang)
+    else:
+      ret['{}__{}'.format(key, lang)] = d[key]
+  return ret
+
+def from_lang(d, lang):
+  ret = {}
+  for key in d:
+    if isinstance(d[key], dict):
+      ret[key] = from_lang(d[key], lang)
+    else:
+      if '__' in key:
+        simple_key, key_lang = key.split('__')
+        if key_lang == lang:
+          ret[simple_key] = d[key]
+      else:
+        ret[key] = d[key]
+  return ret
       
 
 def je_profesor_alebo_docent(osoba_id):
@@ -84,3 +107,10 @@ class LevelSet(object):
   def current_set(self):
     return self.commited.copy()
 
+def to_list(value):
+  if isinstance(value, list):
+    return value
+  elif isinstance(value, tuple):
+    return list(value)
+  else:
+    return [value]

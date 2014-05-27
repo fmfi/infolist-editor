@@ -1,5 +1,5 @@
 {% extends 'layout.html' %}
-{% from 'macros.html' import render_field, render_checkbox, flashes, odporucany_semester %}
+{% from 'macros.html' import render_field, render_checkbox, flashes, odporucany_semester, render_translated_field %}
 {% block title %}Informačný list{% endblock %}
 {% block content %}
 <div class="content-full">
@@ -7,7 +7,7 @@
   <div class="left">
   <div class="infolist{% if not editing %} infolist-readonly{% endif %}">
     <div class="header">
-      <h2>{{ data.nazov_predmetu }}</h2>
+      <h2>{{ translated_key(data, 'nazov_predmetu', 'sk') }}</h2>
       {% if data.import_z_aisu %}
         <div id="detail">naimportované z AISu
           {% if data.povodny_kod_predmetu %}
@@ -27,10 +27,12 @@
         <p>{{ data.povodny_kod_predmetu }} {% if data.treba_zmenit_kod %}(požadujeme zmeniť){% endif %}</p>
       </div>
 
-      <div class="polozka">
-        <label class="pull-left">Názov predmetu</label>
-        <p>{{ data.nazov_predmetu }}</p>
-      </div>
+      {% for lang in config.LANGUAGES %}
+        <div class="polozka">
+          <label class="pull-left">Názov predmetu ({{ lang }})</label>
+          <p>{{ translated_key(data, 'nazov_predmetu', lang) }}</p>
+        </div>
+      {% endfor %}
 
       <div class="polozka">
         <label>Druh, rozsah a metóda vzdelávacích činností</label>
@@ -132,20 +134,26 @@
       
       <div class="polozka">
         <label>Podmienky na absolvovanie predmetu</label>
-        {% if data.podm_absolvovania.nahrada %}
-          <p>{{ data.podm_absolvovania.nahrada }}</p>
+        {% if translated_key(data.podm_absolvovania, 'nahrada', 'sk') %}
+          {% for lang in config.LANGUAGES %}
+            <p><strong>({{ lang }}): </strong>{{ translated_key(data.podm_absolvovania, 'nahrada', lang) }}</p>
+          {% endfor %}
         {% else %}
-          {% if data.podm_absolvovania.priebezne %}
-          <p>Priebežné hodnotenie: {{ data.podm_absolvovania.priebezne }}</p>
+          {% for lang in config.LANGUAGES %}
+          {% if translated_key(data.podm_absolvovania, 'priebezne', lang) %}
+          <p>Priebežné hodnotenie ({{ lang }}): {{ translated_key(data.podm_absolvovania, 'priebezne', lang) }}</p>
           {% endif %}
+          {% endfor %}
 
           {% if data.podm_absolvovania.percenta_zapocet %}
           <p>Na pripustenie ku skúške je potrebných aspoň {{ data.podm_absolvovania.percenta_zapocet }}% bodov z priebežného hodnotenia.</p>
           {% endif %}
 
-          {% if data.podm_absolvovania.skuska %}
-          <p>Skúška: {{ data.podm_absolvovania.skuska }}</p>
+          {% for lang in config.LANGUAGES %}
+          {% if translated_key(data.podm_absolvovania, 'skuska', lang) %}
+          <p>Skúška ({{ lang }}): {{ translated_key(data.podm_absolvovania, 'skuska', lang) }}</p>
           {% endif %}
+          {% endfor %}
           
           {% if data.podm_absolvovania.percenta_skuska %}
           <p>Váha skúšky: {{ data.podm_absolvovania.percenta_skuska }}%</p>
@@ -173,19 +181,23 @@
         {% endif %}
       </div>
 
+      {% for lang in config.LANGUAGES %}
       <div class="polozka">
-        <label>Výsledky vzdelávania</label>
-        {% if data.vysledky_vzdelavania %}
-        {{ data.vysledky_vzdelavania|nl2br }}
+        <label>Výsledky vzdelávania ({{ lang }})</label>
+        {% if translated_key(data, 'vysledky_vzdelavania', lang) %}
+        {{ translated_key(data, 'vysledky_vzdelavania', lang)|nl2br }}
         {% endif %}
       </div>
+      {% endfor %}
 
+      {% for lang in config.LANGUAGES %}
       <div class="polozka">
-        <label>Stručná osnova predmetu</label>
-        {% if data.strucna_osnova %}
-        {{ data.strucna_osnova|nl2br }}
+        <label>Stručná osnova predmetu ({{ lang }})</label>
+        {% if translated_key(data, 'strucna_osnova', lang) %}
+        {{ translated_key(data, 'strucna_osnova', lang)|nl2br }}
         {% endif %}
       </div>
+      {% endfor %}
 
       <div class="polozka">
         <label>Odporúčaná literatúra</label>
