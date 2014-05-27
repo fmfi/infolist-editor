@@ -1,8 +1,7 @@
 SECRET_KEY = 'change this!' # tajny sifrovaci kluc
 DATABASE = 'host= dbname= user= password='
-UPLOAD_FOLDER = ''
 FILES_DIR = ''
 VPCHAR_DIR = ''
-ADMINS = ['email@example.com']
+ADMIN_EMAILS = ['email@example.com']
 SMTP_SERVER = 'smtp.example.com'
 EMAIL_FROM = 'ilsp@example.com'
