@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from common import storage
+from common.auth import login_get_next_url, restrict
+import common.auth as auth
 from common.commands import register_commands
-from common.decorators import restrict
 from common.filters import register_filters
 from common.proxies import db, register_proxies
 from common.upload import upload_subor
-
 from flask import Flask
 from flask.ext.script import Manager, Server
 import infolist
@@ -23,7 +23,6 @@ import json
 import os
 import os.path
 from pkg_resources import resource_filename
-from itsdangerous import URLSafeSerializer
 from werkzeug import secure_filename
 import export
 
@@ -78,58 +77,15 @@ register_commands(manager)
 @app.before_request
 def before_request():
   g.db = storage.DataStore(db)
-  
-  username = request.remote_user
-  if app.debug and 'REMOTE_USER' in os.environ:
-    username = os.environ['REMOTE_USER']
-  
-  g.username = username
-  g.user = g.db.load_user(username)
+
+app.register_blueprint(auth.blueprint)
 
 @app.route('/', methods=['POST', 'GET'])
 def index():
   if not g.user:
-    goto = login_get_next_url()
-    goto_enc = None
-    if goto is not None:
-      goto_enc = request.args['next']
+    goto, goto_enc = login_get_next_url()
     return render_template('login.html', next=goto_enc, next_url=goto)
   return redirect(url_for('predmet.index', tab='moje'))
-
-def login_get_next_url():
-  if 'next' not in request.args:
-    return None
-  try:
-    serializer = URLSafeSerializer(app.secret_key)
-    goto = serializer.loads(request.args['next'])
-    goto = request.url_root + goto
-    return goto
-  except:
-    return None
-
-@app.route('/login')
-def login():
-  goto = login_get_next_url()
-  if not goto:
-    return redirect(url_for('index'))
-  return redirect(goto)
-
-@app.route('/logout')
-def logout():
-  logout_link = 'https://login.uniba.sk/logout.cgi?{}'.format(url_for('index', _external=True))
-  response = app.make_response(redirect(logout_link))
-  if 'COSIGN_SERVICE' in request.environ:
-    response.set_cookie(request.environ['COSIGN_SERVICE'], value='',
-                        expires=1, path='/', secure=True)
-  return response
-
-@app.route('/ping')
-def ping():
-  return ''
-
-@app.route('/ping.js')
-def ping_js():
-  return Response(render_template('ping.js'), mimetype='text/javascript')
 
 
 @app.route('/osoba/<int:osoba_id>/upload/vpchar', methods=['GET', 'POST'])
@@ -231,44 +187,6 @@ def osoba_get():
       cele_meno=osoba.cele_meno,
       meno=osoba.meno,
       priezvisko=osoba.priezvisko
-    )
-
-@app.route('/literatura/search')
-@restrict(api=True)
-def literatura_search():
-  query = request.args['q']
-  literatura = []
-  for id, dokument, vyd_udaje, signatura in g.db.search_literatura(query):
-    literatura.append({
-      'id': int(id),
-      'dokument': dokument,
-      'vyd_udaje': vyd_udaje,
-      'signatura': signatura
-    })
-  return jsonify(literatura=literatura)
-
-@app.route('/nova-literatura/search')
-@restrict(api=True)
-def nova_literatura_search():
-  query = request.args.get('q', None) or request.args['term']
-  return Response(json.dumps(g.db.search_nova_literatura(query)),
-    mimetype='application/json')
-
-@app.route('/literatura/json')
-@restrict(api=True)
-def literatura_get():
-  try:
-    id = int(request.args['id'])
-  except ValueError:
-    raise BadRequest()
-  literatura = g.db.load_literatura(id)
-  if literatura is None:
-    abort(404)
-  return jsonify(
-      id=int(literatura.bib_id),
-      dokument=literatura.dokument,
-      vyd_udaje=literatura.vyd_udaje,
-      signatura=literatura.signatura
     )
 
 

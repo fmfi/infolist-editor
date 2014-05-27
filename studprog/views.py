@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from decimal import Decimal
 import colander
-from common.decorators import restrict
+from common.auth import restrict
 from common.filters import filter_osoba
 from common.schema import warning_schema, form_messages, zorad_osoby
 from common.upload import upload_subor

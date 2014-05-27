@@ -2,7 +2,7 @@
 {% block includes_js %}
   {{ super() }}
   <script type="text/javascript" src="{{ url_for('static', filename='infolist-form.js') }}"></script>
-  <script type="text/javascript" src="{{ url_for('ping_js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('auth.ping_js') }}"></script>
 {% endblock %}
 {% block infolist %}
 <div class="body">

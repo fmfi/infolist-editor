@@ -120,8 +120,8 @@ def OdporucanaLiteratura(**kwargs):
       name='literatura',
       title=u'Literatúra z knižného fondu',
       widget=widgets.RemoteSelect2Widget(
-        search_url=url_for('literatura_search', _external=True),
-        item_url=url_for('literatura_get', _external=True),
+        search_url=url_for('.literatura_search', _external=True),
+        item_url=url_for('.literatura_get', _external=True),
         template="literatura"
       )
     ),
@@ -139,7 +139,7 @@ def OdporucanaLiteratura(**kwargs):
       name='bibl',
       title=u'Nová literatúra',
       widget=deform.widget.AutocompleteInputWidget(min_length=1,
-        values=url_for('nova_literatura_search', _external=True)
+        values=url_for('.nova_literatura_search', _external=True)
       )
     ),
     name='nove',

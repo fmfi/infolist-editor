@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import colander
-from common.decorators import restrict
+from common.auth import restrict
 from common.filters import format_datetime
 from common.schema import warning_schema, form_messages, zorad_osoby
 from deform import Form, ValidationFailure

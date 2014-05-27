@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from common.decorators import restrict
+from common.auth import restrict
 from predmet import blueprint
 from flask import render_template, url_for, redirect, abort, flash, g, request, jsonify
 from werkzeug.exceptions import BadRequest
