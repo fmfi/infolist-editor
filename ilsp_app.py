@@ -4,7 +4,7 @@ from ilsp import infolist, osoba, predmet, studprog, export
 from ilsp.common import storage
 from ilsp.common.auth import login_get_next_url, restrict
 import ilsp.common.auth as auth
-from ilsp.common.commands import register_commands
+from ilsp.commands import register_commands
 from ilsp.common.filters import register_filters
 from ilsp.common.proxies import db, register_proxies
 from flask import Flask
