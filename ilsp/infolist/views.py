@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 import colander
-from common.auth import restrict
-from common.filters import format_datetime
-from common.schema import warning_schema, form_messages, zorad_osoby
+from ilsp import export, utils
+from ilsp.common.auth import restrict
+from ilsp.common.filters import format_datetime
+from ilsp.common.schema import warning_schema, form_messages, zorad_osoby
 from deform import Form, ValidationFailure
-import export
-from infolist.schema import Infolist
-from infolist import blueprint
+from ilsp.infolist.schema import Infolist
+from ilsp.infolist import blueprint
 from flask import render_template, url_for, redirect, abort, flash, g, request, current_app, jsonify
-from utils import recursive_replace, recursive_update
-import utils
+from ilsp.utils import recursive_replace, recursive_update
 from werkzeug.exceptions import BadRequest
 
 

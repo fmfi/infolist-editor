@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 import json
 import sys
-from export import PrilohaVPChar
+
+from ilsp.export import PrilohaVPChar
 import re
 from flask import current_app
 import os
-from common.podmienka import Podmienka, RawPodmienka
-from common.proxies import db
-from common.storage import DataStore
+from ilsp.common.podmienka import Podmienka, RawPodmienka
+from ilsp.common.proxies import db
+from ilsp.common.storage import DataStore
 from flask.ext.script import Command, Option
+
+
 try:
   from termcolor import colored
 except ImportError:

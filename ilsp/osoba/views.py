@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from common.auth import restrict
-from common.upload import upload_subor
+from ilsp.common.auth import restrict
+from ilsp.common.upload import upload_subor
 from flask import request, abort, g, flash, redirect, url_for, jsonify, render_template
-from osoba import blueprint
+from ilsp.osoba import blueprint
 from werkzeug.exceptions import BadRequest
 
 
@@ -35,7 +35,7 @@ def upload_vpchar(osoba_id):
     else:
       flash(u'VPCHAR sa nepodarilo nahrať, nezabudli ste vybrať súbor?', 'danger')
 
-  return render_template('osoba/templates/osoba-vpchar-upload.html', subor_id=subor_id, osoba=osoba, osoba_id=route_osoba_id)
+  return render_template('osoba-vpchar-upload.html', subor_id=subor_id, osoba=osoba, osoba_id=route_osoba_id)
 
 
 @blueprint.route('/osoba/search')

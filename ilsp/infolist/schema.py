@@ -2,12 +2,12 @@
 from chameleon.utils import Markup
 from colander import MappingSchema, SchemaNode, String, Integer, Set, Bool, Sequence
 import colander
-from common import widgets
-from common.podmienka import Podmienka
-from common.schema import DuplicitnyValidator
+from ilsp.common.podmienka import Podmienka
+from ilsp.common.schema import DuplicitnyValidator
 import deform
 from flask import g, url_for
-from utils import je_profesor_alebo_docent
+from ilsp.common import widgets
+from ilsp.utils import je_profesor_alebo_docent
 
 
 def VzdelavaciaCinnost(**kwargs):

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import colander
 from colander import MappingSchema, SchemaNode, String, Integer, Bool, Sequence
-from common import widgets
-from common.schema import DuplicitnyValidator
+from ilsp.common.schema import DuplicitnyValidator
 import deform
 from flask import g, url_for
+from ilsp.common import widgets
 
 
 def infolisty_v_bloku_nie_su_duplicitne_validator(node, infolisty):

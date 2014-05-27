@@ -7,11 +7,11 @@ from contextlib import closing
 import zipfile
 from datetime import datetime
 
-from common.filters import filter_fakulta, filter_druh_cinnosti, filter_obdobie, filter_metoda_vyucby, \
+from ilsp.common.filters import filter_fakulta, filter_druh_cinnosti, filter_obdobie, filter_metoda_vyucby, \
   filter_typ_vyucujuceho, filter_jazyk_vyucby, filter_typ_bloku, filter_literatura, format_datetime
-from common.rtf import render_rtf, RTFHyperlink, RTFBookmark, my_rtf_elements
+from ilsp.common.rtf import render_rtf, RTFHyperlink, RTFBookmark, my_rtf_elements
 from rtfng.Renderer import Renderer
-from utils import stupen_studia_titul, prilohy_podla_typu
+from ilsp.utils import stupen_studia_titul, prilohy_podla_typu
 from rtfng.Elements import Document, Section
 from rtfng.document.paragraph import Cell, Paragraph, Table
 from flask import send_from_directory, stream_with_context, safe_join, current_app

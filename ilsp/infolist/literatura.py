@@ -1,7 +1,8 @@
 import json
-from common.auth import restrict
+
+from ilsp.common.auth import restrict
 from flask import jsonify, request, Response, abort, g
-from infolist import blueprint
+from ilsp.infolist import blueprint
 from werkzeug.exceptions import BadRequest
 
 

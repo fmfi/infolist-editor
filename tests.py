@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from common.podmienka import PodmienkaASTGroup as G, PodmienkaASTLiteral as L, PodmienkaASTEmpty as E, Podmienka
+from ilsp.common.podmienka import PodmienkaASTGroup as G, PodmienkaASTLiteral as L, PodmienkaASTEmpty as E, Podmienka
 
 good_inputs = [
   ('', [], E()),

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from common.podmienka import Podmienka
-import utils
+from ilsp import utils
+from ilsp.common.podmienka import Podmienka
 from werkzeug.exceptions import NotFound
-from export import *
+from ilsp.export import *
 
 def dict_rec_update(d1, d2):
   for key in d2:

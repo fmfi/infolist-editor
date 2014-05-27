@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 from decimal import Decimal
+
 import colander
-from common.auth import restrict
-from common.filters import filter_osoba
-from common.schema import warning_schema, form_messages, zorad_osoby
-from common.upload import upload_subor
+from ilsp import export, utils
+from ilsp.common.auth import restrict
+from ilsp.common.filters import filter_osoba
+from ilsp.common.schema import warning_schema, form_messages, zorad_osoby
+from ilsp.common.upload import upload_subor
 from deform import Form, ValidationFailure
-import export
-from studprog.schema import Studprog
-from studprog.statistiky import PocitadloStruktura
-from studprog import blueprint
+from ilsp.studprog.schema import Studprog
+from ilsp.studprog.statistiky import PocitadloStruktura
+from ilsp.studprog import blueprint
 from flask import render_template, url_for, redirect, abort, flash, g, request, current_app, send_from_directory
-from utils import recursive_replace, recursive_update
-import utils
+from ilsp.utils import recursive_replace, recursive_update
 from werkzeug.exceptions import BadRequest
 
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from common.auth import restrict
-from predmet import blueprint
+from ilsp.common.auth import restrict
+from ilsp.predmet import blueprint
 from flask import render_template, url_for, redirect, abort, flash, g, request, jsonify
 from werkzeug.exceptions import BadRequest
 

@@ -1,17 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from common import storage
-from common.auth import login_get_next_url, restrict
-import common.auth as auth
-from common.commands import register_commands
-from common.filters import register_filters
-from common.proxies import db, register_proxies
+from ilsp import infolist, osoba, predmet, studprog, export
+from ilsp.common import storage
+from ilsp.common.auth import login_get_next_url, restrict
+import ilsp.common.auth as auth
+from ilsp.common.commands import register_commands
+from ilsp.common.filters import register_filters
+from ilsp.common.proxies import db, register_proxies
 from flask import Flask
-from flask.ext.script import Manager, Server
-import infolist
-import predmet
-import studprog
-import osoba
+from flask.ext.script import Manager
 from flask import render_template, url_for, redirect, abort
 from flask import Request, g
 from werkzeug.datastructures import OrderedMultiDict
@@ -22,12 +19,12 @@ import os
 import os.path
 from pkg_resources import resource_filename
 from werkzeug import secure_filename
-import export
+
 
 class MyRequest(Request):
   parameter_storage_class = OrderedMultiDict
 
-app = Flask(__name__, instance_relative_config=True)
+app = Flask('ilsp', instance_relative_config=True)
 app.request_class = MyRequest
 app.register_blueprint(infolist.blueprint)
 app.register_blueprint(studprog.blueprint)
@@ -62,7 +59,7 @@ Message:
 '''))
   app.logger.addHandler(mail_handler)
 
-template_packages = [__name__] + [bp.import_name for bp in app.blueprints.itervalues()] + ['deform']
+template_packages = ['ilsp'] + [bp.import_name for bp in app.blueprints.itervalues()] + ['deform']
 Form.set_zpt_renderer([resource_filename(x, 'templates') for x in template_packages])
 
 register_filters(app)
