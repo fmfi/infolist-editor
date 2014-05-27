@@ -62,7 +62,7 @@ Message:
 '''))
   app.logger.addHandler(mail_handler)
 
-template_packages = [__name__] + [bp.import_name for _, bp in app.blueprints.iteritems()] + ['deform']
+template_packages = [__name__] + [bp.import_name for bp in app.blueprints.itervalues()] + ['deform']
 Form.set_zpt_renderer([resource_filename(x, 'templates') for x in template_packages])
 
 register_filters(app)
