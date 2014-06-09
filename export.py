@@ -268,7 +268,7 @@ class VPCharMixin(object):
 
   @property
   def filename(self):
-    return secure_filename(u'vpch_{}_{}_{}.rtf'.format(self.osoba.priezvisko, self.osoba.meno, self.osoba.osoba))
+    return secure_filename(u'VPCH_{}_{}_{}.rtf'.format(self.osoba.priezvisko, self.osoba.meno, self.osoba.osoba))
 
   @property
   def nazov(self):
@@ -674,7 +674,7 @@ class Prilohy(object):
     filename = ''
     if adresar is not None:
       filename = adresar + '/'
-    if typ > 2:
+    if typ > 2 and typ != 8:
       filename += 'III_{}_'.format(typ)
     filename += priloha.filename
 
@@ -738,9 +738,9 @@ def prilohy_pre_studijny_program(context, sp_id, spolocne, infolisty_samostatne=
     for infolist in infolisty:
       prilohy.add(8, PrilohaInfolist(infolist.infolist, modifikovane=infolist.modifikovane,
                                      context=context, nazov=infolist.nazov_predmetu,
-                                     filename=u'{}_{}.rtf'.format(infolist.skratka, infolist.nazov_predmetu)))
+                                     filename=u'IL_PREDMETU_{}_{}.rtf'.format(infolist.skratka, infolist.nazov_predmetu)))
   else:
-    prilohy.add(8, PrilohaInfolisty([x.infolist for x in infolisty], context=context, nazov='Infolisty', filename=u'infolisty.rtf'))
+    prilohy.add(8, PrilohaInfolisty([x.infolist for x in infolisty], context=context, nazov='Infolisty', filename=u'IL_PREDMETU_vzor.rtf'))
 
   def pridaj_vpchar(typ, osoba):
     if osoba.uploadnuty_subor is not None:
