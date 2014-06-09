@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from ilsp import utils
 from ilsp.common.podmienka import Podmienka
-from ilsp.common.storage import ConditionBuilder
+from ilsp.common.storage import ConditionBuilder, dict_rec_update
 from ilsp.export import PrilohaFormularSP, PrilohaSubor
 from werkzeug.exceptions import NotFound
 
