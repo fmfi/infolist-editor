@@ -19,6 +19,7 @@ import os.path
 from werkzeug.utils import secure_filename
 from pkg_resources import resource_string
 from datetime import datetime
+import re
 
 
 class ZipBuffer(object):
@@ -274,20 +275,16 @@ class VPCharMixin(object):
   def nazov(self):
     return self.osoba.cele_meno
 
-class PrilohaVPChar(VPCharMixin, PrilohaSuborBase):
-  def __init__(self, **kwargs):
-    super(PrilohaVPChar, self).__init__(mimetype='application/rtf', **kwargs)
+class DiskVPCharMixin(VPCharMixin):
+  def __init__(self, *args, **kwargs):
+    super(DiskVPCharMixin, self).__init__(*args, **kwargs)
     if self.osoba.token:
       self._vpchar_name = 'token-{}'.format(self.osoba.token)
     elif self.osoba.login:
       self._vpchar_name = 'user-{}'.format(self.osoba.login)
     else:
       self._vpchar_name = None
-    self._modifikovane = None
-
-  @property
-  def location(self):
-    return self.context.config.vpchar_dir, self.rtfname
+    self._json_data = None
 
   @staticmethod
   def _json_object_hook(obj):
@@ -296,36 +293,50 @@ class PrilohaVPChar(VPCharMixin, PrilohaSuborBase):
     return obj
 
   @property
-  def modifikovane(self):
-    if self._modifikovane is not None:
-      return self._modifikovane
+  def json_data(self):
+    if self._json_data is not None:
+      return self._json_data
     json_filename = safe_join(self.context.config.vpchar_dir, self.jsonname)
     try:
       with open(json_filename, 'r') as f:
-        data = json.load(f, object_hook=PrilohaVPChar._json_object_hook)
-        timestamp = data.get('metadata', {}).get('updated') or data.get('metadata', {}).get('created')
-        if timestamp is None:
-          return None
-        self._modifikovane = datetime.fromtimestamp(timestamp)
-        return self._modifikovane
+        self._json_data = json.load(f, object_hook=DiskVPCharMixin._json_object_hook)
+        return self._json_data
     except IOError:
       return None
     except ValueError:
       return None
 
   @property
-  def rtfname(self):
-    return '{}.rtf'.format(self._vpchar_name)
+  def modifikovane(self):
+    if self.json_data is None:
+      return None
+
+    timestamp = self.json_data.get('metadata', {}).get('updated') or self.json_data.get('metadata', {}).get('created')
+    if timestamp is None:
+      return None
+
+    return datetime.fromtimestamp(timestamp)
 
   @property
   def jsonname(self):
     return '{}.json'.format(self._vpchar_name)
+
+  @property
+  def rtfname(self):
+    return '{}.rtf'.format(self._vpchar_name)
 
   def check_if_exists(self):
     if self._vpchar_name is None:
       return False
     return os.path.exists(safe_join(self.context.config.vpchar_dir, self.rtfname))
 
+class PrilohaVPChar(DiskVPCharMixin, PrilohaSuborBase):
+  def __init__(self, **kwargs):
+    super(PrilohaVPChar, self).__init__(mimetype='application/rtf', **kwargs)
+
+  @property
+  def location(self):
+    return self.context.config.vpchar_dir, self.rtfname
 
 class PrilohaUploadnutaVPChar(VPCharMixin, PrilohaUploadnutySubor):
   pass
@@ -565,6 +576,79 @@ class PrilohaInfolisty(Priloha):
   def mimetype(self):
     return 'application/rtf'
 
+class PrilohaVPCharakteristiky(Priloha):
+  def __init__(self, charakteristiky=None, **kwargs):
+    super(PrilohaVPCharakteristiky, self).__init__(**kwargs)
+    if charakteristiky is None:
+      self.charakteristiky = []
+    else:
+      self.charakteristiky = charakteristiky
+
+  def render(self, to_file):
+    rtf_skin = resource_string(__name__, 'templates/charakteristika-skin.rtf').split('CHARAKTERISTIKA_CORE')
+    to_file.write(rtf_skin[0])
+
+    def th(content):
+      return Cell(Paragraph(content))
+
+    def td(content):
+      return Cell(Paragraph(content))
+
+    table = Table(3000 + 6450)
+    table.AddRow(th(u'VP charakteristika'))
+    for priloha in self.charakteristiky:
+      target = 'osoba{}'.format(priloha.osoba.osoba)
+      table.AddRow(
+        td(RTFHyperlink(target, priloha.osoba.cele_meno))
+      )
+
+    with closing(StringIO()) as table_rtf:
+      r = Renderer(write_custom_element_callback=my_rtf_elements)
+      r._fout = table_rtf
+      r._CurrentStyle = r'\infolistemptystyle'
+      r.paragraph_style_map = {'' :''}
+      r.WriteTableElement(table)
+      to_file.write(table_rtf.getvalue())
+
+    for priloha in self.charakteristiky:
+      to_file.write('\n\page\n')
+      to_file.write(RTFBookmark('osoba{}'.format(priloha.osoba.osoba)).to_rtf())
+      to_file.write(PrilohaVPCharakteristiky.get_core(priloha))
+
+    to_file.write(rtf_skin[1])
+
+  @property
+  def mimetype(self):
+    return 'application/rtf'
+
+  @staticmethod
+  def get_core(priloha):
+    def strip_last_space(s):
+      if re.match(r'.*\\[a-zA-Z]+(?:-?[0-9]+)? $', s):
+        return s[:-1]
+      return s
+    def normalize_crlf(text):
+      return '\r\n'.join(strip_last_space(x) for x in text.strip().splitlines())
+    rtf_skin = normalize_crlf(resource_string(__name__, 'templates/charakteristika-skin.rtf')).split('CHARAKTERISTIKA_CORE')
+    with closing(StringIO()) as f:
+        priloha.render(f)
+        s = f.getvalue()
+    s = normalize_crlf(s)
+
+    if not s.startswith(rtf_skin[0]):
+      raise ValueError('VPChar priloha nezacina skinom')
+    if not s.endswith(rtf_skin[1]):
+      raise ValueError('VPChar priloha nekonci skinom')
+    return s[len(rtf_skin[0]):-len(rtf_skin[1])]
+
+  @staticmethod
+  def has_core(priloha):
+    try:
+      PrilohaVPCharakteristiky.get_core(priloha)
+    except ValueError:
+      return False
+    return True
+
 class PrilohaStudPlan(Priloha):
   def __init__(self, studprog_id, **kwargs):
     super(PrilohaStudPlan, self).__init__(**kwargs)
@@ -720,7 +804,7 @@ def stream_zip(entries, filename):
   response.headers['Content-Disposition'] = 'attachment; filename={}'.format(filename)
   return response
 
-def prilohy_pre_studijny_program(context, sp_id, spolocne, infolisty_samostatne=True):
+def prilohy_pre_studijny_program(context, sp_id, spolocne, infolisty_samostatne=True, charakteristiky_samostatne=True):
   prilohy = Prilohy(context)
 
   formular, formular_konverzny = g.db.load_studprog_formulare(context, sp_id)
@@ -742,20 +826,28 @@ def prilohy_pre_studijny_program(context, sp_id, spolocne, infolisty_samostatne=
   else:
     prilohy.add(8, PrilohaInfolisty([x.infolist for x in infolisty], context=context, nazov='Infolisty', filename=u'IL_PREDMETU_vzor.rtf'))
 
+  spojene_charakteristiky = {
+    1: PrilohaVPCharakteristiky(context=context, filename='VPCH_zabezpecujuci.rtf'),
+    2: PrilohaVPCharakteristiky(context=context, filename='VPCH_skolitelia.rtf')
+  }
+
   def pridaj_vpchar(typ, osoba):
     if osoba.uploadnuty_subor is not None:
       usubor = g.db.load_subor(osoba.uploadnuty_subor)
-      prilohy.add(typ, PrilohaUploadnutaVPChar(osoba=osoba, id=osoba.uploadnuty_subor,
+      priloha = PrilohaUploadnutaVPChar(osoba=osoba, id=osoba.uploadnuty_subor,
           posledna_verzia=usubor.posledna_verzia, sha256=usubor.sha256, modifikoval=usubor.modifikoval,
           modifikovane=usubor.modifikovane,predosla_verzia=usubor.predosla_verzia, studprog_id=sp_id,
-          mimetype=usubor.mimetype, context=context))
-      return
+          mimetype=usubor.mimetype, context=context)
+    else:
+      priloha = PrilohaVPChar(osoba=osoba, context=context)
+      if not priloha.check_if_exists():
+        context.add_warning_by_typ(typ, u'Chýba VPCHAR pre {}!'.format(osoba.cele_meno))
+        return
 
-    vpchar = PrilohaVPChar(osoba=osoba, context=context)
-    if not vpchar.check_if_exists():
-      context.add_warning_by_typ(typ, u'Chýba VPCHAR pre {}!'.format(osoba.cele_meno))
-      return
-    prilohy.add(typ, vpchar)
+    if charakteristiky_samostatne or not PrilohaVPCharakteristiky.has_core(priloha):
+      prilohy.add(typ, priloha)
+    else:
+      spojene_charakteristiky[typ].charakteristiky.append(priloha)
 
   for osoba in g.db.load_studprog_vpchar(sp_id, spolocne=spolocne):
     if not osoba.mame_funkciu and not (u'prof.' in osoba.cele_meno.lower() or u'doc.' in osoba.cele_meno.lower()
@@ -767,6 +859,10 @@ def prilohy_pre_studijny_program(context, sp_id, spolocne, infolisty_samostatne=
   for osoba in g.db.load_studprog_skolitelia_vpchar(sp_id):
     pridaj_vpchar(2, osoba)
 
+  for typ, priloha in spojene_charakteristiky.iteritems():
+    if len(priloha.charakteristiky) > 0:
+      prilohy.add(typ, priloha)
+
   prilohy.add(6, PrilohaStudPlan(sp_id, context=context, nazov=u'Odporúčaný študijný plán', filename='studijny_plan.rtf'))
   incl_spolocne = g.db.resolve_spolocne_bloky(sp_id, spolocne)
   if incl_spolocne:
@@ -776,19 +872,19 @@ def prilohy_pre_studijny_program(context, sp_id, spolocne, infolisty_samostatne=
   
   return prilohy
 
-def prilohy_vsetky(context, infolisty_samostatne=True):
+def prilohy_vsetky(context, **kwargs):
   root = Prilohy(context)
 
   def pridaj_normalny(studprog):
     adresar = secure_filename(u'SP_{}_{}_{}'.format(studprog['oblast_vyskumu'],stupen_studia_titul.get(studprog['stupen_studia']),
       studprog['nazov']))
-    subory = prilohy_pre_studijny_program(context, studprog['id'], spolocne='normalny', infolisty_samostatne=infolisty_samostatne)
+    subory = prilohy_pre_studijny_program(context, studprog['id'], spolocne='normalny', **kwargs)
     root.add_adresar(adresar, subory)
 
   def pridaj_konverzny(studprog):
     adresar = secure_filename(u'SP_{}_{}_{}_konverzny_program'.format(studprog['oblast_vyskumu'],stupen_studia_titul.get(studprog['stupen_studia']),
       studprog['nazov']))
-    subory = prilohy_pre_studijny_program(context, studprog['id'], spolocne='konverzny', infolisty_samostatne=infolisty_samostatne)
+    subory = prilohy_pre_studijny_program(context, studprog['id'], spolocne='konverzny', **kwargs)
     root.add_adresar(adresar, subory)
 
   for studprog in g.db.fetch_studijne_programy():
