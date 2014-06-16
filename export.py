@@ -57,6 +57,7 @@ class PrilohaContext(object):
     for row in g.db.load_typy_priloh():
       self._typy_priloh[row.id] = row
       self._warning_by_typ[row.id] = []
+    self.vpchar_core_cache = {}
 
   def studprog(self, id):
     if id not in self._studprog_cache:
@@ -614,7 +615,7 @@ class PrilohaVPCharakteristiky(Priloha):
     for priloha in self.charakteristiky:
       to_file.write('\n\page\n')
       to_file.write(RTFBookmark('osoba{}'.format(priloha.osoba.osoba)).to_rtf())
-      to_file.write(self.get_core(priloha))
+      to_file.write(self.get_core(self.context, priloha))
 
     to_file.write(rtf_skin[1])
 
@@ -623,7 +624,9 @@ class PrilohaVPCharakteristiky(Priloha):
     return 'application/rtf'
 
   @staticmethod
-  def get_core(priloha):
+  def get_core(context, priloha):
+    if priloha.osoba.osoba in context.vpchar_core_cache:
+      return context.vpchar_core_cache
     def strip_last_space(s):
       if re.match(r'.*\\[a-zA-Z]+(?:-?[0-9]+)? $', s):
         return s[:-1]
@@ -640,12 +643,14 @@ class PrilohaVPCharakteristiky(Priloha):
       raise ValueError('VPChar priloha nezacina skinom')
     if not s.endswith(rtf_skin[1]):
       raise ValueError('VPChar priloha nekonci skinom')
-    return s[len(rtf_skin[0]):-len(rtf_skin[1])]
+    val =  s[len(rtf_skin[0]):-len(rtf_skin[1])]
+    context.vpchar_core_cache[priloha.osoba.osoba] = val
+    return val
 
   @classmethod
-  def has_core(cls, priloha):
+  def has_core(cls, context, priloha):
     try:
-      cls.get_core(priloha)
+      cls.get_core(context, priloha)
     except ValueError, myrtf.Error:
       return False
     return True
@@ -671,14 +676,15 @@ class PrilohaVPCharakteristikyRTF(PrilohaVPCharakteristiky):
                           'latentstyles', 'datastore'}
 
   @staticmethod
-  def get_core(priloha):
+  def get_core(context, priloha):
+    if priloha.osoba.osoba in context.vpchar_core_cache:
+      return context.vpchar_core_cache
     with closing(StringIO()) as f:
         priloha.render(f)
         s = f.getvalue()
     doc = myrtf.parse(myrtf.tokenize(s), 'cp1250')
 
     def ignore_node(x):
-      print repr(x)
       if isinstance(x, myrtf.Group):
         destination, invisible = x.destination
         if destination is not None:
@@ -695,8 +701,8 @@ class PrilohaVPCharakteristikyRTF(PrilohaVPCharakteristiky):
 
     doc.root.content[:] = list(dropwhile(not_pard, doc.root.content))
     doc.root.content[:] = list(reversed(list(dropwhile(ignore_node, reversed(doc.root.content)))))
-    val =  b''.join(x.__bytes__() for x in myrtf.flatten(doc.root))
-    print val
+    val = b''.join(x.__bytes__() for x in myrtf.flatten(doc.root))
+    context.vpchar_core_cache[priloha.osoba.osoba] = val
     return val
 
 
@@ -896,7 +902,7 @@ def prilohy_pre_studijny_program(context, sp_id, spolocne, infolisty_samostatne=
         context.add_warning_by_typ(typ, u'Chýba VPCHAR pre {}!'.format(osoba.cele_meno))
         return
 
-    if charakteristiky_samostatne or not charakteristiky_class.has_core(priloha):
+    if charakteristiky_samostatne or not charakteristiky_class.has_core(context, priloha):
       prilohy.add(typ, priloha)
     else:
       spojene_charakteristiky[typ].charakteristiky.append(priloha)
