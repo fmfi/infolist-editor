@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from decimal import ROUND_HALF_EVEN, Decimal
-from itertools import groupby
+from itertools import groupby, dropwhile
 import json
 from rtfng.Renderer import Renderer
 from utils import filter_fakulta, filter_druh_cinnosti, filter_obdobie, filter_metoda_vyucby, \
@@ -20,6 +20,7 @@ from werkzeug.utils import secure_filename
 from pkg_resources import resource_string
 from datetime import datetime
 import re
+import rtf as myrtf
 
 
 class ZipBuffer(object):
@@ -613,7 +614,7 @@ class PrilohaVPCharakteristiky(Priloha):
     for priloha in self.charakteristiky:
       to_file.write('\n\page\n')
       to_file.write(RTFBookmark('osoba{}'.format(priloha.osoba.osoba)).to_rtf())
-      to_file.write(PrilohaVPCharakteristiky.get_core(priloha))
+      to_file.write(self.get_core(priloha))
 
     to_file.write(rtf_skin[1])
 
@@ -641,13 +642,63 @@ class PrilohaVPCharakteristiky(Priloha):
       raise ValueError('VPChar priloha nekonci skinom')
     return s[len(rtf_skin[0]):-len(rtf_skin[1])]
 
-  @staticmethod
-  def has_core(priloha):
+  @classmethod
+  def has_core(cls, priloha):
     try:
-      PrilohaVPCharakteristiky.get_core(priloha)
-    except ValueError:
+      cls.get_core(priloha)
+    except ValueError, myrtf.Error:
       return False
     return True
+
+class PrilohaVPCharakteristikyRTF(PrilohaVPCharakteristiky):
+  ignored_cwords = {'rtf', 'adeflang', 'ansi', 'ansicpg', 'adeff', 'deff', 'uc', 'stshfdbch', 'stshfloch',
+                    'stshfhich', 'stshfbi', 'deflang', 'deflangfe', 'themelang', 'themelangfe', 'themelangcs',
+                    'noqfpromote', 'paperw', 'paperh', 'margl', 'margr', 'margt', 'margb', 'gutter', 'ltrsect',
+                    'deftab', 'widowctrl', 'ftnbj', 'aenddoc', 'hyphhotz', 'trackmoves', 'trackformatting',
+                    'donotembedsysfont', 'relyonvml', 'donotembedlingdata', 'grfdocevents', 'validatexml',
+                    'showplaceholdtext', 'ignoremixedcontent', 'saveinvalidxml', 'showxmlerrors', 'noxlattoyen',
+                    'expshrtn', 'noultrlspc', 'dntblnsbdb', 'nospaceforul', 'formshade', 'horzdoc', 'dgmargin',
+                    'dghspace', 'dgvspace', 'dghorigin', 'dgvorigin', 'dghshow', 'dgvshow', 'jexpand', 'viewkind',
+                    'viewscale', 'pgbrdrhead', 'pgbrdrfoot', 'splytwnine', 'ftnlytwnine', 'htmautsp',
+                    'nolnhtadjtbl', 'useltbaln', 'alntblind', 'lytcalctblwd', 'lyttblrtgr', 'lnbrkrule',
+                    'nobrkwrptbl', 'snaptogridincell', 'allowfieldendsel', 'wrppunct', 'asianbrkrule', 'rsidroot',
+                    'newtblstyruls', 'nogrowautofit', 'usenormstyforlist', 'noindnmbrts', 'felnbrelev',
+                    'nocxsptable', 'indrlsweleven', 'noafcnsttbl', 'afelev', 'utinl', 'hwelev', 'spltpgpar',
+                    'notcvasp', 'notbrkcnstfrctbl', 'notvatxbx', 'krnprsnet', 'cachedcolbal', 'nouicompat', 'fet'}
+  ignored_destinations = {'fonttbl', 'colortbl', 'defchp', 'defpap', 'stylesheet', 'listtable', 'listoverridetable',
+                          'rsidtbl', 'mmathPr', 'info', 'xmlnstbl', 'themedata', 'header', 'headerl', 'headerr',
+                          'headerf', 'footer', 'footerl', 'footerr', 'footerf', 'themedata', 'colorschememapping',
+                          'latentstyles', 'datastore'}
+
+  @staticmethod
+  def get_core(priloha):
+    with closing(StringIO()) as f:
+        priloha.render(f)
+        s = f.getvalue()
+    doc = myrtf.parse(myrtf.tokenize(s), 'cp1250')
+
+    def ignore_node(x):
+      print repr(x)
+      if isinstance(x, myrtf.Group):
+        destination, invisible = x.destination
+        if destination is not None:
+          return destination.token.word in PrilohaVPCharakteristikyRTF.ignored_destinations
+      elif isinstance(x, myrtf.TokenNode) and isinstance(x.token, myrtf.ControlWord):
+        return x.token.word in PrilohaVPCharakteristikyRTF.ignored_cwords
+      elif isinstance(x, myrtf.TokenNode) and isinstance(x.token, myrtf.Separator):
+        return True
+      return False
+
+    def not_pard(x):
+      pard = isinstance(x, myrtf.TokenNode) and isinstance(x.token, myrtf.ControlWord) and x.token.word == 'pard'
+      return not pard
+
+    doc.root.content[:] = list(dropwhile(not_pard, doc.root.content))
+    doc.root.content[:] = list(reversed(list(dropwhile(ignore_node, reversed(doc.root.content)))))
+    val =  b''.join(x.__bytes__() for x in myrtf.flatten(doc.root))
+    print val
+    return val
+
 
 class PrilohaStudPlan(Priloha):
   def __init__(self, studprog_id, **kwargs):
@@ -804,7 +855,8 @@ def stream_zip(entries, filename):
   response.headers['Content-Disposition'] = 'attachment; filename={}'.format(filename)
   return response
 
-def prilohy_pre_studijny_program(context, sp_id, spolocne, infolisty_samostatne=True, charakteristiky_samostatne=True):
+def prilohy_pre_studijny_program(context, sp_id, spolocne, infolisty_samostatne=True, charakteristiky_samostatne=True,
+                                 charakteristiky_class=PrilohaVPCharakteristiky):
   prilohy = Prilohy(context)
 
   formular, formular_konverzny = g.db.load_studprog_formulare(context, sp_id)
@@ -827,8 +879,8 @@ def prilohy_pre_studijny_program(context, sp_id, spolocne, infolisty_samostatne=
     prilohy.add(8, PrilohaInfolisty([x.infolist for x in infolisty], context=context, nazov='Infolisty', filename=u'IL_PREDMETU_vzor.rtf'))
 
   spojene_charakteristiky = {
-    1: PrilohaVPCharakteristiky(context=context, filename='VPCH_zabezpecujuci.rtf'),
-    2: PrilohaVPCharakteristiky(context=context, filename='VPCH_skolitelia.rtf')
+    1: charakteristiky_class(context=context, filename='VPCH_zabezpecujuci.rtf'),
+    2: charakteristiky_class(context=context, filename='VPCH_skolitelia.rtf')
   }
 
   def pridaj_vpchar(typ, osoba):
@@ -844,7 +896,7 @@ def prilohy_pre_studijny_program(context, sp_id, spolocne, infolisty_samostatne=
         context.add_warning_by_typ(typ, u'Chýba VPCHAR pre {}!'.format(osoba.cele_meno))
         return
 
-    if charakteristiky_samostatne or not PrilohaVPCharakteristiky.has_core(priloha):
+    if charakteristiky_samostatne or not charakteristiky_class.has_core(priloha):
       prilohy.add(typ, priloha)
     else:
       spojene_charakteristiky[typ].charakteristiky.append(priloha)

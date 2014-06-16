@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from export import PrilohaVPCharakteristiky
 
 from flask import Flask
 app = Flask(__name__)
@@ -789,8 +790,16 @@ def export_vsetkych_sp():
 
   infolisty_samostatne = get_checkbox('infolisty_samostatne')
   charakteristiky_samostatne = get_checkbox('charakteristiky_samostatne')
+  charakteristiky_rtfmerge = get_checkbox('charakteristiky_rtfmerge')
 
-  prilohy = export.prilohy_vsetky(export.PrilohaContext(config), infolisty_samostatne=infolisty_samostatne, charakteristiky_samostatne=charakteristiky_samostatne)
+  if charakteristiky_rtfmerge:
+    charakteristiky_class = export.PrilohaVPCharakteristikyRTF
+  else:
+    charakteristiky_class = export.PrilohaVPCharakteristiky
+
+  prilohy = export.prilohy_vsetky(export.PrilohaContext(config), infolisty_samostatne=infolisty_samostatne,
+                                  charakteristiky_samostatne=charakteristiky_samostatne,
+                                  charakteristiky_class=charakteristiky_class)
 
   return prilohy.send_zip('vsetky-sp.zip')
 
