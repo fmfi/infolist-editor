@@ -21,6 +21,7 @@ from pkg_resources import resource_string
 from datetime import datetime
 import re
 import rtf as myrtf
+from weakref import WeakValueDictionary
 
 
 class ZipBuffer(object):
@@ -47,6 +48,10 @@ class ZipBuffer(object):
         self.data = []
         return result
 
+class cacheobj(object):
+  def __init__(self, o):
+    self.object = o
+
 class PrilohaContext(object):
   def __init__(self, config):
     self.config = config
@@ -57,7 +62,7 @@ class PrilohaContext(object):
     for row in g.db.load_typy_priloh():
       self._typy_priloh[row.id] = row
       self._warning_by_typ[row.id] = []
-    self.vpchar_core_cache = {}
+    self.vpchar_core_cache = WeakValueDictionary()
 
   def studprog(self, id):
     if id not in self._studprog_cache:
@@ -625,8 +630,10 @@ class PrilohaVPCharakteristiky(Priloha):
 
   @staticmethod
   def get_core(context, priloha):
-    if priloha.osoba.osoba in context.vpchar_core_cache:
-      return context.vpchar_core_cache
+    try:
+      return context.vpchar_core_cache[priloha.osoba.osoba].object
+    except KeyError:
+      pass
     def strip_last_space(s):
       if re.match(r'.*\\[a-zA-Z]+(?:-?[0-9]+)? $', s):
         return s[:-1]
@@ -643,8 +650,8 @@ class PrilohaVPCharakteristiky(Priloha):
       raise ValueError('VPChar priloha nezacina skinom')
     if not s.endswith(rtf_skin[1]):
       raise ValueError('VPChar priloha nekonci skinom')
-    val =  s[len(rtf_skin[0]):-len(rtf_skin[1])]
-    context.vpchar_core_cache[priloha.osoba.osoba] = val
+    val = s[len(rtf_skin[0]):-len(rtf_skin[1])]
+    context.vpchar_core_cache[priloha.osoba.osoba] = cacheobj(val)
     return val
 
   @classmethod
@@ -677,8 +684,10 @@ class PrilohaVPCharakteristikyRTF(PrilohaVPCharakteristiky):
 
   @staticmethod
   def get_core(context, priloha):
-    if priloha.osoba.osoba in context.vpchar_core_cache:
-      return context.vpchar_core_cache
+    try:
+      return context.vpchar_core_cache[priloha.osoba.osoba].object
+    except KeyError:
+      pass
     with closing(StringIO()) as f:
         priloha.render(f)
         s = f.getvalue()
@@ -702,7 +711,7 @@ class PrilohaVPCharakteristikyRTF(PrilohaVPCharakteristiky):
     doc.root.content[:] = list(dropwhile(not_pard, doc.root.content))
     doc.root.content[:] = list(reversed(list(dropwhile(ignore_node, reversed(doc.root.content)))))
     val = b''.join(x.__bytes__() for x in myrtf.flatten(doc.root))
-    context.vpchar_core_cache[priloha.osoba.osoba] = val
+    context.vpchar_core_cache[priloha.osoba.osoba] = cacheobj(val)
     return val
 
 
