@@ -7,7 +7,7 @@ import ilsp.common.auth as auth
 from ilsp.commands import register_commands
 from ilsp.common.filters import register_filters
 from ilsp.common.proxies import db, register_proxies
-from flask import Flask
+from flask import Flask, request
 from flask.ext.script import Manager
 from flask import render_template, url_for, redirect, abort
 from flask import Request, g
@@ -112,19 +112,21 @@ def exporty():
     abort(401)
   return render_template('exporty.html')
 
-@app.route('/exporty/vsetky-sp.zip', defaults={'infolisty_samostatne': True})
-@app.route('/exporty/vsetky-sp-spojene-infolisty.zip', defaults={'infolisty_samostatne': False})
+@app.route('/exporty/vsetky-sp.zip')
 @restrict()
-def export_vsetkych_sp(infolisty_samostatne):
+def export_vsetkych_sp():
   if not g.user.vidi_exporty():
     abort(401)
 
-  prilohy = export.prilohy_vsetky(export.PrilohaContext(), infolisty_samostatne=infolisty_samostatne)
+  def get_checkbox(name):
+    return name in request.args and request.args.get(name) == 'true'
 
-  if infolisty_samostatne:
-    return prilohy.send_zip('vsetky-sp.zip')
-  else:
-    return prilohy.send_zip('vsetky-sp-spojene-infolisty.zip')
+  infolisty_samostatne = get_checkbox('infolisty_samostatne')
+  charakteristiky_samostatne = get_checkbox('charakteristiky_samostatne')
+
+  prilohy = export.prilohy_vsetky(export.PrilohaContext(), infolisty_samostatne=infolisty_samostatne, charakteristiky_samostatne=charakteristiky_samostatne)
+
+  return prilohy.send_zip('vsetky-sp.zip')
 
 @app.route('/pouzivatelia')
 @restrict()
