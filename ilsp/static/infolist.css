@@ -125,6 +125,15 @@
 .infolist-readonly .polozka{
   padding-left: 1em;
   padding-right: 1em;
+  overflow: hidden;
+}
+
+.infolist-readonly .polozka label {
+    margin-bottom: 0;
+}
+
+.infolist-readonly .polozka :last-child {
+    margin-bottom: 0;
 }
 
 .studprog-readonly .polozka {
