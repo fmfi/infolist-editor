@@ -209,7 +209,8 @@ def priloha_stiahni_zip(id, spolocne):
   if not g.user.vidi_dokumenty_sp():
     abort(403)
 
-  prilohy = export.prilohy_pre_studijny_program(export.PrilohaContext(), id, spolocne)
+  prilohy = export.prilohy_pre_studijny_program(export.PrilohaContext(), id, spolocne,
+                                                infolisty_samostatne=False, charakteristiky_samostatne=False)
   
   return prilohy.send_zip()
 
