@@ -203,7 +203,7 @@ def Infolist(infolist):
   for lang in current_app.config['LANGUAGES']:
     kwargs = {}
     if lang != current_app.config['DEFAULT_LANG']:
-      kwargs['missing'] = colander.null
+      kwargs['missing'] = u''
     schema.add(SchemaNode(String(),
       name='nazov_predmetu__{}'.format(lang),
       title=u'Názov predmetu ({})'.format(lang),

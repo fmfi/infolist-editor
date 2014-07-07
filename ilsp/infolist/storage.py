@@ -244,6 +244,7 @@ class InfolistDataStoreMixin(object):
       FROM infolist_verzia_preklad
       WHERE infolist_verzia = %s AND jazyk_prekladu IN ({})'''.format(', '.join(['%s']*len(lang))),
       [id] + lang)
+    done_lang = set()
     for data in cur:
       dict_rec_update(trans, to_lang({
         'nazov_predmetu': data.nazov_predmetu,
@@ -255,6 +256,19 @@ class InfolistDataStoreMixin(object):
         'vysledky_vzdelavania': data.vysledky_vzdelavania,
         'strucna_osnova': data.strucna_osnova,
       }, data.jazyk_prekladu))
+      done_lang.add(data.jazyk_prekladu)
+    for chybajuci_jazyk in (jazyk for jazyk in lang if jazyk not in done_lang):
+      dict_rec_update(trans, to_lang({
+        'nazov_predmetu': u'',
+        'podm_absolvovania': {
+          'skuska': None,
+          'priebezne': None,
+          'nahrada': None,
+        },
+        'vysledky_vzdelavania': None,
+        'strucna_osnova': None,
+      }, chybajuci_jazyk))
+      done_lang.add(data.jazyk_prekladu)
     return trans
 
   def save_infolist(self, id, data, user=None, system_update=False):
