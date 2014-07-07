@@ -744,18 +744,22 @@ class Prilohy(object):
   def __iter__(self):
     for entry in self.entries:
       yield entry
+
+  def render_entries(self):
+    output_entries = set()
+    for filename, typ, subor in self.entries:
+      if filename in output_entries:
+        continue
+      output_entries.add(filename)
+      with closing(StringIO()) as f:
+        subor.render(f)
+        yield filename, f.getvalue()
   
   def send_zip(self, attachment_filename='vsetky.zip'):
-    def entries():
-      output_entries = set()
-      for filename, typ, subor in self.entries:
-        if filename in output_entries:
-          continue
-        output_entries.add(filename)
-        with closing(StringIO()) as f:
-          subor.render(f)
-          yield filename, f.getvalue()
-    return stream_zip(entries(), attachment_filename)
+    return stream_zip(self.render_entries(), attachment_filename)
+
+  def save_zip(self, f):
+    return save_zip(self.render_entries(), f)
 
 def stream_zip(entries, filename):
   """inspired by http://stackoverflow.com/a/9829044"""
@@ -775,6 +779,12 @@ def stream_zip(entries, filename):
   response = Response(stream_with_context(chunks()), mimetype='application/zip')
   response.headers['Content-Disposition'] = 'attachment; filename={}'.format(filename)
   return response
+
+def save_zip(entries, f):
+  archive = zipfile.ZipFile(f, "w", compression=zipfile.ZIP_DEFLATED)
+  for entry, data in entries:
+    archive.writestr(entry, data)
+  archive.close()
 
 def prilohy_pre_studijny_program(context, sp_id, spolocne, infolisty_samostatne=True, charakteristiky_samostatne=True):
   prilohy = Prilohy(context)

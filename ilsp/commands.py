@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 import json
 import sys
+from ilsp import export
 
 from ilsp.export import PrilohaVPChar
 from ilsp.storage import DataStore
 import re
-from flask import current_app
+from flask import current_app, g
 import os
 from ilsp.common.podmienka import Podmienka, RawPodmienka
 from ilsp.common.proxies import db
@@ -218,6 +219,23 @@ class RunCherry(Command):
     except KeyboardInterrupt:
         server.stop()
 
+class Export(Command):
+  """Vyexportuje data o studijnych programoch do ZIP archivu"""
+
+  option_list = (
+    Option('--infolisty-samostatne', dest='infolisty_samostatne', action='store_true'),
+    Option('--infolisty-spolu', dest='infolisty_samostatne', action='store_false'),
+    Option('--charakteristiky-samostatne', dest='charakteristiky_samostatne', action='store_true'),
+    Option('--charakteristiky-spolu', dest='charakteristiky_samostatne', action='store_false'),
+    Option('filename', help='Destination zip file name (will be overwritten)')
+  )
+
+  def run(self, filename, infolisty_samostatne, charakteristiky_samostatne):
+    g.db = DataStore(db)
+    with open(filename, 'wb') as f:
+      prilohy = export.prilohy_vsetky(export.PrilohaContext(), infolisty_samostatne=infolisty_samostatne, charakteristiky_samostatne=charakteristiky_samostatne)
+      prilohy.save_zip(f)
+
 def register_commands(manager):
   manager.add_command('nahrad-podmienku', NahradPodmienkuCommand())
   manager.add_command('nahrad-predmet', NahradPredmetCommand())
@@ -225,3 +243,4 @@ def register_commands(manager):
   manager.add_command('skontroluj-podmienky', SkontrolujPodmienkyCommand())
   manager.add_command('skontroluj-tituly', SkontrolujTitulyCommand())
   manager.add_command('runcherry', RunCherry())
+  manager.add_command('export', Export())
