@@ -15,15 +15,189 @@ Táto aplikácia umožňuje editovať informačné listy a študijné programy.
 V tejto sekcii je popísaná inštalácia na Ubuntu 14.04 LTS, na iných systémoch sa aplikácia
 inštaluje obdobne.
 
-    sudo apt-get install python-dev libpq-dev
-    virtualenv venv
-    source venv/bin/activate
-    pip install -r requirements.txt
-    pip install --upgrade git+https://github.com/fmfi/python-rtfng.git
+### Zdrojové kódy aplikácie
 
-    mkdir instance
-    cp local_settings.py.example instance/local_settings.py
-    # upravit instance/local_settings.py
+Aplikáciu naklonujeme do `/var/www-apps/ilsp` pod používateľom `ka`.
+Najprv vytvorme systémového používateľa, ak neexistuje:
+
+```bash
+sudo adduser --system --group ka
+```
+
+Potom vytvorme adresár pre aplikáciu a nahrajme doň zdrojové kódy:
+
+```
+sudo mkdir -p /var/www-apps/ilsp
+sudo chown ka:ka /var/www-apps/ilsp
+cd /var/www-apps/ilsp
+```
+
+Ak zatiaľ nemáme nainštalovaný git, nainštalujme ho príkazom:
+
+```
+sudo apt-get install git
+```
+
+A stiahnime zdrojové kódy (všimnite si bodku na konci príkazu):
+
+```
+sudo -u ka -H git clone https://github.com/fmfi/infolist-editor.git .
+```
+
+### Príprava databázy
+
+Ak ešte nemáme v systéme nainštalovaný PostgreSQL server, spravme tak teraz:
+
+```bash
+sudo apt-get install postgresql postgresql-contrib
+```
+
+Prihlásme sa ako DBA do postgresu:
+
+```bash
+sudo -u postgres psql
+```
+
+Vytvorme databázového používateľa a databázu pre aplikáciu
+(namiesto hesla `changeit` chceme vygenerovať nejaké náhodné napríklad
+pomocou `pwgen -s 64`):
+
+```sql
+CREATE USER ka WITH PASSWORD 'changeit';
+CREATE DATABASE akreditacia WITH OWNER ka;
+```
+
+Vytvorme databázovú extension `unaccent`, to musíme spraviť v správnej databáze,
+prepnime sa a vytvorme extension:
+
+```
+\connect akreditacia
+CREATE EXTENSION unaccent;
+```
+
+Teraz sa odhlásme z psql (napríklad stlačením `Ctrl+D` alebo príkazom `\q`).
+
+Dáta aplikácie musíme nahrať pod vlastníkom databázy:
+
+```bash
+cd /var/www-apps/ilsp
+sudo -u ka psql akreditacia <db-schema.sql
+```
+
+### Inštalácia závislostí aplikácie
+
+Aplikácia má nejaké systémové a nejaké python závislosti, nainštalujme najprv
+tie systémové:
+
+```bash
+sudo apt-get install build-essential python-dev libpq-dev python-virtualenv libxml2-dev libxslt-dev zlib1g-dev
+```
+
+Prihlásme sa do shellu ako používateľ `ka`:
+
+```bash
+sudo -u ka -H -s
+```
+
+A ako tento používateľ vytvorme virtualenv a nainštalujme doň python závislosti:
+
+```bash
+cd /var/www-apps/ilsp
+virtualenv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+Opustime shell použivateľa `ka`:
+
+```bash
+exit
+```
+
+### Konfigurácia aplikácie
+
+Vytvorme adresár pre upload súborov
+
+```bash
+sudo -u ka -H mkdir /home/ka/ilsp-files
+sudo chmod go= /home/ka/ilsp-files
+```
+
+Skopírujme príklad konfiguračného súboru na správne miesto:
+
+```bash
+cd /var/www-apps/ilsp
+sudo -u ka -H mkdir instance
+sudo -u ka -H cp local_settings.py.example instance/local_settings.py
+sudo -u ka -H chmod go= instance/local_settings.py
+sudoedit -u ka instance/local_settings.py
+```
+
+Konfiguračný súbor je spustiteľný python kód skladá sa z nasledovných častí:
+
+#### Tajný kľúč
+
+```python
+SECRET_KEY = 'change this!' # tajny sifrovaci kluc
+```
+
+`SECRET_KEY` musí byť náhodný tajný reťazec, najlepšie je vygenerovať ho automaticky:
+
+```bash
+python -c 'import os; print repr(os.urandom(32))'
+```
+
+toto vypíše pythonový string literál, ktorý sa dá použiť ako tajný kľúč.
+
+#### Databáza
+
+```python
+DATABASE = 'host=localhost dbname=akreditacia user=ka password=changeit'
+```
+
+`DATABASE` je spojenie na postgresql databázu, tak ako ho používa psycopg2
+databázový modul
+
+#### Adresár pre uploady
+
+```python
+FILES_DIR = '/home/ka/ilsp-files'
+```
+
+Sem bude aplikácia nahrávať súbory uploadnuté používateľmi.
+
+#### Adresár s vedecko-pedagogickými charakteristikami
+
+```python
+VPCHAR_DIR = '/home/ka/vpchar-files'
+```
+
+Editor infolistov načítava vedecko-predagogické charakteristiky vytvorené samostatnou
+aplikáciou na vytváranie charakteristík - https://github.com/fmfi/akreditacia-charakteristika
+
+Charakteristiky sú načítavané z JSON a RTF súborov (oba musia byť prítomné).
+
+#### E-mailové posielanie hlásení o chybách
+
+```python
+ADMIN_EMAILS = ['email@example.com']
+SMTP_SERVER = 'smtp.example.com'
+EMAIL_FROM = 'ilsp@example.com'
+```
+
+- `ADMIN_EMAILS` je zoznam adries na ktoré sa hlásenia majú posielať
+- `SMTP_SERVER` je adresa SMTP servera, cez ktorý sa posiela (bez autentifikácie)
+- `EMAIL_FROM` je adresa odosielateľa e-mailov
+
+#### Nastavenie jazykov obsahu
+
+```python
+LANGUAGES = ['sk', 'en']
+DEFAULT_LANG = 'sk'
+```
+
+Nastavenie pre aké jazyky sa v databáze editujú údaje. Je možné uviesť zoznam viacerých
+jazykov, pričom `sk` je v aktuálnej verzii potrebné ponechať.
 
 ## Štruktúra projektu
 
