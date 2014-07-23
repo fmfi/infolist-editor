@@ -70,7 +70,7 @@ CREATE DATABASE akreditacia WITH OWNER ka;
 Vytvorme databázovú extension `unaccent`, to musíme spraviť v správnej databáze,
 prepnime sa a vytvorme extension:
 
-```
+```sql
 \connect akreditacia
 CREATE EXTENSION unaccent;
 ```
