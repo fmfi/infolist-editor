@@ -614,7 +614,7 @@ CREATE TABLE ilsp_opravnenia (
   osoba integer not null references osoba(id),
   organizacna_jednotka varchar(100) not null references organizacna_jednotka(kod),
   je_admin boolean not null default false,
-  je_garant boolean not null default false
+  je_garant boolean not null default false,
   primary key (osoba, organizacna_jednotka)
 );
 
