@@ -823,6 +823,17 @@ CREATE TABLE studprog_verzia_modifikovali (
   primary key (studprog_verzia, osoba)
 );
 
+CREATE TABLE subor_verzia (
+  id serial not null primary key,
+  predosla_verzia integer references subor_verzia(id),
+  modifikovane timestamp not null default now(),
+  modifikoval integer references osoba(id),
+  sha256 char(64) not null,
+  nazov varchar(150) not null,
+  filename varchar(100) not null,
+  mimetype varchar(100)
+);
+
 CREATE TABLE subor (
   id serial not null primary key,
   posledna_verzia integer references subor_verzia(id)
@@ -845,17 +856,6 @@ CREATE TABLE studprog (
 
 COMMENT ON COLUMN studprog.spolocne_bloky IS 'Ucitelske predmety maju spolocne bloky, chceme, aby sa vyklikavali len raz, takze ich umoznime includnut do vypoctov (pouzije sa, ak sa nerobi vystup pre konverzny program)';
 COMMENT ON COLUMN studprog.spolocne_bloky_konverzny IS 'Ucitelske predmety maju spolocne bloky, chceme, aby sa vyklikavali len raz, takze ich umoznime includnut do vypoctov (pouzije sa, ak sa robi vystup pre konverzny program)';
-
-CREATE TABLE subor_verzia (
-  id serial not null primary key,
-  predosla_verzia integer references subor_verzia(id),
-  modifikovane timestamp not null default now(),
-  modifikoval integer references osoba(id),
-  sha256 char(64) not null,
-  nazov varchar(150) not null,
-  filename varchar(100) not null,
-  mimetype varchar(100)
-);
 
 CREATE TABLE studprog_priloha_typ (
   id integer not null primary key,
