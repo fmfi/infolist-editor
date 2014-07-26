@@ -199,6 +199,21 @@ DEFAULT_LANG = 'sk'
 Nastavenie pre aké jazyky sa v databáze editujú údaje. Je možné uviesť zoznam viacerých
 jazykov, pričom `sk` je v aktuálnej verzii potrebné ponechať.
 
+### Import dát
+
+#### Vývojové dáta
+
+Na lokálny vývoj a testovanie sa dá použiť `db-fixtures.sql`:
+
+```bash
+cd /var/www-apps/ilsp
+sudo -u ka psql akreditacia <db-fixtures.sql
+```
+
+#### Produkčné dáta
+
+TODO
+
 ## Štruktúra projektu
 
 Aplikácia používa Flask mikroframework ako základ a je rozdelená do viacerých modulov (blueprintov).
@@ -206,8 +221,9 @@ Aplikácia používa Flask mikroframework ako základ a je rozdelená do viacer�
 Štruktúra projektu sa delí nasledovne:
 
     /
-      ilsp.app.py - spustiteľný súbor, zároveň exporuje WSGI aplikáciu
+      ilsp_app.py - spustiteľný súbor, zároveň exporuje WSGI aplikáciu
       db-schema.sql - skript na vytvorenie schémy DB v PostgreSQL
+      db-fixtures.sql - skript na vloženie dát pre vývoj
       drop.sql - skript na zmazanie tabuliek z PostgreSQL
       local_settings.py.example - príklad nastavení
       requirements.txt - súbor obsahujúci zoznam Python závislostí a ich verzií (pre pip)
