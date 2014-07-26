@@ -212,7 +212,7 @@ TODO
 ### Konfigurácia Apache2
 
 Prepokladáme, že máme nainštalovaný [Apache2 spolu s mod_cosign a rozbehaným SSL-kom](https://cit.uniba.sk/wiki/public/jas/cosign).
-Návod na skompilovanie cosign modulu je v [repozitári cosignu](https://github.com/cosignweblogin/cosign/)
+Návod na skompilovanie cosign modulu je v [repozitári cosignu](https://github.com/cosignweblogin/cosign/).
 
 > Poznámka: Cosign s Apachom 2.4 som netestoval, ale
 > [podľa všetkého](https://www.mail-archive.com/cosign-discuss@lists.sourceforge.net/msg01083.html)
