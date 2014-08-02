@@ -268,22 +268,24 @@ class ImportOsoby(Command):
         ais_id = normalize_val(line['ID'])
         meno = normalize_val(line['Meno'])
         priezvisko = normalize_val(line['Priezvisko'])
-        plne_meno = normalize_val(line[u'Plné meno'])
+        plne_meno = normalize_optional(line, u'Plné meno')
         login = normalize_optional(line, 'Login')
         rodne_priezvisko = normalize_optional(line, u'Rodné', u'Pôvodné')
-        karty = normalize_val(line['Karty'])
-        if karty == None:
-          karty = []
-        else:
-          karty = [x.split(' - ') for x in karty.split(', ')]
-        uoc = None
-        for x in karty:
-          if len(x) != 2:
-            print x
-            continue
-          typ, ident = x
-          if typ == 'UOC':
-            uoc = ident
+        uoc = normalize_optional(line, u'UOČ')
+        if uoc is None:
+          karty = normalize_val(line['Karty'])
+          if karty == None:
+            karty = []
+          else:
+            karty = [x.split(' - ') for x in karty.split(', ')]
+
+          for x in karty:
+            if len(x) != 2:
+              print x
+              continue
+            typ, ident = x
+            if typ == 'UOC':
+              uoc = ident
 
         #print ais_id, uoc, meno, priezvisko, plne_meno, rodne_priezvisko
         cursor.execute('SELECT 1 FROM osoba WHERE ais_id = %s', (ais_id,))

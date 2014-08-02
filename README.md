@@ -208,20 +208,23 @@ Treba naplniť tabuľku `osoba` zoznamom osôb, s ktorými má aplikácia pracov
 Je možné naimportovať csv súbor nasledovného tvaru:
 
 ```csv
-Plné meno,ID,Meno,Priezvisko,Rodné,Karty,Login
-"doc. Ing. Jana Hrašková, CSc.",1234567,Jana,Hrašková,Mrkvičková,"UOC - 12345678, PIK - 13245678901234567",hraskova47
+Plné meno,ID,Meno,Priezvisko,Rodné,Karty,Login,UOČ
+"doc. Ing. Jana Hrašková, CSc.",1234567,Jana,Hrašková,Mrkvičková,"UOC - 12345678, PIK - 13245678901234567",hraskova47,12345678
 ```
 
-* Stĺpce `Rodné` a `Login` sú nepovinné.
-* Stĺpec `Rodné` sa môže volať aj `Pôvodné`.
+* Na poradí stĺpcov nezáleží
+* Stĺpce `Plné meno`, `Rodné`, `Login`, `UOČ` a `Karty` sú nepovinné.
+* Výrazne odporúčam naimportovať okrem AIS ID aj UOČ
+* Ak sa UOČ nenájde v stĺpci UOČ (alebo stĺpec neexistuje, berie sa zo stĺpca s kartami)
 * PIK-y sa nepoužívajú, iba UOC.
+* Stĺpec `Rodné` sa môže volať aj `Pôvodné`.
 * `ID` je z AIS-u
-* položky s existujúcim AISovým ID sa ignorujú
+* položky s AISovým ID, ktoré už existuje v cieľovej databáze sa ignorujú
 * id v databáze ILSP sa vyrobí automaticky
 * import ako celok sa nevykoná (resp. spadne a necommitne sa transakcia) ak by sa vkladalo duplicitné UOČ alebo login
 
 ```bash
-./ilsp_app.py import-osoby True </cesta/k/suboru.csv
+./ilsp_app.py import-osoby </cesta/k/suboru.csv
 ```
 
 > Poznámka: Naimportované osoby sa budú dať vybrať pri výbere
