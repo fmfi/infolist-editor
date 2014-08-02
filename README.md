@@ -199,6 +199,25 @@ DEFAULT_LANG = 'sk'
 Nastavenie pre aké jazyky sa v databáze editujú údaje. Je možné uviesť zoznam viacerých
 jazykov, pričom `sk` je v aktuálnej verzii potrebné ponechať.
 
+### Spúšťanie príkazov
+
+Aplikácia obsahuje príkazy spúštané z príkazového riadka, no tieto musia byť
+spúšťané ako vlastník aplikácie (v našom príklade používateľ `ka`) a s aktívnym
+virtuálnym prostredím pythonu. Prostredie teda aktivujeme príkazmi:
+
+```bash
+sudo -u ka -H -s
+# Zmení sa shell na používateľa ka
+cd /var/www-apps/ilsp
+source venv/bin/activate
+```
+
+Potom už môžeme spúšťať príkazy aplikácie, napríklad:
+
+```bash
+./ilsp_app.py --help
+```
+
 ### Import dát
 
 #### Osoby
