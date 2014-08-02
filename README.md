@@ -365,6 +365,10 @@ BIBID,Signatúra,Dokument,Vyd. údaje
 ./ilsp_app.py import-literatura-kniznica </cesta/k/suboru.csv
 ```
 
+#### Informačné listy z AIS-u
+
+Viď dokumentáciu k projektu [infolist-import](https://github.com/fmfi/infolist-import).
+
 ### Export dát
 
 Aktuálne vie aplikácia exportovať údaje vo formáte pre akreditačnú komisiu, ako zip archív:
@@ -386,6 +390,12 @@ Na lokálny vývoj a testovanie sa dá použiť `db-fixtures.sql`:
 ```bash
 cd /var/www-apps/ilsp
 sudo -u ka psql akreditacia <db-fixtures.sql
+```
+
+### Spsutenie aplikácie pre vývojára
+
+```bash
+INFOLIST_DEBUG=1 REMOTE_USER=hrasko47 ./ilsp_app.py runserver
 ```
 
 ### Štruktúra projektu
