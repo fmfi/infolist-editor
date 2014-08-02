@@ -212,16 +212,17 @@ Plné meno,ID,Meno,Priezvisko,Rodné,Karty,Login,UOČ
 "doc. Ing. Jana Hrašková, CSc.",1234567,Jana,Hrašková,Mrkvičková,"UOC - 12345678, PIK - 13245678901234567",hraskova47,12345678
 ```
 
-* Na poradí stĺpcov nezáleží
+* Na poradí stĺpcov nezáleží.
+* Stĺpce navyše nevadia.
 * Stĺpce `Plné meno`, `Rodné`, `Login`, `UOČ` a `Karty` sú nepovinné.
-* Výrazne odporúčam naimportovať okrem AIS ID aj UOČ
-* Ak sa UOČ nenájde v stĺpci UOČ (alebo stĺpec neexistuje, berie sa zo stĺpca s kartami)
+* Výrazne odporúčam naimportovať okrem AIS ID aj UOČ.
+* Ak sa UOČ nenájde v stĺpci UOČ (alebo stĺpec neexistuje, berie sa zo stĺpca s kartami).
 * PIK-y sa nepoužívajú, iba UOC.
 * Stĺpec `Rodné` sa môže volať aj `Pôvodné`.
-* `ID` je z AIS-u
-* položky s AISovým ID, ktoré už existuje v cieľovej databáze sa ignorujú
-* id v databáze ILSP sa vyrobí automaticky
-* import ako celok sa nevykoná (resp. spadne a necommitne sa transakcia) ak by sa vkladalo duplicitné UOČ alebo login
+* `ID` je z AIS-u.
+* položky s AISovým ID, ktoré už existuje v cieľovej databáze sa ignorujú.
+* id v databáze ILSP sa vyrobí automaticky.
+* import ako celok sa nevykoná (resp. spadne a necommitne sa transakcia) ak by sa vkladalo duplicitné UOČ alebo login.
 
 ```bash
 ./ilsp_app.py import-osoby </cesta/k/suboru.csv
@@ -231,6 +232,25 @@ Plné meno,ID,Meno,Priezvisko,Rodné,Karty,Login,UOČ
 > vyučujúceho predmetu a pod. Ak ich nechceme označiť ako vyučujúcich,
 > môžeme použiť prepínač `--nie-su-vyucujuci`
 
+#### Úväzky
+
+Treba naplniť tabuľku `osoba_uvazok` informáciami o pracovných úväzkoch osôb.
+
+Je možné naimportovať csv súbor v kódovaní UTF-8, ktorý je nasledovného tvaru:
+
+```csv
+Pracovisko,Priezvisko,Meno,Funkcia,Kvalifikácia,Prac .úv.,UOČ,ID osoby AIS
+KJFBF,Hraško,Janko,1H,21,100,123456,12345678
+```
+
+* Na poradí stĺpcov nezáleží.
+* Stĺpce navyše nevadia.
+* Stĺpce Meno a Priezvisko sú nepovinné a používajú sa len pri výpise chýb
+* Osoby sa identifikujú podľa UOČ alebo ID osoby z AISu (stačí vyplniť len jednu položku, UOČ má prednosť)
+
+```bash
+./ilsp_app.py import-osoby-uvazky </cesta/k/suboru.csv
+```
 
 #### Literatúra
 

@@ -296,6 +296,32 @@ class ImportOsoby(Command):
 
     db.commit()
 
+class ImportOsobyUvazky(Command):
+  def run(self):
+    csv = unicodecsv.DictReader(sys.stdin, encoding='UTF-8')
+    with closing(db.cursor()) as cursor:
+      for line in csv:
+        meno = normalize_optional(line, 'Meno')
+        priezvisko = normalize_optional(line, 'Priezvisko')
+        pracovisko = normalize_optional(line, 'Pracovisko')
+        funkcia = normalize_optional(line, 'Funkcia')
+        kvalifikacia = normalize_optional(line, u'Kvalifikácia')
+        uvazok = normalize_optional(line, u'Prac .úv.')
+        uoc = normalize_optional(line, u'UOČ')
+        ais_id = normalize_optional(line, 'ID', u'ID osoby AIS')
+
+        if uoc is not None:
+          cursor.execute('''INSERT INTO osoba_uvazok (osoba, pracovisko, funkcia, kvalifikacia, uvazok)
+            SELECT o.id, %s, %s, %s, %s FROM osoba o WHERE o.uoc = %s
+            ''', (pracovisko, funkcia, kvalifikacia, uvazok, uoc))
+        elif ais_id is not None:
+          cursor.execute('''INSERT INTO osoba_uvazok (osoba, pracovisko, funkcia, kvalifikacia, uvazok)
+            SELECT o.id, %s, %s, %s, %s FROM osoba o WHERE o.ais_id = %s
+            ''', (pracovisko, funkcia, kvalifikacia, uvazok, ais_id))
+        else:
+          print 'riadok {}: Neviem ako pridat osobu'.format(csv.line_num), meno, priezvisko, uoc, ais_id
+    db.commit()
+
 class ImportLiteraturaKniznica(Command):
   """Naimportuje literaturu dostupnu v kniznici"""
 
@@ -342,4 +368,5 @@ def register_commands(manager):
   manager.add_command('runcherry', RunCherry())
   manager.add_command('export', Export())
   manager.add_command('import-osoby', ImportOsoby())
+  manager.add_command('import-osoby-uvazky', ImportOsobyUvazky())
   manager.add_command('import-literatura-kniznica', ImportLiteraturaKniznica())
