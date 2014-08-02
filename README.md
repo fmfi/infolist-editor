@@ -205,7 +205,7 @@ jazykov, pričom `sk` je v aktuálnej verzii potrebné ponechať.
 
 Treba naplniť tabuľku `osoba` zoznamom osôb, s ktorými má aplikácia pracovať (tí čo sa prihlasujú + tí čo sú uvedení v infolistoch).
 
-Je možné naimportovať csv súbor nasledovného tvaru:
+Je možné naimportovať csv súbor v kódovaní UTF-8, ktorý je nasledovného tvaru:
 
 ```csv
 Plné meno,ID,Meno,Priezvisko,Rodné,Karty,Login,UOČ
@@ -236,7 +236,7 @@ Plné meno,ID,Meno,Priezvisko,Rodné,Karty,Login,UOČ
 
 Treba naplniť tabuľku `literatura` položkami z knižnice.
 
-Je možné naimportovať csv súbor nasledovného tvaru:
+Je možné naimportovať csv súbor v kódovaní UTF-8, ktorý je nasledovného tvaru:
 
 ```csv
 BIBID,Signatúra,Dokument,Vyd. údaje
