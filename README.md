@@ -199,6 +199,63 @@ DEFAULT_LANG = 'sk'
 Nastavenie pre aké jazyky sa v databáze editujú údaje. Je možné uviesť zoznam viacerých
 jazykov, pričom `sk` je v aktuálnej verzii potrebné ponechať.
 
+### Konfigurácia Apache2
+
+Prepokladáme, že máme nainštalovaný [Apache2 spolu s mod_cosign a rozbehaným SSL-kom](https://cit.uniba.sk/wiki/public/jas/cosign).
+Návod na skompilovanie cosign modulu je v [repozitári cosignu](https://github.com/cosignweblogin/cosign/).
+
+> Poznámka: Cosign s Apachom 2.4 som netestoval, ale
+> [podľa všetkého](https://www.mail-archive.com/cosign-discuss@lists.sourceforge.net/msg01083.html)
+> [by mal fungovať OK](https://github.com/cosignweblogin/cosign/commit/aaea103f93c9364fa07a424218ec18cb715a2a20).
+
+Pre beh aplikácie pod Apache2 použijeme [mod_wsgi](http://www.modwsgi.org/):
+
+```bash
+sudo apt-get install libapache2-mod-wsgi
+sudo a2enmod wsgi
+```
+
+Do správneho virtualhostu (pravdepodobne `/etc/apache2/sites-available/default-ssl`) vložíme nasledovnú Apache2 konfiguráciu:
+
+```ApacheConf
+WSGIScriptAlias /ka/ilsp /var/www-apps/ilsp/ilsp_app.py
+Alias /ka/ilsp/static /var/www-apps/ilsp/ilsp/static
+WSGIDaemonProcess kailsp user=ka group=ka processes=2 threads=15 display-name={%GROUP} python-path=/var/www-apps/ilsp:/var/www-apps/ilsp/venv/lib/python2.7/site-packages home=/var/www-apps/ilsp
+<Directory /var/www-apps/ilsp/>
+    WSGIProcessGroup kailsp
+    WSGICallableObject app
+    Require all granted
+</Directory>
+<Location /ka/ilsp/login>
+    CosignAllowPublicAccess Off
+    AuthType Cosign
+</Location>
+```
+
+> Poznámka: Uvedená Apache konfigurácia je pre verziu 2.4, pre Apache 2.2 je namiesto
+> 
+> ```ApacheConf
+> Require all granted
+> ```
+>
+> Treba napísať:
+>
+> ```ApacheConf
+> Order deny,allow
+> Allow from all
+> ```
+
+A nezabudnime reštartovať web server:
+
+```bash
+sudo service apache2 restart
+```
+
+## Používanie aplikácie
+
+Na používanie aplikácie treba naimportovať minimálne informácie o osobách
+a pridať jednotlivým osobám oprávnenia na prístup do aplikácie.
+
 ### Spúšťanie príkazov
 
 Aplikácia obsahuje príkazy spúštané z príkazového riadka, no tieto musia byť
@@ -289,58 +346,6 @@ BIBID,Signatúra,Dokument,Vyd. údaje
 
 ```bash
 ./ilsp_app.py import-literatura-kniznica </cesta/k/suboru.csv
-```
-
-### Konfigurácia Apache2
-
-Prepokladáme, že máme nainštalovaný [Apache2 spolu s mod_cosign a rozbehaným SSL-kom](https://cit.uniba.sk/wiki/public/jas/cosign).
-Návod na skompilovanie cosign modulu je v [repozitári cosignu](https://github.com/cosignweblogin/cosign/).
-
-> Poznámka: Cosign s Apachom 2.4 som netestoval, ale
-> [podľa všetkého](https://www.mail-archive.com/cosign-discuss@lists.sourceforge.net/msg01083.html)
-> [by mal fungovať OK](https://github.com/cosignweblogin/cosign/commit/aaea103f93c9364fa07a424218ec18cb715a2a20).
-
-Pre beh aplikácie pod Apache2 použijeme [mod_wsgi](http://www.modwsgi.org/):
-
-```bash
-sudo apt-get install libapache2-mod-wsgi
-sudo a2enmod wsgi
-```
-
-Do správneho virtualhostu (pravdepodobne `/etc/apache2/sites-available/default-ssl`) vložíme nasledovnú Apache2 konfiguráciu:
-
-```ApacheConf
-WSGIScriptAlias /ka/ilsp /var/www-apps/ilsp/ilsp_app.py
-Alias /ka/ilsp/static /var/www-apps/ilsp/ilsp/static
-WSGIDaemonProcess kailsp user=ka group=ka processes=2 threads=15 display-name={%GROUP} python-path=/var/www-apps/ilsp:/var/www-apps/ilsp/venv/lib/python2.7/site-packages home=/var/www-apps/ilsp
-<Directory /var/www-apps/ilsp/>
-    WSGIProcessGroup kailsp
-    WSGICallableObject app
-    Require all granted
-</Directory>
-<Location /ka/ilsp/login>
-    CosignAllowPublicAccess Off
-    AuthType Cosign
-</Location>
-```
-
-> Poznámka: Uvedená Apache konfigurácia je pre verziu 2.4, pre Apache 2.2 je namiesto
-> 
-> ```ApacheConf
-> Require all granted
-> ```
->
-> Treba napísať:
->
-> ```ApacheConf
-> Order deny,allow
-> Allow from all
-> ```
-
-A nezabudnime reštartovať web server:
-
-```bash
-sudo service apache2 restart
 ```
 
 ## Vývoj aplikácie
