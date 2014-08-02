@@ -359,6 +359,46 @@ class ImportLiteraturaKniznica(Command):
                        (bib_id, dokument, vyd_udaje, signatura))
     db.commit()
 
+class PridajOpravnenie(Command):
+  """Prida opravnenia danej osobe"""
+
+  option_list = (
+    Option('login', help='Login osoby, ktorej chceme pridat opravnenie pouzivat aplikaciu'),
+    Option('--organizacna-jednotka', dest='organizacna_jednotka', default='FMFI'),
+    Option('--je-admin', dest='je_admin', action='store_true', help='Nastavme aj ze je admin'),
+    Option('--je-garant', dest='je_garant', action='store_true', help='Nastavme aj ze je garant'),
+  )
+
+  def run(self, login, organizacna_jednotka, je_admin, je_garant):
+    with closing(db.cursor()) as cursor:
+      cursor.execute('SELECT id FROM osoba WHERE login = %s', (login,))
+      osoba = cursor.fetchone()
+      if osoba is None:
+        print 'Dana osoba v databaze neexistuje!'
+        return 1
+
+      cursor.execute('SELECT je_admin, je_garant FROM ilsp_opravnenia WHERE osoba = %s and organizacna_jednotka = %s',
+        (osoba.id, organizacna_jednotka))
+      opravnenia = cursor.fetchone()
+      if opravnenia is None:
+        cursor.execute('INSERT INTO ilsp_opravnenia (osoba, organizacna_jednotka, je_admin, je_garant) VALUES (%s, %s, %s, %s)',
+          (osoba.id, organizacna_jednotka, je_admin, je_garant))
+      else:
+        if je_admin or je_garant:
+          parts = []
+          if je_admin:
+            parts.append('je_admin = true')
+          if je_garant:
+            parts.append('je_garant = true')
+
+          sql = 'UPDATE ilsp_opravnenia SET '
+          sql += ', '.join(parts)
+          sql += ' WHERE osoba = %s AND organizacna_jednotka = %s'
+
+          cursor.execute(sql, (osoba.id, organizacna_jednotka))
+
+    db.commit()
+
 def register_commands(manager):
   manager.add_command('nahrad-podmienku', NahradPodmienkuCommand())
   manager.add_command('nahrad-predmet', NahradPredmetCommand())
@@ -370,3 +410,4 @@ def register_commands(manager):
   manager.add_command('import-osoby', ImportOsoby())
   manager.add_command('import-osoby-uvazky', ImportOsobyUvazky())
   manager.add_command('import-literatura-kniznica', ImportLiteraturaKniznica())
+  manager.add_command('pridaj-opravnenie', PridajOpravnenie())

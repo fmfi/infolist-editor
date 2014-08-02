@@ -308,6 +308,23 @@ Plné meno,ID,Meno,Priezvisko,Rodné,Karty,Login,UOČ
 > vyučujúceho predmetu a pod. Ak ich nechceme označiť ako vyučujúcich,
 > môžeme použiť prepínač `--nie-su-vyucujuci`
 
+#### Oprávnenia
+
+Oprávnenia osôb sú v tabuľke `ilsp_opravnenia` (ktorá môže obsahovať hodnoty pre
+rôzne organizačné jednotky, avšak zatiaľ sa používa len FMFI).
+
+* Používateľ (t.j. existuje daný záznam pre osobu a OJ) sa môže prihlásiť a editovať infolisty, vidí študijné programy
+* Garant môže navyše editovať študijné programy
+* Admin môže všetko čo iné role + exportovať dáta, prezerať zoznam používateľov,  zamykať/odomykať veci hocikomu, mazať dokumenty a uploadovať VP charakteristiky
+
+Oprávnenia sa dajú pridať aj pomocou príkazu
+
+```bash
+./ilsp_app.py pridaj-opravnenie --je-admin --je-garant hrasko47
+```
+
+> Poznámka: Definícia oprávnení je v súbore `ilsp/common/storage.py` v triede `User`
+
 #### Úväzky
 
 Treba naplniť tabuľku `osoba_uvazok` informáciami o pracovných úväzkoch osôb.
