@@ -348,6 +348,18 @@ BIBID,Signatúra,Dokument,Vyd. údaje
 ./ilsp_app.py import-literatura-kniznica </cesta/k/suboru.csv
 ```
 
+### Export dát
+
+Aktuálne vie aplikácia exportovať údaje vo formáte pre akreditačnú komisiu, ako zip archív:
+
+```bash
+./ilsp_app.py export nazov_vystupneho_suboru.zip
+```
+
+> Poznámka voliteľne sa dajú vyexportovať v samostatných súboroch (položkách archívu)
+> informačné listy (`--infolisty-samostatne`) alebo VP charakteristiky
+> (`--charakteristiky-samostatne`), prípadne obe súčasne
+
 ## Vývoj aplikácie
 
 ### Vývojové dáta
