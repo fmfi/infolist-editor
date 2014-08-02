@@ -203,11 +203,51 @@ jazykov, pričom `sk` je v aktuálnej verzii potrebné ponechať.
 
 #### Osoby
 
-TODO
+Treba naplniť tabuľku `osoba` zoznamom osôb, s ktorými má aplikácia pracovať (tí čo sa prihlasujú + tí čo sú uvedení v infolistoch).
+
+Je možné naimportovať csv súbor nasledovného tvaru:
+
+```csv
+Plné meno,ID,Meno,Priezvisko,Rodné,Karty,Login
+"doc. Ing. Jana Hrašková, CSc.",1234567,Jana,Hrašková,Mrkvičková,"UOC - 12345678, PIK - 13245678901234567",hraskova47
+```
+
+* Stĺpce `Rodné` a `Login` sú nepovinné.
+* Stĺpec `Rodné` sa môže volať aj `Pôvodné`.
+* PIK-y sa nepoužívajú, iba UOC.
+* `ID` je z AIS-u
+* položky s existujúcim AISovým ID sa ignorujú
+* id v databáze ILSP sa vyrobí automaticky
+* import ako celok sa nevykoná (resp. spadne a necommitne sa transakcia) ak by sa vkladalo duplicitné UOČ alebo login
+
+```bash
+./ilsp_app.py import-osoby True </cesta/k/suboru.csv
+```
+
+> Poznámka: Naimportované osoby sa budú dať vybrať pri výbere
+> vyučujúceho predmetu a pod. Ak ich nechceme označiť ako vyučujúcich,
+> môžeme použiť prepínač `--nie-su-vyucujuci`
+
 
 #### Literatúra
 
-TODO
+Treba naplniť tabuľku `literatura` položkami z knižnice.
+
+Je možné naimportovať csv súbor nasledovného tvaru:
+
+```csv
+BIBID,Signatúra,Dokument,Vyd. údaje
+22110,1856,"Europe's environment : The Dobříš assessment : The report on the state of the pan-European environment requested by the environment ministers for the whole of Europe at the ministerial conference held at Dobříš Castle, Czechoslovakia, June 1991 / Edited by:  David Stanners and Philippe Bourdeau"," Copenhagen : EUR OP, 1955"
+```
+
+* Poradie stĺpcov môže byť hocijaké (vyžaduje sa hlavička na začiatku so správnymi popismi).
+* Stĺpce navyše nevadia.
+* Súbor môže obsahovať viac položiek s rovnakým bib_id, ale `Dokument` a `Vyd. údaje` musia byť zhodné.
+* Signatúry z rôznych riadkov sa pri importe spoja do čiarkami oddeleného zoznamu.
+
+```bash
+./ilsp_app.py import-literatura-kniznica </cesta/k/suboru.csv
+```
 
 ### Konfigurácia Apache2
 

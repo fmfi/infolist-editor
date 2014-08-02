@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from contextlib import closing
 import json
 import sys
 from ilsp import export
@@ -11,6 +12,7 @@ import os
 from ilsp.common.podmienka import Podmienka, RawPodmienka
 from ilsp.common.proxies import db
 from flask.ext.script import Command, Option
+import unicodecsv
 
 
 try:
@@ -210,6 +212,7 @@ class SkontrolujTitulyCommand(Command):
         print u'{} | {} | {} | {}'.format(*x[:4]).encode('UTF-8')
 
 class RunCherry(Command):
+  """Spusti aplikaciu lokalne pomocou cherrypy servera"""
   def run(self):
     from cherrypy import wsgiserver
     d = wsgiserver.WSGIPathInfoDispatcher({'/': current_app._get_current_object()})
@@ -236,6 +239,98 @@ class Export(Command):
       prilohy = export.prilohy_vsetky(export.PrilohaContext(), infolisty_samostatne=infolisty_samostatne, charakteristiky_samostatne=charakteristiky_samostatne)
       prilohy.save_zip(f)
 
+def normalize_val(val):
+  val = val.strip()
+  if val == '':
+    return None
+  return val
+
+def normalize_optional(line, *columns):
+  for column in columns:
+    if column in line:
+      return normalize_val(line[column])
+  else:
+    return None
+
+class ImportOsoby(Command):
+  """Naimportuje osoby z AISoveho CSV suboru"""
+
+  option_list = (
+    Option('--nie-su-vyucujuci', action='store_false', dest='vyucujuci', help='Neoznacovat osoby ako vyucujucich'),
+  )
+
+  def run(self, vyucujuci):
+    csv = unicodecsv.DictReader(sys.stdin, encoding='UTF-8')
+
+    #Skontrolujeme udaje
+    with closing(db.cursor()) as cursor:
+      for line in csv:
+        ais_id = normalize_val(line['ID'])
+        meno = normalize_val(line['Meno'])
+        priezvisko = normalize_val(line['Priezvisko'])
+        plne_meno = normalize_val(line[u'Plné meno'])
+        login = normalize_optional(line, 'Login')
+        rodne_priezvisko = normalize_optional(line, u'Rodné', u'Pôvodné')
+        karty = normalize_val(line['Karty'])
+        if karty == None:
+          karty = []
+        else:
+          karty = [x.split(' - ') for x in karty.split(', ')]
+        uoc = None
+        for x in karty:
+          if len(x) != 2:
+            print x
+            continue
+          typ, ident = x
+          if typ == 'UOC':
+            uoc = ident
+
+        #print ais_id, uoc, meno, priezvisko, plne_meno, rodne_priezvisko
+        cursor.execute('SELECT 1 FROM osoba WHERE ais_id = %s', (ais_id,))
+        if cursor.fetchone():
+            continue
+        cursor.execute('INSERT INTO osoba (ais_id, uoc, meno, priezvisko, cele_meno, rodne_priezvisko, vyucujuci, login) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)',
+          (ais_id, uoc, meno, priezvisko, plne_meno, rodne_priezvisko, vyucujuci, login))
+
+    db.commit()
+
+class ImportLiteraturaKniznica(Command):
+  """Naimportuje literaturu dostupnu v kniznici"""
+
+  def run(self):
+    csv = unicodecsv.DictReader(sys.stdin, encoding='UTF-8')
+
+    ok = True
+    by_bibid = {}
+    signatury = {}
+    for line in csv:
+      bib_id = normalize_val(line['BIBID'])
+      dokument = normalize_val(line['Dokument'])
+      vyd_udaje = normalize_val(line[u'Vyd. údaje'])
+      signatura = normalize_val(line[u'Signatúra'])
+
+      t = (dokument, vyd_udaje)
+
+      if bib_id in by_bibid:
+        if by_bibid[bib_id] != t:
+          print bib_id, by_bibid[bib_id], '!=', t
+          ok = False
+        signatury[bib_id] += u', ' + signatura
+      else:
+        by_bibid[bib_id] = t
+        signatury[bib_id] = signatura
+
+    if not ok:
+      print 'Udaje nie su uplne v poriadku, koncim'
+      return 1
+
+    with closing(db.cursor()) as cursor:
+      for bib_id, (dokument, vyd_udaje) in by_bibid.iteritems():
+        signatura = signatury[bib_id]
+        cursor.execute('INSERT INTO literatura (bib_id, dokument, vyd_udaje, signatura, dostupne) VALUES (%s, %s, %s, %s, true)',
+                       (bib_id, dokument, vyd_udaje, signatura))
+    db.commit()
+
 def register_commands(manager):
   manager.add_command('nahrad-podmienku', NahradPodmienkuCommand())
   manager.add_command('nahrad-predmet', NahradPredmetCommand())
@@ -244,3 +339,5 @@ def register_commands(manager):
   manager.add_command('skontroluj-tituly', SkontrolujTitulyCommand())
   manager.add_command('runcherry', RunCherry())
   manager.add_command('export', Export())
+  manager.add_command('import-osoby', ImportOsoby())
+  manager.add_command('import-literatura-kniznica', ImportLiteraturaKniznica())
