@@ -123,8 +123,9 @@ def export_vsetkych_sp():
 
   infolisty_samostatne = get_checkbox('infolisty_samostatne')
   charakteristiky_samostatne = get_checkbox('charakteristiky_samostatne')
+  lang = request.args.get('lang', 'sk')
 
-  prilohy = export.prilohy_vsetky(export.PrilohaContext(), infolisty_samostatne=infolisty_samostatne, charakteristiky_samostatne=charakteristiky_samostatne)
+  prilohy = export.prilohy_vsetky(export.PrilohaContext(lang=lang), infolisty_samostatne=infolisty_samostatne, charakteristiky_samostatne=charakteristiky_samostatne)
 
   return prilohy.send_zip('vsetky-sp.zip')
 

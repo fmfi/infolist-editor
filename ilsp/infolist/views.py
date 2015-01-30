@@ -94,6 +94,12 @@ def export_rtf(id):
   infolist_rtf = export.PrilohaInfolist(id, context=export.PrilohaContext(), filename='infolist-{}.rtf'.format(id))
   return infolist_rtf.send()
 
+@blueprint.route('/infolist/<int:id>-en.rtf')
+@restrict()
+def export_rtf_en(id):
+  infolist_rtf = export.PrilohaInfolist(id, context=export.PrilohaContext(lang='en'), filename='infolist-{}-en.rtf'.format(id))
+  return infolist_rtf.send()
+
 @blueprint.route('/infolist/<int:id>/fork', methods=['POST'])
 @restrict()
 def fork(id):

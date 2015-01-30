@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from ilsp.common.translations import _
 import re
 from flask import g
 from jinja2 import evalcontextfilter, Markup, escape
@@ -15,38 +16,43 @@ def filter_fakulta(search_kod):
   return None
 
 
-def filter_druh_cinnosti(search_kod):
-  for kod, popis in g.db.load_druhy_cinnosti():
+def filter_druh_cinnosti(search_kod, lang='sk'):
+  for kod, popis, popis_en in g.db.load_druhy_cinnosti_trans():
     if search_kod == kod:
-      return popis
+      return popis_en if lang == 'en' else popis
   return None
 
 
 def filter_obdobie(search_kod):
-  for kod, popis in (('S', u'semester'), ('T', u'týždeň')):
+  for kod, popis in (('S', _(u'semester')), ('T', _(u'týždeň'))):
     if search_kod == kod:
       return popis
   return None
 
 
 def filter_metoda_vyucby(search_kod):
-  for kod, popis in (('P', u'prezenčná'), ('D', u'dištančná'), ('K', u'kombinovaná')):
+  print search_kod
+  print repr(_(u'prezenčná'))
+  print repr(_(u'dištančná'))
+  print repr(_(u'kombinovaná'))
+  for kod, popis in (('P', _(u'prezenčná')), ('D', _(u'dištančná')), ('K', _(u'kombinovaná'))):
+  #for kod, popis in (('P', u'prezenčná'), ('D', u'dištančná'), ('K', u'kombinovaná'))
     if search_kod == kod:
       return popis
   return None
 
 
-def filter_typ_vyucujuceho(search_kod):
-  for kod, popis in g.db.load_typy_vyucujuceho():
+def filter_typ_vyucujuceho(search_kod, lang='sk'):
+  for kod, popis, popis_en in g.db.load_typy_vyucujuceho():
     if search_kod == kod:
-      return popis
+      return popis_en if lang == 'en' else popis
   return None
 
 
-def filter_jazyk_vyucby(search_kod):
-  for kod, popis in g.db.load_jazyky_vyucby():
+def filter_jazyk_vyucby(search_kod, lang='sk'):
+  for kod, popis, popis_en in g.db.load_jazyky_vyucby():
     if search_kod == kod:
-      return popis
+      return popis_en if lang == 'en' else popis
   return None
 
 

@@ -230,13 +230,14 @@ class Export(Command):
     Option('--infolisty-spolu', dest='infolisty_samostatne', action='store_false'),
     Option('--charakteristiky-samostatne', dest='charakteristiky_samostatne', action='store_true'),
     Option('--charakteristiky-spolu', dest='charakteristiky_samostatne', action='store_false'),
+    Option('--lang', dest='lang', default='sk'),
     Option('filename', help='Destination zip file name (will be overwritten)')
   )
 
-  def run(self, filename, infolisty_samostatne, charakteristiky_samostatne):
+  def run(self, filename, infolisty_samostatne, charakteristiky_samostatne, lang):
     g.db = DataStore(db)
     with open(filename, 'wb') as f:
-      prilohy = export.prilohy_vsetky(export.PrilohaContext(), infolisty_samostatne=infolisty_samostatne, charakteristiky_samostatne=charakteristiky_samostatne)
+      prilohy = export.prilohy_vsetky(export.PrilohaContext(lang=lang), infolisty_samostatne=infolisty_samostatne, charakteristiky_samostatne=charakteristiky_samostatne)
       prilohy.save_zip(f)
 
 def normalize_val(val):

@@ -10,6 +10,7 @@ from datetime import datetime
 from ilsp.common.filters import filter_fakulta, filter_druh_cinnosti, filter_obdobie, filter_metoda_vyucby, \
   filter_typ_vyucujuceho, filter_jazyk_vyucby, filter_typ_bloku, filter_literatura, format_datetime
 from ilsp.common.rtf import render_rtf, RTFHyperlink, RTFBookmark, my_rtf_elements
+from ilsp.common.translations import TranslationContext, current_trans, _
 from rtfng.Renderer import Renderer
 from ilsp.utils import stupen_studia_titul, prilohy_podla_typu, from_lang
 from rtfng.Elements import Document, Section
@@ -75,6 +76,10 @@ class PrilohaContext(object):
 
   def warnings_by_typ(self, typ):
     return self._warning_by_typ[typ]
+
+  @property
+  def lang(self):
+    return self._lang
 
 class Priloha(object):
   def __init__(self, context, nazov=None, filename=None, **kwargs):
@@ -342,7 +347,7 @@ class PrilohaVPChar(DiskVPCharMixin, PrilohaSuborBase):
 class PrilohaUploadnutaVPChar(VPCharMixin, PrilohaUploadnutySubor):
   pass
 
-def infolist_tdata(infolist):
+def infolist_tdata(infolist, lang='sk'):
   tdata = {}
   tdata['IL_NAZOV_SKOLY'] = u'Univerzita Komenského v Bratislave'
   tdata['IL_NAZOV_FAKULTY'] = filter_fakulta(infolist['fakulta'])
@@ -352,7 +357,7 @@ def infolist_tdata(infolist):
   cinnosti = u''
   for cinn in infolist['cinnosti']:
     cinnosti += u'\n{}, {}h/{}, {}'.format(
-      filter_druh_cinnosti(cinn['druh_cinnosti']),
+      filter_druh_cinnosti(cinn['druh_cinnosti'], lang=lang),
       cinn['pocet_hodin'],
       filter_obdobie(cinn['za_obdobie']),
       filter_metoda_vyucby(cinn['metoda_vyucby'])
@@ -362,9 +367,10 @@ def infolist_tdata(infolist):
   tdata['IL_POCET_KREDITOV'] = infolist['pocet_kreditov']
 
   sem2text = {
-    'L': u'letný',
-    'Z': u'zimný',
+    'L': _(u'letný semester'),
+    'Z': _(u'zimný semester'),
   }
+
   odp_group = []
   for k, grp in groupby(infolist['odporucane_semestre'], lambda x: (x['rocnik'], x['semester'])):
     odp_group.append((k, list(grp)))
@@ -375,15 +381,14 @@ def infolist_tdata(infolist):
     if i > 0:
       odp_sem += u'\n'
     if semester == 'N' and rocnik is None:
-      odp_sem += u'neurčený'
+      odp_sem += u'not designated' if lang == 'en' else u'neurčený'
     else:
       if rocnik is not None:
-        odp_sem += u'{}. ročník'.format(rocnik)
+        odp_sem += u'{}. grade'.format(rocnik) if lang == 'en' else u'{}. ročník'.format(rocnik)
       if rocnik is not None and semester != 'N':
         odp_sem += u', '
       if semester != 'N':
-        odp_sem += u'{} semester'.format(
-          sem2text[semester] if semester in sem2text else semester or '?')
+        odp_sem += sem2text[semester] if semester in sem2text else semester or '?'
     if len(odp_group) > 1:
       odp_sem += u' ({})'.format(u', '.join(u'{} {}'.format(x['studprog_skratka'], x['studprog_nazov']) for x in odp))
 
@@ -406,7 +411,9 @@ def infolist_tdata(infolist):
 
   podm_predmety = unicode(infolist['podmienujuce_predmety'])
   if infolist['odporucane_predmety']:
-    podm_predmety += u'\n\nOdporúčané predmety (nie je nutné ich absolvovať pred zapísaním predmetu):\n'
+    podm_predmety += u'\n\n' + \
+                     _('Odporúčané predmety (nie je nutné ich absolvovať pred zapísaním predmetu)') \
+                     + u':\n'
     podm_predmety += unicode(infolist['odporucane_predmety'])
   tdata['IL_PODMIENUJUCE_PREDMETY'] = podm_predmety
 
@@ -416,19 +423,19 @@ def infolist_tdata(infolist):
     podm_absol_text = podm_absol['nahrada']
   else:
     if podm_absol['priebezne']:
-      podm_absol_text += u'Priebežné hodnotenie: {}\n'.format(podm_absol['priebezne'])
+      podm_absol_text += _(u'Priebežné hodnotenie') + u': {}\n'.format(podm_absol['priebezne'])
     if podm_absol['percenta_zapocet'] != None:
-      podm_absol_text += u'Na pripustenie ku skúške je potrebných aspoň {}% bodov z priebežného hodnotenia.\n'.format(podm_absol['percenta_zapocet'])
+      podm_absol_text += _(u'Na pripustenie ku skúške je potrebných aspoň {}% bodov z priebežného hodnotenia.').format(podm_absol['percenta_zapocet']) + u'\n'
     if podm_absol['skuska']:
-      podm_absol_text += u'Skúška: {}\n'.format(podm_absol['skuska'])
+      podm_absol_text += _(u'Skúška') + u': {}\n'.format(podm_absol['skuska'])
     if podm_absol['percenta_skuska'] != None:
-      podm_absol_text += u'Váha skúšky v hodnotení: {}%\n'.format(podm_absol['percenta_skuska'])
+      podm_absol_text += _(u'Váha skúšky v hodnotení') + u': {}%\n'.format(podm_absol['percenta_skuska'])
     if any(podm_absol['percenta_na'].values()) and not podm_absol['nepouzivat_stupnicu']:
       stupnica = podm_absol['percenta_na']
-      podm_absol_text += u'Na získanie hodnotenia A je potrebné získať najmenej {}% bodov'.format(stupnica['A'])
+      podm_absol_text += _(u'Na získanie hodnotenia A je potrebné získať najmenej {}% bodov').format(stupnica['A'])
       for znamka in ['B', 'C', 'D', 'E']:
         podm_absol_text += u' a ' if znamka == 'E' else u', '
-        podm_absol_text += u'na hodnotenie {} najmenej {}% bodov'.format(znamka, stupnica[znamka])
+        podm_absol_text += _(u'na hodnotenie {} najmenej {}% bodov').format(znamka, stupnica[znamka])
       podm_absol_text += u'.\n'
   podm_absol_text = podm_absol_text.rstrip()
 
@@ -445,7 +452,7 @@ def infolist_tdata(infolist):
     literatura += u'\n{}'.format(popis)
   tdata['IL_LITERATURA'] = literatura
 
-  tdata['IL_POTREBNY_JAZYK'] = filter_jazyk_vyucby(infolist['potrebny_jazyk'])
+  tdata['IL_POTREBNY_JAZYK'] = filter_jazyk_vyucby(infolist['potrebny_jazyk'], lang=lang)
   tdata['IL_POZNAMKY'] = u''
 
   mame_hodnotenia = True
@@ -473,7 +480,7 @@ def infolist_tdata(infolist):
     vyuc_str += u'\n{}'.format(vyucujuci['cele_meno'])
     if vyucujuci['typy']:
       vyuc_str += u' - {}'.format(
-        u', '.join(filter_typ_vyucujuceho(x) for x in vyucujuci['typy'])
+        u', '.join(filter_typ_vyucujuceho(x, lang=lang) for x in vyucujuci['typy'])
       )
   tdata['IL_VYUCUJUCI'] = vyuc_str
   tdata['IL_POSLEDNA_ZMENA'] = format_datetime(infolist['modifikovane'], iba_datum=True)
@@ -489,8 +496,12 @@ class PrilohaInfolist(Priloha):
 
   def render(self, to_file):
     infolist = self.context.infolist(self.infolist_id)
-    tdata = infolist_tdata(infolist)
-    rtf_template = resource_string('ilsp.infolist', 'templates/infolist.rtf')
+    with TranslationContext(self.context.lang):
+      tdata = infolist_tdata(infolist, lang=self.context.lang)
+    if self.context.lang == 'en':
+      rtf_template = resource_string('ilsp.infolist', 'templates/infolist_en.rtf')
+    else:
+      rtf_template = resource_string('ilsp.infolist', 'templates/infolist.rtf')
     to_file.write(render_rtf(rtf_template, tdata))
 
   @property
@@ -509,7 +520,10 @@ class PrilohaInfolisty(Priloha):
 
   def render(self, to_file):
     rtf_skin = resource_string('ilsp.infolist', 'templates/infolist-skin.rtf').split('INFOLIST_CORE')
-    rtf_core = resource_string('ilsp.infolist', 'templates/infolist-core.rtf')
+    if self.context.lang == 'en':
+      rtf_core = resource_string('ilsp.infolist', 'templates/infolist-core_en.rtf')
+    else:
+      rtf_core = resource_string('ilsp.infolist', 'templates/infolist-core.rtf')
     to_file.write(rtf_skin[0])
 
     def th(content):
@@ -540,7 +554,8 @@ class PrilohaInfolisty(Priloha):
       to_file.write('\n\page\n')
       to_file.write(RTFBookmark('infolist{}'.format(infolist_id)).to_rtf())
       infolist = self.context.infolist(infolist_id)
-      tdata = infolist_tdata(infolist)
+      with TranslationContext(self.context.lang):
+        tdata = infolist_tdata(infolist, lang=self.context.lang)
       to_file.write(render_rtf(rtf_core, tdata))
     to_file.write(rtf_skin[1])
 

@@ -14,6 +14,7 @@ class DataStore(InfolistDataStoreMixin, PredmetDataStoreMixin, StudprogDataStore
     self.conn = conn
     self._typy_vyucujuceho = None
     self._druhy_cinnosti = None
+    self._druhy_cinnosti_trans = None
     self._fakulty = None
     self._jazyky_vyucby = None
     self._typy_bloku = [('A', u'A: povinné predmety'), ('B', u'B: povinne voliteľné predmety'), ('C', u'C: výberové predmety')]
@@ -57,9 +58,9 @@ class DataStore(InfolistDataStoreMixin, PredmetDataStoreMixin, StudprogDataStore
   def load_typy_vyucujuceho(self, iba_povolene=False):
     if self._typy_vyucujuceho == None:
       with self.cursor() as cur:
-        cur.execute('SELECT kod, popis, povolit_vyber FROM typ_vyucujuceho ORDER BY poradie')
+        cur.execute('SELECT kod, popis, povolit_vyber, popis_en FROM typ_vyucujuceho ORDER BY poradie')
         self._typy_vyucujuceho = cur.fetchall()
-    return [(kod, popis) for kod, popis, povolene in self._typy_vyucujuceho if not iba_povolene or povolene]
+    return [(kod, popis, popis_en) for kod, popis, povolene, popis_en in self._typy_vyucujuceho if not iba_povolene or povolene]
 
   def load_druhy_cinnosti(self):
     if self._druhy_cinnosti == None:
@@ -67,6 +68,13 @@ class DataStore(InfolistDataStoreMixin, PredmetDataStoreMixin, StudprogDataStore
         cur.execute('SELECT kod, popis FROM druh_cinnosti ORDER BY poradie')
         self._druhy_cinnosti = cur.fetchall()
     return self._druhy_cinnosti
+
+  def load_druhy_cinnosti_trans(self):
+    if self._druhy_cinnosti_trans == None:
+      with self.cursor() as cur:
+        cur.execute('SELECT kod, popis, popis_en FROM druh_cinnosti ORDER BY poradie')
+        self._druhy_cinnosti_trans = cur.fetchall()
+    return self._druhy_cinnosti_trans
 
   def load_fakulty(self):
     if self._fakulty == None:
@@ -112,7 +120,7 @@ class DataStore(InfolistDataStoreMixin, PredmetDataStoreMixin, StudprogDataStore
   def load_jazyky_vyucby(self):
     if self._jazyky_vyucby == None:
       with self.cursor() as cur:
-        cur.execute('SELECT kod, popis FROM jazyk_vyucby')
+        cur.execute('SELECT kod, popis, popis_en FROM jazyk_vyucby')
         self._jazyky_vyucby = cur.fetchall()
     return self._jazyky_vyucby
 

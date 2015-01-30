@@ -49,7 +49,7 @@ def Vyucujuci(**kwargs):
   schema.add(SchemaNode(Set(),
     name='typy',
     title=u'Typy',
-    widget=deform.widget.CheckboxChoiceWidget(values=g.db.load_typy_vyucujuceho(iba_povolene=True))
+    widget=deform.widget.CheckboxChoiceWidget(values=[(x[0], x[1]) for x in g.db.load_typy_vyucujuceho(iba_povolene=True)])
   ))
   return schema
 
@@ -341,7 +341,7 @@ def Infolist(infolist):
   schema.add(SchemaNode(String(),
     name='potrebny_jazyk',
     title=u'Jazyk, ktorého znalosť je potrebná na absolvovanie predmetu',
-    widget=deform.widget.Select2Widget(values=g.db.load_jazyky_vyucby())
+    widget=deform.widget.Select2Widget(values=[(x[0], x[1]) for x in g.db.load_jazyky_vyucby()])
   ))
   schema.add(SchemaNode(Sequence(),
     Vyucujuci(name='vyucujuci', title=u'Vyučujúci'),
