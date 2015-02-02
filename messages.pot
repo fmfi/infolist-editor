@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2015-01-30 01:08+0100\n"
+"POT-Creation-Date: 2015-02-03 00:17+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,12 +17,24 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 1.3\n"
 
+#: ilsp/export.py:352
+msgid "Univerzita Komenského v Bratislave"
+msgstr ""
+
 #: ilsp/export.py:370
 msgid "letný semester"
 msgstr ""
 
 #: ilsp/export.py:371
 msgid "zimný semester"
+msgstr ""
+
+#: ilsp/export.py:384
+msgid "neurčený"
+msgstr ""
+
+#: ilsp/export.py:387
+msgid "{}. ročník"
 msgstr ""
 
 #: ilsp/export.py:415
@@ -51,8 +63,12 @@ msgstr ""
 msgid "Na získanie hodnotenia A je potrebné získať najmenej {}% bodov"
 msgstr ""
 
+#: ilsp/export.py:437
+msgid " a "
+msgstr ""
+
 #: ilsp/export.py:438
-msgid "na hodnotenie {} najmenej {}% bodov"
+msgid "na hodnotenie {znamka} najmenej {percenta}% bodov"
 msgstr ""
 
 #: ilsp/common/filters.py:27
@@ -63,15 +79,15 @@ msgstr ""
 msgid "týždeň"
 msgstr ""
 
-#: ilsp/common/filters.py:34
+#: ilsp/common/filters.py:35 ilsp/common/filters.py:38
 msgid "prezenčná"
 msgstr ""
 
-#: ilsp/common/filters.py:34
+#: ilsp/common/filters.py:36 ilsp/common/filters.py:38
 msgid "dištančná"
 msgstr ""
 
-#: ilsp/common/filters.py:34
+#: ilsp/common/filters.py:37 ilsp/common/filters.py:38
 msgid "kombinovaná"
 msgstr ""
 

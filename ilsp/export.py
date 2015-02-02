@@ -349,7 +349,7 @@ class PrilohaUploadnutaVPChar(VPCharMixin, PrilohaUploadnutySubor):
 
 def infolist_tdata(infolist, lang='sk'):
   tdata = {}
-  tdata['IL_NAZOV_SKOLY'] = u'Univerzita Komenského v Bratislave'
+  tdata['IL_NAZOV_SKOLY'] = _(u'Univerzita Komenského v Bratislave')
   tdata['IL_NAZOV_FAKULTY'] = filter_fakulta(infolist['fakulta'])
   tdata['IL_KOD_PREDMETU'] = infolist['skratka']
   tdata['IL_NAZOV_PREDMETU'] = infolist['nazov_predmetu']
@@ -381,10 +381,10 @@ def infolist_tdata(infolist, lang='sk'):
     if i > 0:
       odp_sem += u'\n'
     if semester == 'N' and rocnik is None:
-      odp_sem += u'not designated' if lang == 'en' else u'neurčený'
+      odp_sem += _(u'neurčený')
     else:
       if rocnik is not None:
-        odp_sem += u'{}. grade'.format(rocnik) if lang == 'en' else u'{}. ročník'.format(rocnik)
+        odp_sem += _(u'{}. ročník').format(rocnik)
       if rocnik is not None and semester != 'N':
         odp_sem += u', '
       if semester != 'N':
@@ -434,8 +434,8 @@ def infolist_tdata(infolist, lang='sk'):
       stupnica = podm_absol['percenta_na']
       podm_absol_text += _(u'Na získanie hodnotenia A je potrebné získať najmenej {}% bodov').format(stupnica['A'])
       for znamka in ['B', 'C', 'D', 'E']:
-        podm_absol_text += u' a ' if znamka == 'E' else u', '
-        podm_absol_text += _(u'na hodnotenie {} najmenej {}% bodov').format(znamka, stupnica[znamka])
+        podm_absol_text += _(u' a ') if znamka == 'E' else u', '
+        podm_absol_text += _(u'na hodnotenie {znamka} najmenej {percenta}% bodov').format(znamka=znamka, percenta=stupnica[znamka])
       podm_absol_text += u'.\n'
   podm_absol_text = podm_absol_text.rstrip()
 
