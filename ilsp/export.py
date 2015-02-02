@@ -350,7 +350,7 @@ class PrilohaUploadnutaVPChar(VPCharMixin, PrilohaUploadnutySubor):
 def infolist_tdata(infolist, lang='sk'):
   tdata = {}
   tdata['IL_NAZOV_SKOLY'] = _(u'Univerzita Komenského v Bratislave')
-  tdata['IL_NAZOV_FAKULTY'] = filter_fakulta(infolist['fakulta'])
+  tdata['IL_NAZOV_FAKULTY'] = filter_fakulta(infolist['fakulta'], lang=lang)
   tdata['IL_KOD_PREDMETU'] = infolist['skratka']
   tdata['IL_NAZOV_PREDMETU'] = infolist['nazov_predmetu']
 

@@ -16,6 +16,7 @@ class DataStore(InfolistDataStoreMixin, PredmetDataStoreMixin, StudprogDataStore
     self._druhy_cinnosti = None
     self._druhy_cinnosti_trans = None
     self._fakulty = None
+    self._fakulty_en = None
     self._jazyky_vyucby = None
     self._typy_bloku = [('A', u'A: povinné predmety'), ('B', u'B: povinne voliteľné predmety'), ('C', u'C: výberové predmety')]
     self._podmienka_class = podmienka_class
@@ -76,13 +77,21 @@ class DataStore(InfolistDataStoreMixin, PredmetDataStoreMixin, StudprogDataStore
         self._druhy_cinnosti_trans = cur.fetchall()
     return self._druhy_cinnosti_trans
 
-  def load_fakulty(self):
-    if self._fakulty == None:
-      with self.cursor() as cur:
-        cur.execute('''SELECT kod, nazov FROM organizacna_jednotka
-          WHERE nadriadena_kod = 'UK' AND typ = 'Fakul' ORDER BY nazov''')
-        self._fakulty = cur.fetchall()
-    return self._fakulty
+  def load_fakulty(self, lang='sk'):
+    if lang == 'en':
+      if self._fakulty_en == None:
+        with self.cursor() as cur:
+          cur.execute('''SELECT kod, nazov_en FROM organizacna_jednotka
+            WHERE nadriadena_kod = 'UK' AND typ = 'Fakul' ORDER BY nazov_en''')
+          self._fakulty_en = cur.fetchall()
+      return self._fakulty_en
+    else:
+      if self._fakulty == None:
+        with self.cursor() as cur:
+          cur.execute('''SELECT kod, nazov FROM organizacna_jednotka
+            WHERE nadriadena_kod = 'UK' AND typ = 'Fakul' ORDER BY nazov''')
+          self._fakulty = cur.fetchall()
+      return self._fakulty
 
   def search_literatura(self, query):
     if len(query.strip()) < 2:

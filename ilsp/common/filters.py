@@ -9,8 +9,8 @@ def kod2skratka(kod):
   return re.match(r'^[^/]+/(.+)/[^/]+$', kod).group(1)
 
 
-def filter_fakulta(search_kod):
-  for kod, nazov in g.db.load_fakulty():
+def filter_fakulta(search_kod, lang='sk'):
+  for kod, nazov in g.db.load_fakulty(lang=lang):
     if search_kod == kod:
       return nazov
   return None
