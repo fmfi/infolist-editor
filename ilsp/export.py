@@ -412,7 +412,7 @@ def infolist_tdata(infolist, lang='sk'):
   podm_predmety = unicode(infolist['podmienujuce_predmety'])
   if infolist['odporucane_predmety']:
     podm_predmety += u'\n\n' + \
-                     _('Odporúčané predmety (nie je nutné ich absolvovať pred zapísaním predmetu)') \
+                     _(u'Odporúčané predmety (nie je nutné ich absolvovať pred zapísaním predmetu)') \
                      + u':\n'
     podm_predmety += unicode(infolist['odporucane_predmety'])
   tdata['IL_PODMIENUJUCE_PREDMETY'] = podm_predmety

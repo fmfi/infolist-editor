@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2015-02-03 00:17+0100\n"
+"POT-Creation-Date: 2015-02-03 01:20+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -63,7 +63,7 @@ msgstr ""
 msgid "Na získanie hodnotenia A je potrebné získať najmenej {}% bodov"
 msgstr ""
 
-#: ilsp/export.py:437
+#: ilsp/export.py:437 ilsp/common/podmienka.py:205
 msgid " a "
 msgstr ""
 
@@ -89,5 +89,9 @@ msgstr ""
 
 #: ilsp/common/filters.py:37 ilsp/common/filters.py:38
 msgid "kombinovaná"
+msgstr ""
+
+#: ilsp/common/podmienka.py:203
+msgid " alebo "
 msgstr ""
 

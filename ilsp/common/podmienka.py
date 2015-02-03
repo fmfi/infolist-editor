@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from decimal import Decimal
 from flask import g
+from ilsp.common.translations import _, current_trans
 import re
 
 
@@ -160,12 +161,14 @@ class Podmienka(object):
         raise ValueError(u'Invalid token character: ' + c)
     return tokens
 
-  def _load_predmety(self):
+  def _load_predmety(self, lang='sk'):
     to_load = self.idset().difference(set(self._predmety))
     if not to_load:
       return self._predmety
     for p in to_load:
-      data = g.db.load_predmet_simple(p)
+      data = g.db.load_predmet_simple(p, lang=lang)
+      if data == None and lang != 'sk':
+        data = g.db.load_predmet_simple(p, lang='sk')
       if data == None:
         raise ValueError('Predmet {} neexistuje v databaze'.format(p))
       self._predmety[p] = data
@@ -173,8 +176,11 @@ class Podmienka(object):
 
   @property
   def tokens(self):
+    return self.load_tokens()
+
+  def load_tokens(self, lang='sk'):
     ret = []
-    pred = self._load_predmety()
+    pred = self._load_predmety(lang=lang)
     for tok in self._tokens:
       if tok in self.symbols:
         ret.append(tok)
@@ -191,12 +197,12 @@ class Podmienka(object):
 
   def __unicode__(self):
     ret = u''
-    for token in self.tokens:
+    for token in self.load_tokens(lang=current_trans.lang):
       if token in Podmienka.symbols:
         if token == 'OR':
-          ret += ' alebo '
+          ret += _(' alebo ')
         elif token == 'AND':
-          ret += ' a '
+          ret += _(' a ')
         else:
           ret += token
       else:

@@ -35,15 +35,14 @@ class NullTranslationContext(TranslationContextBase):
   def __init__(self):
     TranslationContextBase.__init__(self)
     self.translations = NullTranslations()
+    self.lang = 'sk'
 
 
 class TranslationContext(TranslationContextBase):
   def __init__(self, locale):
     TranslationContextBase.__init__(self)
+    self.lang = locale
     self.translations = support.Translations.load(os.path.join(current_app.root_path, 'translations'), [locale])
-    print locale
-    print os.path.join(current_app.root_path, 'translations')
-    print self.translations
 
 
 _translation_stack.push(NullTranslationContext())
@@ -51,14 +50,14 @@ _translation_stack.push(NullTranslationContext())
 def _get_context():
   v = _translation_stack.top
   if v is None:
-    return NullTranslations()
-  return v.translations
+    return NullTranslationContext()
+  return v
 
 current_trans = LocalProxy(_get_context)
 
 
 def _(msg):
-  v = current_trans.gettext(msg)
+  v = current_trans.translations.gettext(msg)
   if not isinstance(v, unicode):
     v = v.decode('utf-8')
   return v

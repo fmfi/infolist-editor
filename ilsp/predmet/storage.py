@@ -9,7 +9,7 @@ class PredmetDataStoreMixin(object):
       return None
     return predmety[0]
 
-  def _fetch_predmety_simple(self, where=None):
+  def _fetch_predmety_simple(self, where=None, lang='sk'):
     if where == None:
       where_cond = ''
       where_params = []
@@ -24,9 +24,9 @@ class PredmetDataStoreMixin(object):
           LEFT JOIN infolist i ON pi.infolist = i.id
           LEFT JOIN infolist_verzia iv ON i.posledna_verzia = iv.id
           LEFT JOIN infolist_verzia_preklad ivp ON iv.id = ivp.infolist_verzia
-          WHERE (ivp.jazyk_prekladu = 'sk' OR ivp.jazyk_prekladu IS NULL) {}
+          WHERE (ivp.jazyk_prekladu = %s OR ivp.jazyk_prekladu IS NULL) {}
           ORDER BY p.skratka, p.id, iv.finalna_verzia desc, ivp.nazov_predmetu'''.format(where_cond)
-      cur.execute(sql, where_params)
+      cur.execute(sql, [lang] + list(where_params))
       predmety = []
       for row in cur:
         if len(predmety) == 0 or predmety[-1]['id'] != row.id:
@@ -50,11 +50,11 @@ class PredmetDataStoreMixin(object):
       (u'%{}%'.format(query),u'%{}%'.format(query))
     ))
 
-  def load_predmet_simple(self, id):
+  def load_predmet_simple(self, id, lang='sk'):
     predmety =  self._fetch_predmety_simple(where=(
       'p.id = %s',
       (id,)
-    ))
+    ), lang=lang)
     if len(predmety) == 0:
       return None
     return predmety[0]
