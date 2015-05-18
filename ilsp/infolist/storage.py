@@ -268,7 +268,6 @@ class InfolistDataStoreMixin(object):
         'vysledky_vzdelavania': None,
         'strucna_osnova': None,
       }, chybajuci_jazyk))
-      done_lang.add(data.jazyk_prekladu)
     return trans
 
   def save_infolist(self, id, data, user=None, system_update=False):
