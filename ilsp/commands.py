@@ -254,7 +254,7 @@ def normalize_optional(line, *columns):
     return None
 
 class ImportOsoby(Command):
-  """Naimportuje osoby z AISoveho CSV suboru"""
+  """Naimportuje osoby z AISoveho CSV suboru (ak osoba s danym UOC existuje, urobi update)"""
 
   option_list = (
     Option('--nie-su-vyucujuci', action='store_false', dest='vyucujuci', help='Neoznacovat osoby ako vyucujucich'),
@@ -269,7 +269,7 @@ class ImportOsoby(Command):
         ais_id = normalize_val(line['ID'])
         meno = normalize_val(line['Meno'])
         priezvisko = normalize_val(line['Priezvisko'])
-        plne_meno = normalize_optional(line, u'Plné meno')
+        plne_meno = normalize_optional(line, u'Plné meno')
         login = normalize_optional(line, 'Login')
         rodne_priezvisko = normalize_optional(line, u'Rodné', u'Pôvodné')
         uoc = normalize_optional(line, u'UOČ')
@@ -288,12 +288,14 @@ class ImportOsoby(Command):
             if typ == 'UOC':
               uoc = ident
 
-        #print ais_id, uoc, meno, priezvisko, plne_meno, rodne_priezvisko
-        cursor.execute('SELECT 1 FROM osoba WHERE ais_id = %s', (ais_id,))
+        print ais_id, uoc, meno, priezvisko, plne_meno, rodne_priezvisko
+        cursor.execute('SELECT uoc FROM osoba WHERE uoc = %s', (uoc,))
         if cursor.fetchone():
-            continue
-        cursor.execute('INSERT INTO osoba (ais_id, uoc, meno, priezvisko, cele_meno, rodne_priezvisko, vyucujuci, login) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)',
-          (ais_id, uoc, meno, priezvisko, plne_meno, rodne_priezvisko, vyucujuci, login))
+          cursor.execute('UPDATE osoba SET ais_id=%s, meno=%s, priezvisko=%s, cele_meno=%s, rodne_priezvisko=%s, vyucujuci=%s, login=%s WHERE uoc = %s',
+                         (ais_id, meno, priezvisko, plne_meno, rodne_priezvisko, vyucujuci, login, uoc))
+        else:
+          cursor.execute('INSERT INTO osoba (ais_id, uoc, meno, priezvisko, cele_meno, rodne_priezvisko, vyucujuci, login) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)',
+                         (ais_id, uoc, meno, priezvisko, plne_meno, rodne_priezvisko, vyucujuci, login))
 
     db.commit()
 
