@@ -115,10 +115,15 @@ class Podmienka(object):
     if not tokens or tokens[0] == ')':
       return ret, ast
 
-    if tokens[0].upper() not in ['OR', 'AND']:
+    if tokens[0].upper() not in ['OR', 'AND', 'A', 'ALEBO']:
       raise ValueError('Expecting AND or OR')
 
     typ = tokens.pop(0).upper()
+    if typ == 'A':
+      typ = 'AND'
+    elif typ == 'ALEBO':
+      typ = 'OR'
+
     ret.append(typ)
     nodes = [ast]
 
