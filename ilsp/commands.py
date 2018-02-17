@@ -340,6 +340,8 @@ class ImportLiteraturaKniznica(Command):
       vyd_udaje = normalize_val(line[u'Vyd. údaje'])
       signatura = normalize_val(line[u'Signatúra'])
 
+      print "Citam zo suboru: ",bib_id
+
       t = (dokument, vyd_udaje)
 
       if bib_id in by_bibid:
@@ -358,6 +360,7 @@ class ImportLiteraturaKniznica(Command):
     with closing(db.cursor()) as cursor:
       for bib_id, (dokument, vyd_udaje) in by_bibid.iteritems():
         signatura = signatury[bib_id]
+        print "Zapisujem do databazy: ",bib_id
         cursor.execute('INSERT INTO literatura (bib_id, dokument, vyd_udaje, signatura, dostupne) VALUES (%s, %s, %s, %s, true)',
                        (bib_id, dokument, vyd_udaje, signatura))
     db.commit()
