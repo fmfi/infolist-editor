@@ -314,6 +314,7 @@ class ImportOsobyUvazky(Command):
         ais_id = normalize_optional(line, 'ID', u'ID osoby AIS')
 
         if uoc is not None:
+          cursor.execute('''DELETE FROM osoba_uvazok ou USING osoba o where ou.osoba=o.id and uoc=%s and pracovisko=%s''', (uoc,pracovisko))
           cursor.execute('''INSERT INTO osoba_uvazok (osoba, pracovisko, funkcia, kvalifikacia, uvazok)
             SELECT o.id, %s, %s, %s, %s FROM osoba o WHERE o.uoc = %s
             ''', (pracovisko, funkcia, kvalifikacia, uvazok, uoc))
